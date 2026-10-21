@@ -172,3 +172,14 @@ accepted ones. Supersede them with a new entry instead.
   - Colours stay as they were (light and dark sets); only sizes, spacing, radius and type changed.
 - **Consequences:** a new style value is a token or a step of the scale, never an ad-hoc number. Inline styles
   are still limited to user data (column widths, the menu position, the swipe clip).
+
+### ADR-018 Undo / redo in the Workbench: view steps on the server, one ordered list in the page
+- **Context:** users want to undo ticking, sorting, filters, a reference row… The view lives on the server
+  (`workbench_view`), the selection only in the page.
+- **Decision:** `/wb/view` pushes the previous view onto `workbench_undo` (max 100, a change clears
+  `workbench_redo`) and answers `X-Wb-History: <action>`; `/wb/history` swaps views between the stacks. The page keeps
+  one ordered list (sessionStorage) of selection steps (before / after) and view-step markers, so ⌘Z walks back
+  through both in the order they happened.
+- **Consequences:** files on disk are never undone here; that stays with plans (`undo_plan`). Saved decisions
+  (Apply / Save edits) are not in the history. A view change made from another tab is on the server stack but not
+  in this page's list, so the two can drift until the next reload of history; acceptable for a single-user tool.

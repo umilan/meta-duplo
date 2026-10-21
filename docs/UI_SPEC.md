@@ -248,6 +248,13 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   unticks the row and moves down; *⌘ / Ctrl + A* ticks every row of the view (Selection → All); *Esc* closes an open
   menu first, then leaves the cursor. Clicking a cell moves the cursor there;
   after a reload it returns to the same file. Keys typed in fields, menus and dialogs are left alone.
+- **Undo / redo:** *⌘ / Ctrl + Z* undoes, *⇧⌘Z / Ctrl + Shift + Z / Ctrl + Y* redoes; the ↶ ↷ buttons left of
+  *Selection* do the same (greyed when there is nothing). One ordered history covers selection changes (ticking,
+  presets, Shift+↑/↓; a burst within 250 ms is one step) and every view change: sorting, grouping, filters, search,
+  columns (add, remove, move, width, slim), edit rules and typed or applied values, the reference row, folders
+  shown, reset. A toast names what was undone. Up to 100 steps; a new change clears the redo steps; the history
+  survives page reloads in the same tab. Not in it: saving edits as decisions, plans (they have their own undo on the
+  plan page), adding or removing folders. In text fields ⌘Z stays the field's own undo.
 - **Scroll position:** reloading the table (sort, filter, column changes) keeps its sideways scroll position.
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere

@@ -173,3 +173,21 @@ def test_cell_actions_scope_overrides_and_reference(lib):
     groups, _, _ = wb.table(lib, view)
     g = _group_with(groups, "prague castle.jpg")
     assert g.ref["id"] == castle["id"] and next(r for r in g.rows if r["id"] == castle["id"])["user_ref"]
+
+
+def test_view_undo_redo(tmp_path):
+    lib = Library(tmp_path / "lib")
+    v0 = wb.load_view(lib)
+    v1 = {**v0, "sort": ["file_date", "asc"]}
+    wb.history_push(lib, v0, "sort"); wb.save_view(lib, v1)
+    v2 = {**v1, "group": "day"}
+    wb.history_push(lib, v1, "group"); wb.save_view(lib, v2)
+
+    r = wb.history_step(lib, "undo")
+    assert r == {"ok": True, "label": "grouping", "reload": True} and wb.load_view(lib)["group"] == v1["group"]
+    r = wb.history_step(lib, "undo")
+    assert r["label"] == "sorting" and not r["reload"] and wb.load_view(lib)["sort"] == v0["sort"]
+    assert wb.history_step(lib, "undo") is None  # nothing left
+    assert wb.history_step(lib, "redo")["label"] == "sorting" and wb.load_view(lib)["sort"] == ["file_date", "asc"]
+    wb.history_push(lib, wb.load_view(lib), "q")  # a new change ends the redo line
+    assert wb.history_step(lib, "redo") is None

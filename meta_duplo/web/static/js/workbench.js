@@ -14,8 +14,57 @@
       headers: { "X-Meta-Duplo-Token": token(), "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams(data),
     }).then((r) => {
+      if (r.headers.get("X-Wb-History")) undoHistory.view(r.headers.get("X-Wb-History"));
       if ((r.headers.get("HX-Trigger") || "").includes("wb-reload")) htmx.trigger(document.body, "wb-reload");
     });
+
+  // Undo / redo: one ordered history of selection steps (kept here) and view steps (sort, filters, columns, edit
+  // rules, reference row…; the views themselves are kept by the server, POST /wb/history). The list survives page
+  // reloads (sessionStorage); deleting files is never in it: that goes through plans, which have their own undo.
+  const toast = (value) => window.dispatchEvent(new CustomEvent("toast", { detail: { value } }));
+  const undoHistory = {
+    KEY: "meta-duplo-history", MAX: 100, undo: [], redo: [], snap: "", busy: false,
+    store() { return Alpine.store("wb"); },
+    selState() { const w = this.store(); return JSON.stringify({ ids: Object.keys(w.sel).sort(), preset: w.preset }); },
+    load() {
+      try { const h = JSON.parse(sessionStorage.getItem(this.KEY) || "null"); if (h) { this.undo = h.undo || []; this.redo = h.redo || []; } } catch { /* storage blocked */ }
+      this.snap = this.selState(); this.save();
+    },
+    save() {
+      try { sessionStorage.setItem(this.KEY, JSON.stringify({ undo: this.undo, redo: this.redo })); } catch { /* storage blocked */ }
+      this.store().undoN = this.undo.length; this.store().redoN = this.redo.length;
+    },
+    push(entry) { this.undo.push(entry); if (this.undo.length > this.MAX) this.undo.shift(); this.redo = []; this.save(); },
+    view(act) { this.push({ t: "view", act }); },
+    // called (debounced) whenever the selection changes: one step per burst (Shift+↓ held, a group checkbox…)
+    selChanged(now) { if (now !== this.snap) { this.push({ t: "sel", before: this.snap, after: now }); this.snap = now; } },
+    applySel(state) {
+      const s = JSON.parse(state), w = this.store();
+      this.snap = state;  // the watcher sees no change, so this is not recorded again
+      w.clear(); s.ids.forEach((id) => w.add(id)); w.preset = s.preset;
+    },
+    async step(dir) {
+      if (this.busy) return;
+      const from = dir === "undo" ? this.undo : this.redo, to = dir === "undo" ? this.redo : this.undo;
+      const done = dir === "undo" ? "Undone" : "Redone", e = from.pop();
+      if (!e) { toast(`Nothing to ${dir}`); return; }
+      if (e.t === "sel") {
+        this.applySel(dir === "undo" ? e.before : e.after); to.push(e); this.save(); toast(`${done}: selection`); return;
+      }
+      this.busy = true;
+      try {
+        const r = await fetch("/wb/history", { method: "POST", headers: { "X-Meta-Duplo-Token": token() },
+                                               body: new URLSearchParams({ direction: dir }) }).then((x) => x.json());
+        if (!r.ok) { this.save(); toast(`Nothing to ${dir}`); return; }  // the server's list was shorter (another tab)
+        to.push(e); this.save(); toast(`${done}: ${r.label}`);
+        if (r.reload) location.reload(); else htmx.trigger(document.body, "wb-reload");
+      } finally { this.busy = false; }
+    },
+  };
+  document.addEventListener("htmx:afterRequest", (e) => {  // view changes sent by htmx forms (filter, edit rule…)
+    const act = e.detail.xhr && e.detail.xhr.getResponseHeader("X-Wb-History");
+    if (act) undoHistory.view(act);
+  });
 
   // Hover: tint the row (CSS), the column (classes set here) and the cell, in the body and the header;
   // one ⋯ button follows the pointer over data cells (not the checkbox, grouping or thumbnail columns).
@@ -121,6 +170,10 @@
   const typing = (el) => el && (el.closest("input, select, textarea, [contenteditable], .modal") !== null);
   document.addEventListener("keydown", (e) => {
     if (!document.querySelector("#wb-table .wbt") || typing(e.target)) return;
+    const k = e.key.toLowerCase();
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && (k === "z" || (k === "y" && e.ctrlKey))) {  // ⌘Z undo, ⇧⌘Z / Ctrl+Y redo
+      e.preventDefault(); undoHistory.step(e.shiftKey || k === "y" ? "redo" : "undo"); return;
+    }
     if (e.key === "Escape" && Alpine.store("wb").lightbox) { Alpine.store("wb").lightbox = false; return; }
     if (Alpine.store("wb").lightbox) {  // zoom keys of the large viewer (+ − 0 1 W H)
       const lb = document.querySelector(".lightbox");
@@ -305,6 +358,8 @@
       expanded: true,        // groups open; new pages of groups follow it
       expandAll(on) { this.expanded = on; window.dispatchEvent(new CustomEvent("wb-fold", { detail: on })); },
       preset: "none",        // selection picker: none | all | custom | dup_newer | dup_older | dup_lessmeta
+      undoN: 0, redoN: 0,    // steps in the undo / redo history (buttons)
+      step(dir) { undoHistory.step(dir); },
       has(id) { return this.sel[id] === true; },
       add(id) { if (!this.sel[id]) { this.sel[id] = true; this.count++; } },
       remove(id) { if (this.sel[id]) { delete this.sel[id]; this.count--; } },
@@ -322,6 +377,12 @@
       },
       applyPreset(p) { return p === "none" ? this.clear() : p === "custom" ? null : this.load(p); },
       selectAll(on) { return on ? this.load("all") : this.clear(); },  // header checkbox
+    });
+    undoHistory.load();
+    let selTimer = null;
+    Alpine.effect(() => {  // re-runs on every selection change; reading the keys tracks them
+      const now = undoHistory.selState();
+      clearTimeout(selTimer); selTimer = setTimeout(() => undoHistory.selChanged(now), 250);
     });
 
     Alpine.data("wbPage", () => ({

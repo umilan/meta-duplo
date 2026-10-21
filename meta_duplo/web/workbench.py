@@ -159,6 +159,51 @@ def save_view(lib: Library, view: dict) -> None:
     lib.set_setting("workbench_view", json.dumps(view))
 
 
+# ───────────────────────── undo / redo of view changes ─────────────────────────
+# Two stacks of earlier views in the library settings; only the view (what the table shows and the edit
+# rules) is undoable here. Files on disk change only through plans, which have their own undo.
+
+HISTORY_MAX = 100
+HISTORY_LABELS = {"sort": "sorting", "group": "grouping", "filter_add": "filter", "filter_remove": "filter",
+                  "q": "search", "colors": "colours", "source_toggle": "folders shown", "reset": "reset",
+                  "col_add": "columns", "col_remove": "columns", "cols_set": "columns", "cols_order": "columns",
+                  "col_move": "column order", "col_slim": "column width", "col_width": "column width",
+                  "edit_set": "edit rule", "edit_clear": "edit rule", "edit_remove": "edit column",
+                  "cell_set": "edited value", "cell_apply": "applied value", "cell_filter": "filter",
+                  "cell_ref": "reference row"}
+_RELOAD_KEYS = ("group", "q", "sources_off", "colors")  # rendered outside the table: the page reloads for these
+
+
+def _stack(lib: Library, name: str) -> list:
+    try:
+        return json.loads(lib.setting(f"workbench_{name}") or "[]")
+    except ValueError:
+        return []
+
+
+def history_push(lib: Library, previous: dict, act: str) -> bool:
+    undo = (_stack(lib, "undo") + [{"view": previous, "act": act}])[-HISTORY_MAX:]
+    lib.set_setting("workbench_undo", json.dumps(undo))
+    lib.set_setting("workbench_redo", "[]")  # a new change ends the redo line
+    return True
+
+
+def history_step(lib: Library, direction: str) -> dict | None:
+    """Swap the current view with the top of the undo (or redo) stack; None when there is nothing."""
+    src, dst = ("undo", "redo") if direction == "undo" else ("redo", "undo")
+    stack = _stack(lib, src)
+    if not stack:
+        return None
+    entry, current = stack.pop(), load_view(lib)
+    target = load_view_from(entry["view"])
+    other = (_stack(lib, dst) + [{"view": current, "act": entry["act"]}])[-HISTORY_MAX:]
+    lib.set_setting(f"workbench_{src}", json.dumps(stack))
+    lib.set_setting(f"workbench_{dst}", json.dumps(other))
+    save_view(lib, target)
+    return {"ok": True, "label": HISTORY_LABELS.get(entry["act"], "change"),
+            "reload": any(current.get(k) != target.get(k) for k in _RELOAD_KEYS)}
+
+
 def field_for(key: str, exif_keys: set[str] | None = None) -> Field | None:
     if key in CORE_BY_KEY:
         return CORE_BY_KEY[key]

@@ -521,6 +521,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         form = await request.form()
         f = {k: str(v) for k, v in form.items()}
         view = wb.load_view(lib)
+        before = json.dumps(view)  # for undo
         act = f.get("action", "")
         cols = view["columns"]
         keys = [c[0] for c in cols]
@@ -641,7 +642,16 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         elif act == "reset":
             view = {**json.loads(json.dumps(wb.DEFAULT_VIEW)), "colors": view.get("colors", True)}  # colours: appearance
         wb.save_view(lib, view)
-        return Response(status_code=204, headers={"HX-Trigger": "wb-reload"} if reload else {})
+        headers = {"HX-Trigger": "wb-reload"} if reload else {}
+        if json.dumps(view) != before and wb.history_push(lib, json.loads(before), act):
+            headers["X-Wb-History"] = act  # the page records one view step in its undo history
+        return Response(status_code=204, headers=headers)
+
+    @app.post("/wb/history")
+    def wb_history(direction: str = Form(...)):
+        """Undo / redo one view change (the page keeps the order with its selection steps)."""
+        r = wb.history_step(lib, direction)
+        return r or {"ok": False}
 
     # Data input: manage folders without leaving the Workbench. Each change rescans and reloads the page.
     def _rescan() -> None:
