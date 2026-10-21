@@ -39,7 +39,7 @@ CORE = [
     Field("filename", "Filename", "File", editable="filename", width=192),
     Field("dup_count", "Dup.", "Duplicates", "num", width=72),
     Field("dup_conf", "Dup. confidence", "Duplicates", "num", width=152),
-    Field("checks", "Meta checks", "Duplicates", "special", width=152),
+    Field("checks", "Meta checks", "Duplicates", "special", width=240),
     Field("date", "Date taken", "Dates", "date", editable="date", width=160),
     Field("digitized", "Date digitized", "Dates", "date", width=160),
     Field("modify", "Date modified (EXIF)", "Dates", "date", width=160),
@@ -86,7 +86,7 @@ SINGLES = "__singles__"  # group key of files without duplicates
 DEFAULT_VIEW = {
     "v": VIEW_VERSION,
     "columns": [["thumb", 48], ["path", 248], ["filename", 192], ["dup_count", 64], ["dup_conf", 144],
-                ["checks", 152], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 112],
+                ["checks", 240], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 112],
                 ["device", 152], ["author", 128]],
     "edits": {},              # purple edit columns appear only after "Edit…" in a header's Actions sheet
     "filters": [DUP_FILTER],
@@ -176,6 +176,22 @@ def exif_category(tag: str) -> str:
     if name == "iso":
         return "Capture settings"
     return next((cat for cat, words in TAG_CATEGORIES if any(w in name for w in words)), "Other")
+
+
+# Meta checks: one badge per kind of metadata, compared with the group's reference row. The number on a badge is how
+# many metadata tags of that kind the file carries (from the camera / app, not the file system or our guesses).
+CHECKS = {"date": ("date", "Dates"), "place": ("loc", "Location"), "device": ("dvc", "Device"), "author": ("aut", "Author")}
+
+
+def meta_counts(tags: dict) -> dict[str, int]:
+    """Non-empty metadata tags per check, sorted into the column-picker categories."""
+    by_cat = {cat: t for t, (_, cat) in CHECKS.items()}
+    out = dict.fromkeys(CHECKS, 0)
+    for k, val in tags.items():
+        t = by_cat.get(exif_category(k))
+        if t and val not in ("", None):
+            out[t] += 1
+    return out
 
 
 def column_rank(key: str) -> tuple:
@@ -308,7 +324,7 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
             "original_name": f["original_name"] or f["name"], "ext_raw": f["ext"] or "",
             "writable": bool(f["writable"]) and f["source_role"] != "reference",
             "effective": effective.get(f["capture_id"], {}) if f["capture_id"] is not None else {},
-            "v": v, "tags": tags, "pattern": pattern,
+            "v": v, "tags": tags, "pattern": pattern, "meta_counts": meta_counts(tags),
         })
     return rows, sorted(exif_keys, key=_exif_rank)
 
@@ -458,7 +474,7 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
             r["path_parts"] = _path_diff(r["v"]["path"], ref["v"]["path"], r is ref or len(rs) == 1)
             # per field: True same as the reference row, False differs, None when neither has a value
             r["checks"] = {t: None if not r["v"][t] and not ref["v"][t] else str(r["v"][t]) == str(ref["v"][t])
-                           for t in ("date", "place", "device")}
+                           for t in CHECKS}
         label = {"dups": ref["v"]["filename"], "capture": ref["v"]["filename"], "none": "All files"}.get(by, str(gk))
         if unrelated:
             label = "No duplicates"

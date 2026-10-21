@@ -40,7 +40,7 @@
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}>{{ conf_label(r) }}</td>
     {% elif c.key == 'checks' and singles %}<td{{ " data-sorted" if c.key == sc }} class="muted">–</td>
     {% elif c.key == 'checks' %}
-      <td{{ " data-sorted" if c.key == sc }}><div class="checks">{% for t, ok in r.checks.items() %}<span class="check {{ 'check--na' if ok is none else ('check--ok' if ok else 'check--no') }}" title="{{ {'date': 'Date', 'place': 'Place', 'device': 'Device'}[t] }}: {{ 'no value here or in the reference row' if ok is none else ('same as' if ok else 'differs from') ~ ' the reference row' }}">{{ {'date': 'date', 'place': 'loc', 'device': 'device'}[t] }}</span>{% endfor %}</div></td>
+      <td{{ " data-sorted" if c.key == sc }}><div class="checks">{% for t, ok in r.checks.items() %}{% set n = r.meta_counts[t] %}<span class="check {{ 'check--na' if ok is none else ('check--ok' if ok else 'check--no') }}" title="{{ checks_meta[t][1] }}: {{ n }} tag{{ '' if n == 1 else 's' }} in this file; {{ 'no value here or in the reference row' if ok is none else ('same as' if ok else 'differs from') ~ ' the reference row' }}"><span class="check__name">{{ checks_meta[t][0] }}</span> <span class="check__n">{{ n }}</span></span>{% endfor %}</div></td>
     {% elif c.edit %}
       {% set ev = value(r, c.key) %}{% set base = r.v.get(c.target, '') %}
       <td{{ " data-sorted" if c.key == sc }} class="wbt__edit {{ 'wbt__edit--same' if ev == base }}" title="{{ ev }}">{% if not ev %}<span class="muted" title="Not enough data (e.g. no date)">—</span>{% elif ev == base %}= {{ ev }}{% else %}→ {{ ev }}{% endif %}</td>

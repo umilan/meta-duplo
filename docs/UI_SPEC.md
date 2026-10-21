@@ -215,10 +215,12 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name
   is in the tooltip.
 - **Group row summaries:** *Same*, *Diff*, or *N/A* (grey) when no row of the group has a value in that column.
-  *Meta checks* summarise the same way: *Diff* if any date / loc / device badge differs, *N/A* if no row has any of them.
-- **Meta check badges** have three states: green (same as the reference row), red (differs), grey dashed (no value
-  here or in the reference row). Below 128 px of column width they drop the text and become three filled squares;
-  the tooltip names each one.
+  *Meta checks* summarise the same way: *Diff* if any date / loc / dvc / aut badge differs, *N/A* if no row has any of them.
+- **Meta check badges**: *date (n)*, *loc (n)*, *dvc (n)*, *aut (n)* — one per kind of metadata, compared with the
+  group's reference row: green (same), red (differs), grey dashed (no value here or in the reference row). *n* is how
+  many metadata tags of that kind the file carries (EXIF / QuickTime tags sorted like the column picker; file-system
+  dates and our recommendations do not count). Below 208 px of column width only the numbers stay; the tooltip names
+  each badge.
 - **Sorted column:** its header label and its cells are bold; cells keep their red / green. Group rows are
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light blue; the row shown in the preview is a darker blue. Clicking a row or

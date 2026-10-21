@@ -120,3 +120,9 @@ def test_columns_follow_the_picker_order():
     shuffled.sort(key=lambda c: wb.column_rank(c[0]))
     assert [c[0] for c in shuffled] == ["path", "dup_count", "date", "edit:date", "author"]
     assert list(wb.catalog([]))[:3] == ["File", "Duplicates", "Dates"]
+
+
+def test_meta_check_counts():
+    tags = {"ExifIFD:DateTimeOriginal": "2019:05:18 11:47:10", "IFD0:DateTime": "x", "GPS:GPSLatitude": "48",
+            "IFD0:Make": "Apple", "IFD0:Model": "iPhone", "IFD0:Artist": "A", "IFD0:Orientation": "1", "IFD0:Copyright": ""}
+    assert wb.meta_counts(tags) == {"date": 2, "place": 1, "device": 2, "author": 1}
