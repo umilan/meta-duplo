@@ -18,7 +18,7 @@
       <col class="wbt__c-add">
     </colgroup>
     <thead><tr>
-      <th class="wbt__check" x-init="$store.wb.total = {{ nrows }}"><input type="checkbox" aria-label="Select all rows in the table"
+      <th class="wbt__check" x-init='$store.wb.total = {{ nrows }}; $store.wb.cols = {{ view.columns|map("first")|list|tojson }}'><input type="checkbox" aria-label="Select all rows in the table"
           :checked="$store.wb.all" x-effect="$el.indeterminate = $store.wb.count > 0 && !$store.wb.all" @change="$store.wb.selectAll($event.target.checked)"></th>
       {% if tree %}
       <th class="wbh-cell wbh-cell--tree" x-data="wbHead('__group', '')">

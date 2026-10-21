@@ -155,19 +155,26 @@
     </form>
 
     <div class="modal__box modal__box--wide" x-show="dialog === 'addcol'">
-      <h3>Add column</h3>
+      <div class="colpick-head">
+        <h3>Columns</h3>
+        <span class="small muted" x-text="$store.wb.cols.length + ' shown'"></span>
+      </div>
       <input type="search" placeholder="Search fields (e.g. Date, GPS, Artist, Lens)" x-model="colQuery" aria-label="Search fields">
       <div class="colcat">
         {% for g, fields in catalog.items() %}
-        <div class="colcat__group"><div class="colcat__title">{{ g }}</div>
+        <fieldset class="colcat__group" x-show="!colQuery || {{ fields|map(attribute='label')|map('lower')|list|tojson|forceescape }}.some(l => l.includes(colQuery.toLowerCase()))">
+          <legend class="colcat__title">{{ g }}</legend>
           {% for fl in fields %}
-          <button type="button" class="colcat__item" x-show="!colQuery || '{{ fl.label|lower }}'.includes(colQuery.toLowerCase())"
-                  @click="post({ action: 'col_add', key: '{{ fl.key }}' }); close()" {{ 'disabled' if fl.key in view.columns|map('first')|list }}>{{ fl.label }}</button>
+          <label class="colcat__item" x-show="!colQuery || '{{ fl.label|lower }}'.includes(colQuery.toLowerCase())">
+            <input type="checkbox" :checked="$store.wb.cols.includes('{{ fl.key }}')"
+                   @change="post({ action: $event.target.checked ? 'col_add' : 'col_remove', key: '{{ fl.key }}' })">
+            <span>{{ fl.label }}</span>
+          </label>
           {% endfor %}
-        </div>
+        </fieldset>
         {% endfor %}
       </div>
-      <div class="modal__actions"><button type="button" class="btn" @click="close()">Close</button></div>
+      <div class="modal__actions"><button type="button" class="btn btn--primary" @click="close()">Done</button></div>
     </div>
   </div>
 </div>
