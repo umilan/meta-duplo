@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}1 · Identical files{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>1 · Identical files</h1>
+    <p>Byte-for-byte copies (100 %). The copy to keep is chosen by rules: protected folder, original over re-encoded, camera folder over backups and exports. Others go to <code>_duplicates/</code> in the same source, and the move can be undone.</p>
+  </div>
+  {% if status == 'open' and groups %}
+  <button class="btn btn--primary" hx-post="/plans/cleanup" hx-vals='{"step": 1, "all_open": "1"}'>Review plan for all {{ counts.step1 }} groups ({{ counts.step1_bytes|size }})…</button>
+  {% endif %}
+</div>
+{% include "partials/status_tabs.html" %}
+{% with empty = 'No identical files. Run a scan from Sources, or look at near duplicates.' %}{% include "partials/group_list.html" %}{% endwith %}
+{% endblock %}

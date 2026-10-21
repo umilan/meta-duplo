@@ -1,0 +1,5 @@
+<nav class="tabs" aria-label="Status">
+  {% for s, label in [('open', 'Open'), ('resolved', 'Resolved'), ('not_duplicate', 'Not duplicates'), ('ignored', 'Ignored')] %}
+  <a class="tabs__tab {{ 'tabs__tab--active' if status == s }}" href="?{{ 'tab=' ~ tab ~ '&' if step == 2 }}status={{ s }}">{{ label }}</a>
+  {% endfor %}
+</nav>

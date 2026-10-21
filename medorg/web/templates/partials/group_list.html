@@ -1,0 +1,7 @@
+{% if groups %}
+<div class="grid-cards">
+  {% for g in groups %}{% include "partials/group_card.html" %}{% endfor %}
+</div>
+{% else %}
+<div class="empty">{{ empty or 'Nothing here.' }}</div>
+{% endif %}

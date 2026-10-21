@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Plan #{{ plan.id }}{% endblock %}
+{% block content %}
+{% set s = plan.summary %}
+<div class="page-head">
+  <div>
+    <h1>Plan #{{ plan.id }}: {{ 'Clean up duplicates' if plan.kind == 'cleanup' else 'Rename + annotate' }}</h1>
+    <p>
+      Paths are relative to <code>{{ roots|join(', ') }}</code>.
+      {% if plan.kind == 'cleanup' %}Moves {{ s.files }} files ({{ s.bytes|size }}) to <code>_duplicates/</code>, with their sidecars. Each copy is re-checked right before it moves; identical copies are compared byte by byte with the kept file.
+      {% else %}{{ s.renames }} renames, {{ s.sidecars }} XMP sidecars, {{ s.mtimes }} file dates. Rule: <code>{{ s.pattern }}</code>{% endif %}
+    </p>
+    {% if s.blocked %}<p class="error-banner">{{ s.blocked_count or s.blocked|length }} items skipped: {{ s.blocked[0][1] }}. Mark the source writable on the Sources page to include them.</p>{% endif %}
+  </div>
+  <div class="toolbar">
+    <span class="chip">{{ plan.status }}</span>
+    {% if plan.status == 'draft' %}
+      <button class="btn btn--primary" hx-post="/plans/{{ plan.id }}/apply" hx-confirm="Apply {{ actions|length }} actions to your files?" {{ 'disabled' if not actions }}>Apply plan</button>
+      <button class="btn" hx-post="/plans/{{ plan.id }}/discard">Discard</button>
+    {% elif plan.status in ('applied', 'partially_applied') %}
+      <button class="btn btn--danger" hx-post="/plans/{{ plan.id }}/undo" hx-confirm="Undo every action of this plan?">Undo plan</button>
+    {% endif %}
+  </div>
+</div>
+<table>
+  <thead><tr><th>Action</th><th>Before</th><th></th><th>After</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for a in actions %}
+  <tr>
+    <td class="op">{{ a.op }}</td>
+    <td class="path">{{ a.src or '' }}</td>
+    <td class="diff-arrow">→</td>
+    <td class="path">{{ a.dst }}</td>
+    <td><span class="chip">{{ a.status }}</span>{% if a.error %} <span class="small error-banner">{{ a.error }}</span>{% endif %}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="muted">Nothing to do.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

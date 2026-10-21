@@ -1,0 +1,7 @@
+<ul class="preview-list" aria-label="Preview">
+  {% for p in preview %}
+  <li><span class="muted">{{ p.old }}</span> <span class="diff-arrow">→</span> {{ p.new }}{% if p.status == 'no_date' %} <span class="chip">no date: unchanged</span>{% elif p.status == 'renumbered' %} <span class="chip">renumbered</span>{% endif %}</li>
+  {% else %}<li class="muted">Preview appears after a scan.</li>
+  {% endfor %}
+</ul>
+{% if saved %}<p class="small">Rule saved.</p>{% endif %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Sources{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Sources</h1>
+    <p>Folders to scan. Sources are read-only unless you mark them writable; even then, files only move or get renamed through a plan you approve, and every plan can be undone.</p>
+  </div>
+  <button class="btn btn--primary" hx-post="/scan" hx-target="#job" {{ 'disabled' if not sources }}>Scan all sources</button>
+</div>
+
+<div class="stats">
+  <a class="stat" href="/step/1"><div class="stat__label">1 · Identical files</div><div class="stat__value">{{ counts.step1 }}</div><div class="stat__hint">groups · {{ counts.step1_bytes|size }} to reclaim</div></a>
+  <a class="stat" href="/step/2"><div class="stat__label">2 · Near duplicates</div><div class="stat__value">{{ counts.step2 }}</div><div class="stat__hint">groups · {{ counts.bursts }} similar-shot groups</div></a>
+  <a class="stat" href="/step/3"><div class="stat__label">3 · Harmonize &amp; rename</div><div class="stat__value">{{ counts.step3 }}</div><div class="stat__hint">of {{ counts.captures }} captures need a decision</div></a>
+  <a class="stat" href="/step/4"><div class="stat__label">4 · Re-check</div><div class="stat__value">{{ counts.step4 }}</div><div class="stat__hint">potential duplicate groups</div></a>
+</div>
+
+{% if sources %}
+<table>
+  <thead><tr><th>Folder</th><th>Files</th><th>Size</th><th>Role</th><th>Writes</th></tr></thead>
+  <tbody>
+  {% for s in sources %}
+    <tr>
+      <td class="path">{{ s.root }}</td>
+      <td>{{ s.n }}</td>
+      <td class="nowrap">{{ s.bytes|size }}</td>
+      <td><button class="btn btn--small" hx-post="/sources/{{ s.id }}/role" title="Reference folders are always kept and never changed">{{ 'Reference (protected)' if s.role == 'reference' else 'Scan' }}</button></td>
+      <td><button class="btn btn--small" hx-post="/sources/{{ s.id }}/writable">{{ 'Writable' if s.writable else 'Read-only' }}</button></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty">No sources yet. Add a folder below, or run <code>medorg demo</code> for a sample disk.</div>
+{% endif %}
+
+<h2>Add a folder</h2>
+<form class="toolbar" hx-post="/sources" hx-target="#add-error">
+  <input type="text" name="path" placeholder="/Volumes/Photos 2TB/Pictures" size="50" required aria-label="Folder path">
+  <label><input type="checkbox" name="writable"> Allow approved plans to move and rename files here</label>
+  <button class="btn">Add</button>
+  <div id="add-error"></div>
+</form>
+{% if not geo_ok %}<p class="small muted">Place names need the offline gazetteer: <code>uv sync --extra geo</code>.</p>{% endif %}
+
+<h2>How it works</h2>
+<ol class="steps">
+  <li><strong>1 · Identical files.</strong> Byte-identical copies are found by size, then a partial hash, then a full hash. Keep one; move the rest to a holding folder.</li>
+  <li><strong>2 · Near duplicates.</strong> Same picture with a different name or metadata: re-saved, resized, messenger copies, metadata edits. Bursts are shown separately and never removed automatically.</li>
+  <li><strong>3 · Harmonize &amp; rename.</strong> One date, place and device per photo, recommended from every copy (including removed ones). You accept, edit or reject; then files get names from your pattern.</li>
+  <li><strong>4 · Re-check.</strong> With harmonized metadata, matches that were invisible before show up. Sort and filter the list, then decide.</li>
+</ol>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% for c in caps %}
+<tr id="cap-{{ c.id }}">
+  <td class="harmonize__thumb"><img src="/thumb/{{ c.thumb }}" alt="" loading="lazy"></td>
+  <td class="small">
+    {% for m in c.members %}<div class="{{ 'muted' if m.removed }}">{{ m.name }}{% if m.removed %} <span class="chip">removed, used as evidence</span>{% endif %}</div>{% endfor %}
+  </td>
+  {% for field in ['capture_time', 'location_name', 'device_name'] %}
+  {% set p = c.props.get(field) %}
+  <td>
+    {% if p %}
+    <div class="field field--{{ p.status }}" x-data="{ editing: false }">
+      {% set changed = p.value != p.current %}
+      <span class="field__current {{ 'field__current--changed' if changed and p.status in ('accepted', 'edited') }}">now: {{ p.current or '—' }}</span>
+      {% if not p.value and not p.current %}
+        <span class="field__value field__value--empty">nothing found</span>
+      {% elif changed %}
+        <span class="field__value {{ 'field__value--empty' if not p.value }}">{{ p.value or 'nothing found' }}</span>
+      {% else %}
+        <span class="field__value">{{ '✓ already correct' if p.status != 'suggested' else 'keep as is?' }}</span>
+      {% endif %}
+      <span><span class="badge badge--{{ p.confidence|band }}">{{ p.confidence|pct }}</span> {% if p.status != 'suggested' %}<span class="chip">{{ p.status }}</span>{% endif %}</span>
+      <span class="field__why">{{ p.explanation }}</span>
+      <div class="field__actions" x-show="!editing">
+        {% if changed and p.value and p.status == 'suggested' %}
+        <button class="btn btn--small" hx-post="/proposals/{{ c.id }}/{{ field }}" hx-vals='{"action": "accept"}' hx-target="#cap-{{ c.id }}" hx-swap="outerHTML">Accept</button>
+        <button class="btn btn--small" hx-post="/proposals/{{ c.id }}/{{ field }}" hx-vals='{"action": "reject"}' hx-target="#cap-{{ c.id }}" hx-swap="outerHTML">Keep current</button>
+        {% elif not changed and p.value and p.status == 'suggested' %}
+        <button class="btn btn--small" hx-post="/proposals/{{ c.id }}/{{ field }}" hx-vals='{"action": "accept"}' hx-target="#cap-{{ c.id }}" hx-swap="outerHTML">Confirm</button>
+        {% elif p.status != 'suggested' and changed %}
+        <button class="btn btn--small" hx-post="/proposals/{{ c.id }}/{{ field }}" hx-vals='{"action": "reset"}' hx-target="#cap-{{ c.id }}" hx-swap="outerHTML">Undo</button>
+        {% endif %}
+        <button class="btn btn--small" @click="editing = true">Edit</button>
+      </div>
+      <form class="field__edit" x-show="editing" x-cloak hx-post="/proposals/{{ c.id }}/{{ field }}" hx-target="#cap-{{ c.id }}" hx-swap="outerHTML">
+        <input type="hidden" name="action" value="edit">
+        <input type="text" name="value" value="{{ p.value or p.current }}" aria-label="{{ field_labels[field] }}" {% if field == 'capture_time' %}pattern="\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" placeholder="YYYY-MM-DD HH:MM:SS"{% endif %}>
+        <button class="btn btn--small">Save</button>
+        <button class="btn btn--small" type="button" @click="editing = false">Cancel</button>
+      </form>
+    </div>
+    {% endif %}
+  </td>
+  {% endfor %}
+  <td class="newname">{% if c.name %}{{ c.name.new }}{% if c.name.status == 'no_date' %}<br><span class="chip">no date: unchanged</span>{% endif %}{% endif %}</td>
+</tr>
+{% endfor %}
+{% if caps|length >= 100 and not single %}
+<tr hx-get="/step/3/more?only={{ only }}&after={{ caps[-1].id }}" hx-trigger="revealed" hx-swap="outerHTML"><td colspan="6" class="muted">Loading more…</td></tr>
+{% endif %}

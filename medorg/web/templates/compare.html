@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Compare{% endblock %}
+{% block content %}
+{% if g %}
+<div class="page-head">
+  <div><h1>Compare group #{{ g.id }}</h1><p>Drag the slider to swipe between the kept copy and another member.</p></div>
+  <a class="btn" href="javascript:history.back()">Back</a>
+</div>
+{% set keeper = g.members[0] %}
+{% if g.members|length > 1 and keeper.kind == 'image' %}
+<div x-data="{ pos: 50, other: {{ g.members[1].id }} }" class="panel">
+  <div class="toolbar">
+    <label>Compare the kept copy with
+      <select x-model="other">
+        {% for m in g.members[1:] %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}
+      </select>
+    </label>
+  </div>
+  <div class="swipe">
+    <img src="/media/{{ keeper.id }}" alt="{{ keeper.name }}">
+    <div class="swipe__top" :style="`clip-path: inset(0 0 0 ${pos}%)`">
+      <img :src="`/media/${other}`" alt="Other copy">
+    </div>
+  </div>
+  <input class="swipe-range" type="range" min="0" max="100" x-model="pos" aria-label="Swipe position">
+</div>
+{% endif %}
+<h2>Metadata</h2>
+<table>
+  <thead><tr><th></th>{% for m in g.members %}<th>{{ '✓ ' if m.role == 'keeper' }}{{ m.name }}</th>{% endfor %}</tr></thead>
+  <tbody>
+    {% for label, key in [('Path', 'rel_path'), ('Date', 'dto'), ('Date from', 'dto_source'), ('Device', 'device'), ('Place', 'place'), ('Software', 'software'), ('Width', 'width'), ('Height', 'height')] %}
+    <tr><th>{{ label }}</th>{% for m in g.members %}<td class="path">{{ m[key] if m[key] is not none else '—' }}</td>{% endfor %}</tr>
+    {% endfor %}
+    <tr><th>Size</th>{% for m in g.members %}<td>{{ m.size|size }}</td>{% endfor %}</tr>
+  </tbody>
+</table>
+{% else %}<div class="empty">Group not found.</div>{% endif %}
+{% endblock %}

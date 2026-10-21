@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Plans & undo{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Plans &amp; undo</h1><p>Every change to your files is a plan: reviewed as a dry run, applied with a journal, undoable later.</p></div></div>
+{% if plans %}
+<table>
+  <thead><tr><th>#</th><th>Kind</th><th>Status</th><th>Summary</th><th>Created</th><th>Applied</th></tr></thead>
+  <tbody>
+  {% for p in plans %}
+  <tr>
+    <td><a href="/plans/{{ p.id }}">#{{ p.id }}</a></td>
+    <td>{{ 'Clean up duplicates' if p.kind == 'cleanup' else 'Rename + annotate' }}</td>
+    <td><span class="chip">{{ p.status }}</span></td>
+    <td class="small">{% if p.kind == 'cleanup' %}{{ p.summary.files }} files · {{ p.summary.bytes|size }}{% else %}{{ p.summary.renames }} renames · {{ p.summary.sidecars }} sidecars{% endif %}</td>
+    <td class="small muted">{{ p.created_at }}</td>
+    <td class="small muted">{{ p.applied_at or '' }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<div class="empty">No plans yet.</div>{% endif %}
+{% endblock %}

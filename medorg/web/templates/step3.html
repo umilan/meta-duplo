@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}3 · Harmonize & rename{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>3 · Harmonize &amp; rename</h1>
+    <p>One date, place and device per photo. Each recommendation pools every copy found in steps 1–2, including copies you already removed, and says where it came from. Nothing changes on disk until you approve a rename plan.</p>
+  </div>
+  <button class="btn" hx-post="/harmonize" hx-target="#job">{{ 'Rebuild' if counts.captures else 'Build' }} recommendations</button>
+</div>
+
+<section class="panel pattern" aria-labelledby="pattern-h">
+  <h3 id="pattern-h">File name rule</h3>
+  <form class="pattern" hx-post="/settings/pattern" hx-target="#name-preview" hx-trigger="input changed delay:300ms from:#pattern-input, submit">
+    <input type="text" id="pattern-input" name="pattern" value="{{ pattern }}" aria-label="File name pattern" spellcheck="false">
+    <div class="toolbar">
+      {% for tok, help in tokens.items() %}<span class="chip" title="{{ help }}">{{ tok }}</span>{% endfor %}
+      <button class="btn btn--small" name="save" value="1">Save rule</button>
+    </div>
+  </form>
+  <div id="name-preview">{% include "partials/name_preview.html" %}</div>
+  <p class="small muted">Empty parts are dropped: no place gives <code>(Apple iPhone 12)</code>, not <code>( , Apple iPhone 12)</code>. Files with no date keep their name. Names that would collide get <code>(2)</code>.</p>
+</section>
+
+{% if counts.captures %}
+<h2>Recommendations</h2>
+<div class="toolbar">
+  <nav class="tabs" aria-label="Filter">
+    <a class="tabs__tab {{ 'tabs__tab--active' if only == 'pending' }}" href="?only=pending">Needs a decision <span class="chip">{{ counts.step3 }}</span></a>
+    <a class="tabs__tab {{ 'tabs__tab--active' if only == 'all' }}" href="?only=all">All captures <span class="chip">{{ counts.captures }}</span></a>
+  </nav>
+  <form hx-post="/proposals/accept"><input type="hidden" name="min_conf" value="0.9"><button class="btn">Accept all ≥ 90 %</button></form>
+  <form hx-post="/proposals/accept"><input type="hidden" name="min_conf" value="0.7"><button class="btn">Accept all ≥ 70 %</button></form>
+</div>
+<table class="harmonize">
+  <thead><tr><th></th><th>Copies</th>{% for f in ['capture_time', 'location_name', 'device_name'] %}<th>{{ field_labels[f] }}</th>{% endfor %}<th>New name (kept copy)</th></tr></thead>
+  <tbody>{% include "partials/capture_rows.html" %}</tbody>
+</table>
+{% if not caps %}<div class="empty">Every capture has a decision. Switch to “All captures” to review them.</div>{% endif %}
+
+<h2>Apply</h2>
+<form class="panel toolbar" hx-post="/plans/rename">
+  <label><input type="checkbox" name="write_xmp" checked> Write an XMP sidecar with the harmonized date, place and device</label>
+  <label><input type="checkbox" name="set_mtime"> Set the file date to the capture date</label>
+  <button class="btn btn--primary">Review rename plan…</button>
+</form>
+<p class="small muted">Only values you accepted or edited are used; otherwise the file's current value is kept. Writing inside the files themselves is deliberately not offered in this prototype.</p>
+{% else %}
+<div class="empty">No recommendations yet. Run a scan, clean up steps 1–2, then build recommendations.</div>
+{% endif %}
+{% endblock %}
