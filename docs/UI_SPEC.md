@@ -259,6 +259,13 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light grey (a little darker than *Shade odd rows*); the row shown in the preview is a darker blue. Clicking a row or
   ticking its checkbox shows it in the preview panel (and opens the panel).
+- **Column groups:** a 2 px divider where a column-picker category begins (File, Duplicates, Dates, Location,
+  Device, Author, …), header included.
+- **Table height:** the table reaches down to the bottom edge of the window (no empty band below it).
+- **Large viewer:** clicking the preview image opens it almost full screen (96 × 94 % of the window). The table
+  behind keeps the keyboard: ↑ ↓ move the cursor and the viewer follows. A switch at the bottom centre chooses
+  *One* (the file alone) or *Duplicate set (n)* (every copy of its set side by side, up to four per row, each with
+  its name, confidence and path; ✓ = kept copy, accent frame = the current file). Esc, × or a click outside closes it.
 - **Preview panel:** resizable by dragging its left edge (256–720 px, kept per browser); a sticky header *Preview* with **×** to close it (⚙ stays in the table-side header row, left of
   the panel); then the image; the edits not yet applied; Dates, Location, Device, Author, File (labels and values
   each take half the width); the duplicate set stacked one copy per block (name, confidence, path; ✓ = kept copy,

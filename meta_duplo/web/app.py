@@ -390,14 +390,16 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             tree = {"label": label, "name_col": name_col, "width": wb.TREE_WIDTH}
         # a column nobody has a value in is never dropped, only collapsed to a slim one (double-click toggles)
         rows = [r for g in groups for r in g.rows]
-        cols = []
+        cols, prev_cat = [], None
         for key, width in view["columns"]:
             f = wb.field_for(key)
             if f:
                 target = key[5:] if key.startswith("edit:") else f.editable
                 empty = f.kind != "special" and not any(wb.value(r, key) not in ("", None) for r in rows)
                 slim = view.get("slim", {}).get(key, empty)
-                cols.append({"key": key, "label": f.label, "kind": f.kind, "slim": slim, "empty": empty,
+                cat = (wb.field_for(wb.EDIT_BASE.get(key[5:], "")) or f).group if key.startswith("edit:") else f.group
+                cat_start, prev_cat = bool(cols) and cat != prev_cat, cat  # a divider where the category changes
+                cols.append({"key": key, "label": f.label, "kind": f.kind, "slim": slim, "empty": empty, "cat_start": cat_start,
                              "abbr": wb.acronym(f.label),
                              "width": wb.SLIM_WIDTH if slim else wb.snap(width),
                              "target": target, "edit": key.startswith("edit:"),
@@ -593,6 +595,18 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         mates = [x for x in rows if r and r["cluster"] is not None and x["cluster"] == r["cluster"]] if r else []
         return templates.TemplateResponse(request, "partials/wb_preview.html",
                                           {"r": r, "mates": mates, "conf_label": wb.conf_label, "edit_labels": wb.EDIT_LABELS})
+
+    @app.get("/wb/mates/{fid}")
+    def wb_mates(fid: int):
+        """The file and the other copies of its duplicate set, for the large viewer (one / grid)."""
+        rows, _ = wb.build_rows(lib)
+        r = next((x for x in rows if x["id"] == fid), None)
+        if not r:
+            return {"items": []}
+        mates = [x for x in rows if r["cluster"] is not None and x["cluster"] == r["cluster"]] or [r]
+        mates.sort(key=lambda x: (x["id"] != fid, not x["keeper"], x["v"]["path"]))
+        return {"items": [{"id": x["id"], "name": x["v"]["filename"], "path": x["v"]["path"], "kind": x["v"]["kind"],
+                           "conf": wb.conf_label(x), "kept": x["keeper"]} for x in mates]}
 
     @app.get("/wb/ids")
     def wb_ids(which: str = "nonkeepers"):

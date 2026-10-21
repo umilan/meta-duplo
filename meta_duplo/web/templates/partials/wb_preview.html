@@ -1,6 +1,7 @@
 {% if r %}
 <div class="preview">
-  <img class="preview__img" src="{{ '/media/' if r.v.kind == 'image' else '/thumb/' }}{{ r.id }}" alt="{{ r.v.filename }}">
+  <img class="preview__img preview__img--zoom" src="{{ '/media/' if r.v.kind == 'image' else '/thumb/' }}{{ r.id }}" alt="{{ r.v.filename }}"
+       title="Open large (the arrow keys keep moving in the table)" @click="$store.wb.active = {{ r.id }}; $store.wb.lightbox = true">
   <h3 class="preview__name">{{ r.v.filename }}</h3>
   <div class="small muted path">{{ r.v.path }}</div>
   {% set sections = [

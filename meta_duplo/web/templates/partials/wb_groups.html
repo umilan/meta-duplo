@@ -10,13 +10,13 @@
         :checked="{{ ids|tojson }}.every(i => $store.wb.has(i))"></td>
     {% if tree %}<td class="wbt__tree wbg__exp" title="{{ g.label }} ({{ g.rows|length }})"><span class="chev" :class="open && 'chev--open'">›</span></td>{% endif %}
     {% for c in cols %}
-    {% if c.key == 'thumb' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="{{ 'wbt__pin' if loop.first }}"></td>
-    {% elif tree and c.key == tree.name_col %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="wbg__label" title="{{ g.label }}">{{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>
-    {% elif singles and c.key in ('dup_count', 'dup_conf', 'checks') %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="nil">–</td>
-    {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{{ g.ref.v.dup_count }} pcs</td>
-    {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{% set cp = conf_parts(g.ref) %}{{ cp[0] }}</td>
-    {% elif c.edit %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="wbt__edit">{% set ev = value(g.ref, c.key) %}{% if ev %}→ {{ ev }}{% else %}<span class="nil">—</span>{% endif %}</td>
-    {% else %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="wbg__sum wbg__sum--{{ g.summary[c.key]|lower|replace("/", "") }}">{{ g.summary[c.key] }}</td>
+    {% if c.key == 'thumb' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="{{ 'wbt__pin' if loop.first }}"></td>
+    {% elif tree and c.key == tree.name_col %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbg__label" title="{{ g.label }}">{{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>
+    {% elif singles and c.key in ('dup_count', 'dup_conf', 'checks') %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="nil">–</td>
+    {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{{ g.ref.v.dup_count }} pcs</td>
+    {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{% set cp = conf_parts(g.ref) %}{{ cp[0] }}</td>
+    {% elif c.edit %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__edit">{% set ev = value(g.ref, c.key) %}{% if ev %}→ {{ ev }}{% else %}<span class="nil">—</span>{% endif %}</td>
+    {% else %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbg__sum wbg__sum--{{ g.summary[c.key]|lower|replace("/", "") }}">{{ g.summary[c.key] }}</td>
     {% endif %}
     {% endfor %}
     <td></td>
@@ -32,23 +32,23 @@
     {% for c in cols %}
     {% set d = r.diff.get(c.key) %}
     {% if c.key == 'thumb' %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="wbt__thumbcell {{ 'wbt__pin' if loop.first }}"><img class="wbt__thumb" src="/thumb/{{ r.id }}" alt="" loading="lazy"></td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__thumbcell {{ 'wbt__pin' if loop.first }}"><img class="wbt__thumb" src="/thumb/{{ r.id }}" alt="" loading="lazy"></td>
     {% elif c.key == 'path' %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ '' if singles else ('is-same' if same else 'is-diff') }}">{{ seg }}</span> / {% endfor %}</td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ '' if singles else ('is-same' if same else 'is-diff') }}">{{ seg }}</span> / {% endfor %}</td>
     {% elif c.key == 'filename' %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 and not singles else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
-    {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{{ r.v.dup_count }} pcs</td>
-    {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{% set cp = conf_parts(r) %}{{ cp[0] }}{% if cp[1] %} <span class="conf-why">· {{ cp[1] }}</span>{% endif %}</td>
-    {% elif c.key == 'checks' and singles %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="nil">–</td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 and not singles else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
+    {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{{ r.v.dup_count }} pcs</td>
+    {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{% set cp = conf_parts(r) %}{{ cp[0] }}{% if cp[1] %} <span class="conf-why">· {{ cp[1] }}</span>{% endif %}</td>
+    {% elif c.key == 'checks' and singles %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="nil">–</td>
     {% elif c.key == 'checks' %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}><div class="checks">{% for t, ok in r.checks.items() %}{% set n = r.meta_counts[t] %}<span class="check {{ 'check--na' if ok is none else ('check--ok' if ok else 'check--no') }}" title="{{ checks_meta[t][1] }}: {{ n }} tag{{ '' if n == 1 else 's' }} in this file; {{ 'no value here or in the reference row' if ok is none else ('same as' if ok else 'differs from') ~ ' the reference row' }}"><span class="check__name">{{ checks_meta[t][0] }}</span> <span class="check__n">{{ n }}</span></span>{% endfor %}</div></td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}><div class="checks">{% for t, ok in r.checks.items() %}{% set n = r.meta_counts[t] %}<span class="check {{ 'check--na' if ok is none else ('check--ok' if ok else 'check--no') }}" title="{{ checks_meta[t][1] }}: {{ n }} tag{{ '' if n == 1 else 's' }} in this file; {{ 'no value here or in the reference row' if ok is none else ('same as' if ok else 'differs from') ~ ' the reference row' }}"><span class="check__name">{{ checks_meta[t][0] }}</span> <span class="check__n">{{ n }}</span></span>{% endfor %}</div></td>
     {% elif c.edit %}
       {% set ev = value(r, c.key) %}{% set base = r.v.get(c.target, '') %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="wbt__edit {{ 'wbt__edit--same' if ev == base }}" title="{{ ev }}">{% if not ev %}<span class="nil" title="Not enough data (e.g. no date)">—</span>{% elif ev == base %}= {{ ev }}{% else %}→ {{ ev }}{% endif %}</td>
-    {% elif c.key == 'size' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="col-num {{ 'is-diff' if d }}">{{ r.v.size|size }}</td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__edit {{ 'wbt__edit--same' if ev == base }}" title="{{ ev }}">{% if not ev %}<span class="nil" title="Not enough data (e.g. no date)">—</span>{% elif ev == base %}= {{ ev }}{% else %}→ {{ ev }}{% endif %}</td>
+    {% elif c.key == 'size' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="col-num {{ 'is-diff' if d }}">{{ r.v.size|size }}</td>
     {% else %}
       {% set val = value(r, c.key) %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="{{ 'is-diff' if d }}" title="{{ val }}">{% if val not in (none, '') %}{{ val }}{% else %}<span class="nil">—</span>{% endif %}</td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="{{ 'is-diff' if d }}" title="{{ val }}">{% if val not in (none, '') %}{{ val }}{% else %}<span class="nil">—</span>{% endif %}</td>
     {% endif %}
     {% endfor %}
     <td></td>

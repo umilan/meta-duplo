@@ -91,14 +91,15 @@
     kb.row = tr; kb.rowid = tr.dataset.rowid || null;
     kb.col = Math.max(0, Math.min(col, tr.cells.length - 2));  // the last cell is the empty "+" column
     paint();
-    // with the preview open, it follows the cursor (debounced, so holding an arrow key stays smooth)
-    if (moved && tr.classList.contains("wbr") && Alpine.store("wb").panel) {
+    // with the preview or the large viewer open, they follow the cursor (debounced: holding an arrow key stays smooth)
+    if (moved && tr.classList.contains("wbr") && (Alpine.store("wb").panel || Alpine.store("wb").lightbox)) {
       clearTimeout(kb.pv); kb.pv = setTimeout(() => showPreview(tr), 120);
     }
   };
   const typing = (el) => el && (el.closest("input, select, textarea, [contenteditable], .modal") !== null);
   document.addEventListener("keydown", (e) => {
     if (!document.querySelector("#wb-table .wbt") || typing(e.target)) return;
+    if (e.key === "Escape" && Alpine.store("wb").lightbox) { Alpine.store("wb").lightbox = false; return; }
     const menuOpen = [...document.querySelectorAll(".wbsheet, .setsheet")].some((m) => m.getClientRects().length);
     if (menuOpen) return;  // a menu or sheet is open: its own keys (Esc) apply
     const rows = visibleRows();
@@ -161,6 +162,15 @@
     const tr = document.querySelector(`#wb-table tr[data-rowid="${kb.rowid}"]`);
     if (tr) setCursor(tr, kb.col); else kb.row = null;
   });
+
+  // The table fills the window down to its bottom edge (no empty band below it).
+  const fitTable = () => {
+    const box = document.querySelector(".main--flush #wb-table .wb-scroll");
+    if (box) box.style.maxHeight = `${Math.max(256, window.innerHeight - box.getBoundingClientRect().top)}px`;
+  };
+  window.addEventListener("resize", fitTable);
+  document.addEventListener("htmx:afterSettle", fitTable);
+  document.addEventListener("DOMContentLoaded", () => setTimeout(fitTable, 0));
 
   // Header tooltips (slim columns): shown at once, above the header, outside the scrolling box so nothing clips them.
   const tip = () => {
@@ -233,6 +243,7 @@
       colLabels: [],         // [key, label, kind] of the visible columns (Sort by choices)
       sort: ["", "asc"],     // current sort, set by the table
       active: null,          // row shown in the preview (clicked, or just ticked)
+      lightbox: false,       // the large viewer (click the preview image); follows the table cursor
       panel: false,          // preview panel open (mirrors wbPage.panel for the settings sheet)
       expanded: true,        // groups open; new pages of groups follow it
       expandAll(on) { this.expanded = on; window.dispatchEvent(new CustomEvent("wb-fold", { detail: on })); },
@@ -346,6 +357,22 @@
       typePath() {
         const path = window.prompt("Folder to add (full path):", "/Volumes/");
         if (path) htmx.ajax("POST", "/wb/sources", { source: document.body, swap: "none", values: { path, writable: this.writable ? "1" : "" } });
+      },
+    }));
+
+    // Large viewer: the active file alone, or every copy of its duplicate set side by side.
+    Alpine.data("lightbox", () => ({
+      mode: "one",
+      items: [],
+      get current() { return this.items.find((i) => i.id === Alpine.store("wb").active) || this.items[0] || null; },
+      init() {
+        this.$watch("$store.wb.active", () => this.load());
+        this.$watch("$store.wb.lightbox", (on) => { if (on) this.load(); });
+      },
+      load() {
+        const id = Alpine.store("wb").active;
+        if (!id || !Alpine.store("wb").lightbox) return;
+        fetch(`/wb/mates/${id}`).then((r) => r.json()).then((d) => { this.items = d.items; });
       },
     }));
 

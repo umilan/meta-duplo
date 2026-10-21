@@ -97,6 +97,37 @@
     </div>
   </div>
 
+  <div class="lightbox" x-data="lightbox" x-show="$store.wb.lightbox" x-cloak x-transition.opacity role="dialog" aria-label="Large view">
+    <div class="lightbox__backdrop" @click="$store.wb.lightbox = false"></div>
+    <div class="lightbox__box">
+      <div class="lightbox__head">
+        <strong x-text="current ? current.name : ''"></strong>
+        <span class="muted small" x-text="current ? current.path : ''"></span>
+        <button type="button" class="btn btn--icon btn--small" @click="$store.wb.lightbox = false" title="Close (Esc)" aria-label="Close">×</button>
+      </div>
+      <div class="lightbox__one" x-show="mode === 'one' && current">
+        <template x-if="current && current.kind === 'video'"><video :src="'/media/' + current.id" controls></video></template>
+        <template x-if="current && current.kind !== 'video'"><img :src="'/media/' + current.id" :alt="current.name"></template>
+      </div>
+      <div class="lightbox__grid" x-show="mode === 'grid'" :class="'lightbox__grid--' + Math.min(Math.max(items.length, 1), 4)">
+        <template x-for="it in items" :key="it.id">
+          <figure :class="it.id === $store.wb.active && 'is-current'">
+            <template x-if="it.kind === 'video'"><video :src="'/media/' + it.id" controls></video></template>
+            <template x-if="it.kind !== 'video'"><img :src="'/media/' + it.id" :alt="it.name"></template>
+            <figcaption><strong x-text="(it.kept ? '✓ ' : '') + it.name"></strong>
+              <span class="muted" x-text="it.conf || (it.kept ? 'kept copy' : '')"></span>
+              <span class="muted small" x-text="it.path"></span></figcaption>
+          </figure>
+        </template>
+      </div>
+      <div class="lightbox__modes themeswitch" role="radiogroup" aria-label="View">
+        <button type="button" role="radio" :aria-checked="(mode === 'one').toString()" @click="mode = 'one'">One</button>
+        <button type="button" role="radio" :aria-checked="(mode === 'grid').toString()" @click="mode = 'grid'"
+                x-text="'Duplicate set (' + items.length + ')'">Duplicate set</button>
+      </div>
+    </div>
+  </div>
+
   <aside class="wb-panel results-panel" x-show="panel" aria-labelledby="pv-heading">
     <div class="wb-panel__resize" @mousedown.prevent="resizePanel($event)" title="Drag to resize the preview"></div>
     <div class="pv-head">
