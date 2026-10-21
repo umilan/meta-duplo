@@ -391,6 +391,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                                            "dup_count": "dups", "dup_conf": "dups"}.get(key, "")})
         return {"view": view, "groups": groups[offset:offset + WB_PAGE], "ngroups": len(groups), "nrows": nrows,
                 "offset": offset, "next_offset": offset + WB_PAGE, "cols": cols,
+                "col_labels": [[c["key"], c["label"], c["kind"]] for c in cols if c["kind"] != "special"],  # Sort by choices
                 "tree": tree,
                 "table_width": 40 + 40 + sum(c["width"] for c in cols) + (tree["width"] if tree else 0),
                 "catalog": wb.catalog(exif_keys), "group_names": wb.GROUPS, "ops": wb.OPS,
@@ -401,7 +402,11 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
 
     @app.get("/workbench", response_class=HTMLResponse)
     def workbench(request: Request):
-        return render(request, "workbench.html", **wb_ctx())
+        with lib.connect() as con:
+            srcs = con.execute(
+                "SELECT s.id, s.label, s.root, s.writable, s.role, (SELECT COUNT(*) FROM files f WHERE f.source_id = s.id "
+                "AND f.present = 1 AND f.removed = 0) AS n FROM sources s ORDER BY s.id").fetchall()
+        return render(request, "workbench.html", sources=srcs, nfiles=sum(r["n"] for r in srcs), **wb_ctx())
 
     @app.get("/wb/table", response_class=HTMLResponse)
     def wb_table(request: Request):

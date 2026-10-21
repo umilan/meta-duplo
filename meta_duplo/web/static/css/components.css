@@ -183,7 +183,7 @@
 .results-main { min-width: 0; }
 .results-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--gap); }
 .results-head p { max-width: 72ch; }
-.results-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); margin-bottom: var(--space-100); }
+.results-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100) var(--space-200); margin-bottom: var(--space-200); }
 .results-toolbar input[type=search] { min-width: 240px; }
 .results-toolbar__spacer { flex: 1; }
 .results-toolbar__group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); margin-left: auto; }
@@ -273,11 +273,34 @@
 .wb { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); align-items: start; }
 .wb--panel { grid-template-columns: minmax(0, 1fr) 336px; }
 .wb-main { min-width: 0; }
-.wb-title { display: flex; align-items: center; gap: var(--space-100); }
-.filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); margin: var(--space-100) 0; }
-.fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h-sm); padding: 0 var(--space-050) 0 var(--space-100); border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--radius-sm); font-size: var(--text-sm); }
-.fchip button { display: inline-grid; place-items: center; width: var(--space-200); height: var(--space-200); border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; color: var(--muted); font-size: var(--text-md); line-height: 1; padding: 0; }
-.fchip button:hover { background: var(--surface-2); color: var(--text); }
+.wb-title { margin: 0 var(--space-200) 0 0; white-space: nowrap; }
+/* workbench header (user mockup): title + data input, then grouping / sort / search, then filters + selection / action */
+.wbbar { display: flex; align-items: center; gap: var(--space-200); padding-top: var(--space-200); margin-bottom: var(--space-200); }
+.wbbar.wb-pad { padding-right: var(--space-800); }  /* room for the settings button */
+.wbbar .navtoggle { margin-right: calc(-1 * var(--space-100)); }
+.wbbar__label, .results-toolbar label, .filters label, .filters__label { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.datain { position: relative; flex: 1; min-width: 0; }
+.datain__field { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); width: 100%; height: var(--control-h);
+  padding: 0 var(--space-100); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); cursor: pointer; text-align: left; }
+.datain__field:hover, .datain__field[aria-expanded="true"] { border-color: var(--accent); }
+.datain__sheet { position: absolute; left: 0; right: 0; top: calc(100% + var(--space-050)); z-index: 40; }
+.datain__src { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--space-200); padding: var(--space-050) var(--space-100); }
+.datain__name { font-weight: 600; }
+.datain__root { grid-column: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); }
+.datain__src > .small:last-child { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--muted); }
+.datain__manage { border-top: 1px solid var(--line); margin-top: var(--space-050); border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+.searchfield { position: relative; flex: 1; min-width: 208px; display: flex; align-items: center; }
+.searchfield svg { position: absolute; left: var(--space-100); width: var(--icon); height: var(--icon); color: var(--muted); pointer-events: none; }
+.searchfield input { width: 100%; padding-left: var(--space-400); padding-right: var(--space-400); }
+.searchfield input::-webkit-search-cancel-button { appearance: none; -webkit-appearance: none; }
+.searchfield__clear { position: absolute; right: var(--space-050); display: grid; place-items: center; width: var(--control-h-sm); height: var(--control-h-sm);
+  border: 0; border-radius: var(--radius-sm); background: none; color: var(--muted); font-size: var(--text-lg); line-height: 1; cursor: pointer; }
+.searchfield__clear:hover { background: var(--surface-2); color: var(--text); }
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); margin: 0 0 var(--space-200); }
+.filters label { display: inline-flex; align-items: center; gap: var(--space-100); }
+.fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h); padding: 0 var(--space-050) 0 var(--space-100); border: 0; background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 600; color: var(--muted); }
+.fchip button { display: inline-grid; place-items: center; width: var(--control-h-sm); height: var(--control-h-sm); border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; color: var(--muted); font-size: var(--text-md); line-height: 1; padding: 0; }
+.fchip button:hover { background: var(--line); color: var(--text); }
 .selpick select.is-active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .wb-scroll { overflow: auto; max-height: calc(100vh - 304px); min-height: 256px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .wbt { table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: var(--text-sm); line-height: var(--line-sm); }
@@ -379,7 +402,5 @@
 .main--flush #job { padding: var(--space-100) var(--space-200) 0; }
 .main--flush .wb { gap: 0; }
 .wb-pad { padding-inline: var(--space-200); }
-.results-head.wb-pad { padding-top: var(--space-200); padding-right: var(--space-800); }  /* room for the settings button */
-.main--flush .results-head h1 { margin-bottom: var(--space-100); }
-.main--flush .wb-scroll { border-inline: 0; border-radius: 0; max-height: calc(100vh - 160px); }
+.main--flush .wb-scroll { border-inline: 0; border-radius: 0; max-height: calc(100vh - 176px); }
 .main--flush .wb-panel { top: 0; border-radius: 0; border-top: 0; border-right: 0; max-height: 100vh; padding-top: var(--space-800); }  /* the settings button sits above the preview */

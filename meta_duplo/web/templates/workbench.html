@@ -17,47 +17,52 @@
      @wb-filter.window="openFilter($event.detail, $event.detail.op || 'contains')" @wb-edit.window="openEdit($event.detail)"
      @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true" @wb-panel.window="panel = $event.detail.on" @wb-reset.window="post({ action: 'reset' })" @wb-colors.window="post({ action: 'colors' })" @wb-cellmenu.window="openCellMenu($event.detail.btn)">
   <div class="wb-main">
-    <div class="results-head wb-pad">
-      <div>
-        <h1 class="wb-title">
-          <button type="button" class="navtoggle" @click="$dispatch('toggle-nav')" title="Show or hide the navigation" aria-label="Show or hide the navigation">
-            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="7.5" y1="4" x2="7.5" y2="16" stroke="currentColor" stroke-width="1.5"/></svg>
-          </button>
-          Workbench <span class="chip chip--exp">experimental</span>
-        </h1>
+    <div class="wbbar wb-pad">
+      <button type="button" class="navtoggle" @click="$dispatch('toggle-nav')" title="Show or hide the navigation" aria-label="Show or hide the navigation">
+        <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="7.5" y1="4" x2="7.5" y2="16" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+      <h1 class="wb-title">Workbench</h1>
+      <span class="wbbar__label" id="datain-label">Data input</span>
+      <div class="datain" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+        <button type="button" class="datain__field" aria-labelledby="datain-label" aria-haspopup="true" :aria-expanded="open.toString()" @click="open = !open">
+          <span>{{ sources|length }} folder{{ '' if sources|length == 1 else 's' }}</span>
+          <span class="muted">Found {{ nfiles }} file{{ '' if nfiles == 1 else 's' }} <span class="chev" :class="open && 'chev--open'">›</span></span>
+        </button>
+        <div class="wbsheet datain__sheet" x-show="open" x-cloak x-transition.opacity>
+          <div class="wbsheet__section">Folders</div>
+          {% for s in sources %}
+          <div class="datain__src" title="{{ s.root }}">
+            <span class="datain__name">{{ s.label }}</span>
+            <span class="muted small datain__root">{{ s.root }}</span>
+            <span class="small">{{ s.n }} files · {{ 'reference' if s.role == 'reference' else ('writable' if s.writable else 'read-only') }}</span>
+          </div>
+          {% else %}<div class="datain__src muted">No folders yet.</div>{% endfor %}
+          <a class="setsheet__item datain__manage" href="/sources">Add or manage folders…</a>
+        </div>
       </div>
     </div>
 
     <div class="results-toolbar wb-pad">
-      <label class="small">Group by
+      <label>Grouping by
         <select @change="post({ action: 'group', group: $event.target.value })">
           {% for k, label in group_names.items() %}<option value="{{ k }}" {{ 'selected' if view.group == k }}>{{ label }}</option>{% endfor %}
         </select>
       </label>
-      <input type="search" placeholder="Search…" title="Search path, filename and new filename" aria-label="Search" value="{{ view.q }}"
-             @input.debounce.400ms="post({ action: 'q', q: $event.target.value })">
-      <span class="results-toolbar__spacer"></span>
-      <div class="results-toolbar__group">
-      <label class="small selpick">Selection
-        <select aria-label="Selection" x-effect="$el.value = $store.wb.preset" @change="$store.wb.applyPreset($event.target.value)"
-                :class="$store.wb.count && 'is-active'">
-          <option value="none">None</option>
-          <option value="all" x-text="'All (' + $store.wb.total + ')'">All</option>
-          <option value="custom" :hidden="$store.wb.preset !== 'custom'" x-text="'Custom (' + $store.wb.count + ')'">Custom</option>
-          <option value="dup_newer" x-text="'Duplicates – newer' + ($store.wb.preset === 'dup_newer' ? ' (' + $store.wb.count + ')' : '')"
-                  title="In each duplicate set keep the copy with the oldest creation date; tick the newer ones">Duplicates – newer</option>
-          <option value="dup_older" x-text="'Duplicates – older' + ($store.wb.preset === 'dup_older' ? ' (' + $store.wb.count + ')' : '')"
-                  title="In each duplicate set keep the copy with the newest creation date; tick the older ones">Duplicates – older</option>
-          <option value="dup_lessmeta" x-text="'Duplicates – less metadata' + ($store.wb.preset === 'dup_lessmeta' ? ' (' + $store.wb.count + ')' : '')"
-                  title="In each duplicate set keep the copy with the most metadata; tick the others">Duplicates – less metadata</option>
+      <label>Sort by
+        <select x-effect="$store.wb.colLabels; $nextTick(() => $el.value = $store.wb.sort[0])"
+                @change="sortBy($event.target.value)">
+          <option value="">Default</option>
+          <template x-for="c in $store.wb.colLabels" :key="c[0]"><option :value="c[0]" x-text="c[1]"></option></template>
         </select>
       </label>
-      <button class="btn" type="button" :disabled="!$store.wb.count" hx-post="/wb/commit" hx-swap="none"
-              hx-vals='js:{ids: Alpine.store("wb").csv()}' title="Store the purple edit values of the selected rows as decisions">Save edits</button>
-      <button class="btn" type="button" :disabled="!$store.wb.count" hx-post="/wb/remove-plan"
-              hx-vals='js:{ids: Alpine.store("wb").csv()}'>Remove selected copies…</button>
-      <button class="btn btn--primary" type="button" :disabled="!$store.wb.count" hx-post="/wb/rename-plan"
-              hx-vals='js:{ids: Alpine.store("wb").csv(), write_xmp: "1"}'>Review rename plan…</button>
+      <button type="button" class="btn btn--icon" x-show="$store.wb.sort[0]" @click="sortBy($store.wb.sort[0], $store.wb.sort[1] === 'asc' ? 'desc' : 'asc')"
+              :title="$store.wb.sort[1] === 'asc' ? 'Ascending: click for descending' : 'Descending: click for ascending'"
+              x-text="$store.wb.sort[1] === 'asc' ? '↑' : '↓'"></button>
+      <div class="searchfield" x-data='{ q: {{ view.q|tojson }} }'>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input type="search" placeholder="Search…" title="Search path, filename and new filename" aria-label="Search" x-model="q"
+               @input.debounce.400ms="post({ action: 'q', q })">
+        <button type="button" class="searchfield__clear" x-show="q" x-cloak aria-label="Clear search" @click="q = ''; post({ action: 'q', q: '' })">×</button>
       </div>
     </div>
 

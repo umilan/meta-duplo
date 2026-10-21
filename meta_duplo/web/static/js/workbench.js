@@ -101,6 +101,8 @@
       count: 0,
       total: 0,              // rows in the current view (all groups, filters applied), set by the table
       cols: [],              // keys of the columns shown, set by the table (drives the column picker)
+      colLabels: [],         // [key, label, kind] of the visible columns (Sort by choices)
+      sort: ["", "asc"],     // current sort, set by the table
       active: null,          // row shown in the preview (clicked, or just ticked)
       panel: false,          // preview panel open (mirrors wbPage.panel for the settings sheet)
       expanded: true,        // groups open; new pages of groups follow it
@@ -147,6 +149,19 @@
       openFilter(d, op = "contains") { this.f = { key: d.key, label: d.label, op, value: "" }; this.dialog = "filter"; },
       openEdit(d) { this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit"; },
       close() { this.dialog = null; },
+      // Sort by picker: a column's first direction is high-first for numbers (as a header click)
+      sortBy(key, dir) {
+        const col = Alpine.store("wb").colLabels.find((c) => c[0] === key);
+        postView({ action: "sort", key, dir: dir || (col && col[2] === "num" ? "desc" : "asc") });
+      },
+      // Action picker: the same requests the old buttons sent; plans answer with HX-Redirect
+      runAction(what) {
+        const ids = Alpine.store("wb").csv();
+        const url = { commit: "/wb/commit", remove: "/wb/remove-plan", rename: "/wb/rename-plan" }[what];
+        if (!url || !ids) return;
+        htmx.ajax("POST", url, { source: document.body, swap: "none",
+                                 values: what === "rename" ? { ids, write_xmp: "1" } : { ids } });
+      },
       post: postView,
     }));
 

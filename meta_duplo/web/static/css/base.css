@@ -18,6 +18,7 @@ input, select, button, textarea { font: inherit; color: inherit; }
 input:is([type=text], [type=search], [type=number], [type=date], :not([type])), select, textarea {
   min-height: var(--control-h); padding: 0 var(--space-100); background: var(--surface);
   border: 1px solid var(--line-strong); border-radius: var(--radius-sm); font-size: var(--text-md); line-height: var(--line-md);
+  color: var(--text); font-weight: 400;
 }
 textarea { padding: var(--space-050) var(--space-100); }
 select { padding-right: var(--space-050); cursor: pointer; }

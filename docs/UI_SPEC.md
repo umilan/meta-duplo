@@ -116,13 +116,20 @@ All files 721 · Needs a decision 1 · Name changes 719 · Problems 0 · Exclude
 ### Workbench (experimental, `workbench.html`, `workbench.py`, `static/js/workbench.js`)
 
 One table for every task; the four step screens stay as the guided path. No description text under the title.
+Header (three rows, as in the user's mockup):
+- **Workbench** title and **Data input**: a field showing how many folders are scanned and *Found N files*; it opens
+  a sheet listing each folder (name, path, file count, writable / read-only / reference) and *Add or manage folders…*.
+- **Grouping by**, **Sort by** (Default or any visible data column; numbers start high-first, the ↑/↓ button
+  flips the direction; header clicks and the picker stay in sync) and a **Search** field with an icon and a clear ×.
+- **Applied filters** as grey chips (*Type: JPG ×*) and a **+** button; on the right **Selection** (presets) and
+  **Action** (*Save edits*, *Remove selected copies…*, *Review rename plan…*; disabled with nothing selected).
 The page has no padding: the table runs from the left edge of the screen to the right (or to the preview panel);
 only the title, toolbar, filters and count above it are inset slightly.
 
 ```
-Group by [Duplicates ▾] [Search…]   Selection [Duplicates – older (64) ▾] [Save edits] [Remove selected copies…] [Review rename plan…]   [⚙]
-Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ “100” ×]
-47 groups · 111 files with duplicates
+[☰] Workbench   Data input [3 folders ·························· Found 32 235 files ›]                [⚙]
+Grouping by [Duplicates ▾]  Sort by [Dup. confidence ▾] [↓]  [🔍 Search…                                    ×]
+Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selection [None ▾]  Action [Choose… ▾]
 ┌─┬─────┬─────────────────────────⋯┬────────────────────⋯┬──New filename───────────⋯┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
 │☐│[▣]  │ Diff                      │ Diff                 │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ –              │ Same       │ → …     │
 │☐│└ ▫  │ disk / Camera / DCIM /    │ IMG_0003.JPG (Keep)  │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │
