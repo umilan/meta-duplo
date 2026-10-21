@@ -277,7 +277,7 @@
     if (!link) return;
     e.stopPropagation();  // not the row click (preview)
     const td = link.closest("td"), th = td.closest("table").tHead.rows[0].cells[td.cellIndex];
-    const target = (th?.dataset.key || "").replace(/^edit:/, "");
+    const target = link.dataset.target || (th?.dataset.key || "").replace(/^edit:/, "");  // a source cell names its edit column
     if (link.dataset.typed && td.closest("tr.wbr")) {  // a value typed for this file: edit it again
       const btn = cellButton();
       if (btn.parentElement !== td) td.appendChild(btn);

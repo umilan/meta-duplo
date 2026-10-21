@@ -400,6 +400,13 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             for t, src in r.get("src", {}).items():
                 seen = letters.setdefault(t, {})
                 src["letter"] = seen.setdefault(src["id"], chr(65 + len(seen)) if len(seen) < 26 else "*")
+        # cells that values were copied from (Apply this value to …) get the same badge, pointing at the edit column
+        src_cells: dict[str, dict] = {}
+        for r in rows:
+            for t, src in r.get("src", {}).items():
+                if src.get("rid"):
+                    sc = src_cells.setdefault(f"{src['rid']}:{src['key']}", {"letter": src["letter"], "target": t, "n": 0})
+                    sc["n"] += 1
         cols, prev_cat = [], None
         for key, width in view["columns"]:
             f = wb.field_for(key)
@@ -418,7 +425,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 if key.startswith("edit:"):  # the distinct sources (rules) its values come from, A, B, C…
                     links = {r["src"][target]["letter"]: r["src"][target] for r in rows if target in r.get("src", {})}
                     cols[-1]["links"] = [links[k] for k in sorted(links)]
-        return {"view": view, "groups": groups[offset:offset + WB_PAGE], "ngroups": len(groups), "nrows": nrows,
+        return {"view": view, "src_cells": src_cells, "edit_labels": wb.EDIT_LABELS, "groups": groups[offset:offset + WB_PAGE], "ngroups": len(groups), "nrows": nrows,
                 "offset": offset, "next_offset": offset + WB_PAGE, "cols": cols,
                 "col_labels": [[c["key"], c["label"], c["kind"]] for c in cols if c["kind"] != "special"],  # Sort by choices
                 "tree": tree,

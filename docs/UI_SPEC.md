@@ -217,7 +217,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   for that file, or *unchanged*. Letters follow the order the sources first show in the table. Hovering a badge
   shows an instant tooltip with the source and outlines the column (and row) it points to; clicking opens the
   rule dialog, or the per-file dialog for a typed value. The header shows `🔗(n)`, the number of different
-  sources in the column at its right edge, with the legend in its tooltip. In group rows the value and badge are
+  sources in the column at its right edge, with the legend in its tooltip. A cell values were copied from (*Apply
+  this value to …*) shows the same badge at its right; its tooltip names the edit column and how many files it
+  feeds, hovering outlines that column and row, and clicking opens the rule dialog. In group rows the value and badge are
   dimmed (50 %): the files below carry the real values.
   **Double-click** an edit cell to type a value for that one file (the *Edit this value…* dialog, prefilled without
   the `=` / `→` mark); in New filename it opens the naming-pattern dialog (one pattern for all files).

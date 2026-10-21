@@ -48,7 +48,7 @@
     {% elif c.key == 'size' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="col-num {{ 'is-diff' if d }}">{{ r.v.size|size }}</td>
     {% else %}
       {% set val = value(r, c.key) %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="{{ 'is-diff' if d }}" title="{{ val }}">{% if val not in (none, '') %}{{ val }}{% else %}<span class="nil">—</span>{% endif %}</td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="{{ 'is-diff' if d }}" title="{{ val }}">{% if val not in (none, '') %}{{ val }}{% else %}<span class="nil">—</span>{% endif %}{% set sc = src_cells.get(r.id ~ ':' ~ c.key) %}{% if sc %}<button type="button" class="srclink srclink--origin" data-srctip="Source {{ sc.letter }} of {{ edit_labels[sc.target] }}: copied to {{ sc.n }} file{{ '' if sc.n == 1 else 's' }}" data-srckey="edit:{{ sc.target }}" data-srcrow="{{ r.id }}" data-target="{{ sc.target }}" aria-label="Source {{ sc.letter }} of {{ edit_labels[sc.target] }}">{% include "partials/link_icon.svg" %}{{ sc.letter }}</button>{% endif %}</td>
     {% endif %}
     {% endfor %}
     <td></td>

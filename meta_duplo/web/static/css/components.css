@@ -640,9 +640,9 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .srclink:hover, .srclink:focus-visible { background: color-mix(in srgb, var(--edit-text) 28%, var(--edit-bg)); }
 .srclink__icon { width: var(--space-200); height: var(--space-200); flex: none; }
 .wbt td > .srclink { position: absolute; right: var(--space-050); top: 50%; transform: translateY(-50%); }
-.wbt td.wbt__edit:has(> .srclink) { padding-right: var(--space-500); }
-.wbt td.wbt__edit:has(> .srclink):has(> .cellbtn) { padding-right: var(--space-800); }
-.wbt td.wbt__edit:has(> .srclink) > .cellbtn { right: var(--space-500); }
+.wbt td:has(> .srclink) { padding-right: var(--space-500); }
+.wbt td:has(> .srclink):has(> .cellbtn) { padding-right: var(--space-800); }
+.wbt td:has(> .srclink) > .cellbtn { right: var(--space-500); }
 .srclink--head { cursor: help; order: 2; }  /* header: the tag sits at the right edge, after the ⋯ */
 .wbh:has(> .srclink--head) > .wbh__act { order: 1; }
 /* group rows: the edit value and its tag dimmed (the files below carry the real values) */
