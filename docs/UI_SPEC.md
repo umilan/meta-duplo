@@ -115,7 +115,9 @@ All files 721 · Needs a decision 1 · Name changes 719 · Problems 0 · Exclude
 
 ### Workbench (experimental, `workbench.html`, `workbench.py`, `static/js/workbench.js`)
 
-One table for every task; the four step screens stay as the guided path.
+One table for every task; the four step screens stay as the guided path. No description text under the title.
+The page has no padding: the table runs from the left edge of the screen to the right (or to the preview panel);
+only the title, toolbar, filters and count above it are inset slightly.
 
 ```
 Group by [Duplicates ▾] [Search path, filename, new filename]                                             [⚙]
@@ -172,6 +174,9 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
   - *Review rename plan…* saves the edits and builds a rename + XMP plan for the selected files only.
 
   Nothing touches the disk before a plan is applied.
+- **Sorted column:** its header label and its cells are bold, in the normal text colour.
+- **Row colours:** ticked rows are light blue; the row shown in the preview is a darker blue. Clicking a row or
+  ticking its checkbox shows it in the preview panel (and opens the panel).
 - **Preview panel:** image; the edits not yet applied; Dates, Location, Device, Author, File; the duplicate set with
   confidences; **all metadata tags** in a monospace list.
 - **Hover:** a light tint on the row and the column under the pointer, a stronger tint and outline on the cell; the

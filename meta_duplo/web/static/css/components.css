@@ -224,7 +224,9 @@
 .wbh__label[draggable] { cursor: grab; }
 .wbh { container-type: inline-size; }  /* on the inner box: table cells cannot be containers */
 .wbh__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--text); cursor: pointer; }
-.wbh__label.is-sorted { color: var(--accent); }
+.wbh__label.is-sorted { color: var(--text); font-weight: 700; }
+.wbt td[data-sorted] { font-weight: 600; color: var(--text); }
+.wbt td[data-sorted] :is(.is-same, .is-diff, .muted) { color: inherit; }
 .wbh__act { flex: none; position: relative; z-index: 1; }  /* looks like the cell ⋯ button (.cellbtn below) */
 .wbh__resize { position: absolute; right: 0; top: 0; bottom: 0; width: 7px; cursor: col-resize; border-right: 1px solid var(--line); }
 .wbh__resize:hover, .is-resizing .wbh__resize { border-right: 2px solid var(--accent); }
@@ -263,12 +265,12 @@
 .wb-title { display: flex; align-items: center; gap: var(--space-2); }
 .navtoggle { display: inline-grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--muted); cursor: pointer; }
 .navtoggle:hover { color: var(--accent); border-color: var(--accent); }
-.wbr--selected td { background: color-mix(in srgb, var(--accent-soft) 70%, var(--surface)); }
+.wbt tbody .wbr--selected > td { background-color: var(--sel); }
+.wbt tbody .wbr--active > td { background-color: var(--sel-active); }
 .wbr--ref td:nth-child(2) { box-shadow: inset 3px 0 0 var(--keeper); }
 .wbg__label .chev { margin-right: 4px; }
 .wbt--colors .is-diff { color: var(--differ); }
 .wbt--colors .is-same { color: var(--same); }
-.wbt .is-diff { background: none; }
 .wbt__edit { background: var(--edit-bg); color: var(--edit-text); }
 .wbt__edit--same { color: var(--muted); }
 .wbt__thumb { width: calc(var(--thumb-h) * 4 / 3); height: var(--thumb-h); max-width: none; object-fit: cover; border-radius: 3px; display: inline-block; vertical-align: middle; }
@@ -342,3 +344,16 @@
 :root[data-borders="off"] :is(td, th) { border-bottom-color: transparent; }
 :root[data-borders="off"] .grid :is(td, th) { border-right-color: transparent; }
 :root[data-borders="off"] .wbg__head td { border-top-color: transparent; }
+
+/* Workbench page: no page padding; the table runs edge to edge, only the controls above it are inset. */
+.main--flush { padding: 0; max-width: none; position: relative; }
+.main--flush .topbar { position: absolute; top: var(--space-3); right: var(--space-3); margin: 0; z-index: 30; }
+.main--flush #job { padding: var(--space-2) var(--space-3) 0; }
+.main--flush .wb { gap: 0; }
+.wb-pad { padding-inline: var(--space-3); }
+.results-head.wb-pad { padding-top: var(--space-3); padding-right: 56px; }  /* room for the settings button */
+.main--flush .wb-scroll { border-inline: 0; border-radius: 0; max-height: calc(100vh - 200px); }
+.main--flush .selbar-slot { padding-top: 0; background: none; }
+.main--flush .selbar { border-radius: 0; border-inline: 0; }
+.main--flush .wb-panel { top: 0; border-radius: 0; border-top: 0; border-right: 0; max-height: 100vh; }
+.main--flush .wb-panel { padding-top: 56px; }  /* the settings button sits above the preview */

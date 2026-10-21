@@ -1,4 +1,4 @@
-<div class="filters" aria-label="Applied filters">
+<div class="filters wb-pad" aria-label="Applied filters">
   <span class="small muted">Applied filters:</span>
   <button class="btn btn--small" type="button" @click="openFilter({ key: '{{ cols[1].key if cols|length > 1 else 'path' }}', label: '' })">+ Add new…</button>
   {% for flt in view.filters %}
@@ -7,7 +7,7 @@
   {% endfor %}
 </div>
 
-<p class="small muted results-count">{{ ngroups }} group{{ '' if ngroups == 1 else 's' }} · {{ nrows }} file{{ '' if nrows == 1 else 's' }}{% if view.group == 'dups' %} with duplicates{% endif %}</p>
+<p class="small muted results-count wb-pad">{{ ngroups }} group{{ '' if ngroups == 1 else 's' }} · {{ nrows }} file{{ '' if nrows == 1 else 's' }}{% if view.group == 'dups' %} with duplicates{% endif %}</p>
 {% if ngroups %}
 <div class="wb-scroll" @scroll.passive="menu = null">
   <table class="wbt {{ 'wbt--colors' if view.colors }}" style="width: {{ table_width }}px">{# widths are user data; the only inline styles besides the swipe clip #}

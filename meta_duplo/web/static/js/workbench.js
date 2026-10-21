@@ -96,6 +96,7 @@
       count: 0,
       total: 0,              // rows in the current view (all groups, filters applied), set by the table
       cols: [],              // keys of the columns shown, set by the table (drives the column picker)
+      active: null,          // row shown in the preview (clicked, or just ticked)
       panel: false,          // preview panel open (mirrors wbPage.panel for the settings sheet)
       has(id) { return this.sel[id] === true; },
       add(id) { if (!this.sel[id]) { this.sel[id] = true; this.count++; } },

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Workbench{% endblock %}
 {% block head %}<script src="/static/js/workbench.js" defer></script>{% endblock %}
+{% block main_class %}main--flush{% endblock %}
 {% block appearance_menu %}
 <label class="setsheet__item setsheet__check" x-data="{ on: {{ view.colors|tojson }} }"><input type="checkbox" :checked="on"
        @change="on = $event.target.checked; $dispatch('wb-colors')"> Text colours (same / different)</label>
@@ -16,7 +17,7 @@
      @wb-filter.window="openFilter($event.detail, $event.detail.op || 'contains')" @wb-edit.window="openEdit($event.detail)"
      @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true" @wb-panel.window="panel = $event.detail.on" @wb-reset.window="post({ action: 'reset' })" @wb-colors.window="post({ action: 'colors' })" @wb-cellmenu.window="openCellMenu($event.detail.btn)">
   <div class="wb-main">
-    <div class="results-head">
+    <div class="results-head wb-pad">
       <div>
         <h1 class="wb-title">
           <button type="button" class="navtoggle" @click="$dispatch('toggle-nav')" title="Show or hide the navigation" aria-label="Show or hide the navigation">
@@ -24,11 +25,10 @@
           </button>
           Workbench <span class="chip chip--exp">experimental</span>
         </h1>
-        <p class="muted">One table for every task. <strong>Group by</strong> duplicates to clean up copies, or by photo, folder or day to fix metadata. Red marks values that differ from the group's first (kept) row. Header <em>⋯</em>: sort, filter, search, edit; drag headers to reorder, drag their right edge to resize.</p>
       </div>
     </div>
 
-    <div class="results-toolbar">
+    <div class="results-toolbar wb-pad">
       <label class="small">Group by
         <select @change="post({ action: 'group', group: $event.target.value })">
           {% for k, label in group_names.items() %}<option value="{{ k }}" {{ 'selected' if view.group == k }}>{{ label }}</option>{% endfor %}
