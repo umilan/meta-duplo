@@ -202,8 +202,11 @@ SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for
 
 ## Styling contract
 
-- Only **CSS custom properties** for colours, spacing, radius and type, in `static/css/tokens.css`
-  (light + dark via `prefers-color-scheme`).
+- Only **CSS custom properties** for colours, spacing, radius and type, in `static/css/tokens.css`.
+  Dark values live in one block applied by `prefers-color-scheme` unless `<html data-theme="light">`, and by
+  `data-theme="dark"`. The **theme switcher** (top right of every page: Auto / Light / Dark) sets that attribute.
+  `static/js/theme.js` loads synchronously in `<head>` and applies the saved choice (browser storage) before the
+  first paint. Auto follows the system.
 - Files: `base.css` (elements), `layout.css` (app shell, grids), `components.css` (cards, badges, tables, fields).
 - Semantic class names (`.card`, `.member--keeper`, `.badge--high`, `.field--accepted`), BEM-style.
   The only inline style is the computed `clip-path` of the swipe compare.
