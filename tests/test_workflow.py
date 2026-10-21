@@ -120,3 +120,16 @@ def test_read_only_source_blocks_writes(tmp_path):
     pid = plans.build_cleanup_plan(lib, [g["id"] for g in _groups(lib, 1)])
     with lib.connect() as con:
         assert con.execute("SELECT COUNT(*) FROM actions WHERE plan_id = ?", (pid,)).fetchone()[0] == 0
+
+
+def test_excluded_files_keep_their_name(lib):
+    harmonize.build_proposals(lib)
+    harmonize.accept_above(lib, 0.7)
+    with lib.connect() as con:
+        fid = con.execute("SELECT id FROM files WHERE name = 'IMG_0001.JPG' AND rel_path LIKE 'Camera/%'").fetchone()["id"]
+        con.execute("INSERT INTO rename_exclude(file_id) VALUES (?)", (fid,))
+    preview = {p["file_id"]: p for p in harmonize.rename_preview(lib)}
+    assert preview[fid]["status"] == "excluded" and preview[fid]["new"] == "IMG_0001.JPG"
+    pid = plans.build_rename_plan(lib)
+    with lib.connect() as con:
+        assert not con.execute("SELECT 1 FROM actions WHERE plan_id = ? AND file_id = ?", (pid, fid)).fetchone()

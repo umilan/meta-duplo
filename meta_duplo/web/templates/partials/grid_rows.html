@@ -1,0 +1,6 @@
+{% for r in rows %}{% include "partials/grid_row.html" %}{% endfor %}
+{% if next_offset < total %}
+<tr class="more" hx-get="/rename/rows?offset={{ next_offset }}&{{ query }}" hx-trigger="intersect once" hx-swap="outerHTML">
+  <td colspan="{{ cols|length + 1 }}" class="muted small">Loading more files…</td>
+</tr>
+{% endif %}

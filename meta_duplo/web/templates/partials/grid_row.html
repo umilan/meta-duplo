@@ -1,0 +1,52 @@
+<tr id="r-{{ r.id }}" class="grow {{ 'grow--excluded' if r.excluded }} {{ 'grow--pending' if r.status == 'pending' }}"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <td class="col-check">
+    <input type="checkbox" name="on" value="1" {{ '' if r.excluded else 'checked' }} aria-label="Rename {{ r.old }}"
+           hx-post="/rename/exclude" hx-vals='{"file_id": {{ r.id }}}' hx-swap="none">
+  </td>
+  {% for c in cols %}
+    {% if c.key == 'old' %}
+    <td class="g-name" title="{{ r.old }}">{{ r.old }}</td>
+    {% elif c.key == 'new' %}
+    <td class="g-name {{ 'g-new' if r.renamed else 'muted' }}" title="{{ r.new }}">{{ r.new if r.renamed else '= unchanged' }}</td>
+    {% elif c.key == 'folder' %}
+    <td class="g-path muted" title="{{ r.folder }}">{{ r.folder }}</td>
+    {% elif c.key == 'status' %}
+    <td><span class="status status--{{ r.status }}">{{ status_labels.get(r.status, r.status) }}</span></td>
+    {% elif c.kind == 'field' %}
+    {% set fd = r.fields[c.key] %}
+    <td class="g-field g-field--{{ fd.status }}" title="{{ fd.why }}" x-data="{ edit: false }" @dblclick="edit = true">
+      <div class="fv" x-show="!edit">
+        {% if fd.changed and fd.status != 'rejected' %}
+          <span class="fv__now">{{ fd.now or '—' }}</span><span class="fv__arrow">→</span><span class="fv__new">{{ fd.new }}</span>
+        {% else %}
+          <span>{{ fd.now or '—' }}</span>
+        {% endif %}
+        {% if fd.status == 'suggested' and fd.changed %}
+          <span class="fv__conf">{{ fd.confidence|pct }}</span>
+          <button class="iconbtn iconbtn--ok" title="Accept" hx-post="/proposals/{{ fd.capture }}/{{ fd.field }}" hx-vals='{"action": "accept"}' hx-swap="none">✓</button>
+          <button class="iconbtn iconbtn--no" title="Keep current" hx-post="/proposals/{{ fd.capture }}/{{ fd.field }}" hx-vals='{"action": "reject"}' hx-swap="none">✗</button>
+        {% elif fd.status in ('accepted', 'edited') and fd.changed %}
+          <button class="iconbtn" title="{{ fd.status|capitalize }}; click to undo" hx-post="/proposals/{{ fd.capture }}/{{ fd.field }}" hx-vals='{"action": "reset"}' hx-swap="none">↺</button>
+        {% elif fd.status == 'rejected' %}
+          <button class="iconbtn" title="Current value kept; click to see the recommendation again" hx-post="/proposals/{{ fd.capture }}/{{ fd.field }}" hx-vals='{"action": "reset"}' hx-swap="none">↺</button>
+        {% endif %}
+      </div>
+      {% if fd.field %}
+      <form class="fv__edit" x-show="edit" x-cloak hx-post="/proposals/{{ fd.capture }}/{{ fd.field }}" hx-swap="none" @submit="edit = false" @keydown.escape="edit = false">
+        <input type="hidden" name="action" value="edit">
+        <input type="text" name="value" value="{{ fd.new or fd.now }}" aria-label="{{ c.label }}" x-effect="if (edit) $nextTick(() => $el.focus())"
+               {% if fd.field == 'capture_time' %}pattern="\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" placeholder="YYYY-MM-DD HH:MM:SS"{% endif %}>
+      </form>
+      {% endif %}
+    </td>
+    {% elif c.key == 'confidence' %}
+    <td class="col-num">{% if r.confidence is not none %}<span class="badge badge--{{ r.confidence|band }}">{{ r.confidence|pct }}</span>{% endif %}</td>
+    {% elif c.key == 'size' %}
+    <td class="col-num">{{ r.size|size }}</td>
+    {% elif c.kind == 'num' %}
+    <td class="col-num">{{ r[c.key] }}</td>
+    {% else %}
+    <td title="{{ r[c.key] }}">{{ r[c.key] }}</td>
+    {% endif %}
+  {% endfor %}
+</tr>

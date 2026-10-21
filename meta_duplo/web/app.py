@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .. import geo, harmonize, match, plans
-from . import results
+from . import rename_grid, results
 from ..__main__ import add_source
 from ..db import Library
 from ..metadata import device_name
@@ -20,6 +20,7 @@ from ..scan import Runner, scan_all
 
 HERE = Path(__file__).parent
 PAGE = 100
+GRID_PAGE = 200
 
 
 def human_size(n: int | None) -> str:
@@ -288,35 +289,44 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
 
     # ───────────────────────── step 3: harmonize + rename ─────────────────────────
 
-    def captures_page(only: str, after: int) -> list[dict]:
-        with lib.connect() as con:
-            where = "WHERE c.capture_id > ?"
-            if only == "pending":
-                where += " AND c.capture_id IN (SELECT capture_id FROM proposals WHERE status = 'suggested')"
-            caps = [r["capture_id"] for r in con.execute(
-                f"SELECT DISTINCT c.capture_id FROM proposals c {where} ORDER BY c.capture_id LIMIT ?", (after, PAGE))]
-            out = []
-            names = {p["capture_id"]: p for p in harmonize.rename_preview(lib)} if caps else {}
-            for cid in caps:
-                props = {r["field"]: dict(r) for r in con.execute("SELECT * FROM proposals WHERE capture_id = ?", (cid,))}
-                members = [dict(r) for r in con.execute(
-                    "SELECT f.id, f.name, f.rel_path, f.removed, f.kind FROM captures c JOIN files f ON f.id = c.file_id "
-                    "WHERE c.capture_id = ? ORDER BY f.removed, f.id", (cid,))]
-                present = [m for m in members if not m["removed"]]
-                out.append({"id": cid, "props": props, "members": members,
-                            "thumb": (present or members)[0]["id"], "name": names.get(cid)})
-        return out
+    def grid_ctx(filt: str, q: str, sort: str, dir: str, offset: int = 0) -> dict:
+        rows, total, fcounts = rename_grid.query(lib, filt, q.strip(), sort, dir == "desc", offset, GRID_PAGE)
+        params = {"filter": filt, "q": q, "sort": sort, "dir": dir}
+        return {"rows": rows, "total": total, "fcounts": fcounts, "params": params, "query": urlencode(params),
+                "offset": offset, "next_offset": offset + len(rows), "cols": rename_grid.visible_columns(lib),
+                "all_cols": rename_grid.COLUMNS, "filters": rename_grid.FILTERS,
+                "status_labels": rename_grid.STATUS_LABELS}
 
     @app.get("/step/3", response_class=HTMLResponse)
-    def step3(request: Request, only: str = "pending"):
-        return render(request, "step3.html", caps=captures_page(only, 0), only=only,
-                      pattern=lib.setting("filename_pattern"), tokens=harmonize.TOKENS_HELP,
-                      preview=harmonize.rename_preview(lib, limit=8))
+    def step3(request: Request, filter: str = "all", q: str = "", sort: str = "folder", dir: str = "asc"):
+        return render(request, "step3.html", pattern=lib.setting("filename_pattern"),
+                      default_pattern=harmonize.DEFAULT_PATTERN, tokens=harmonize.TOKENS_HELP,
+                      **grid_ctx(filter, q, sort, dir))
 
-    @app.get("/step/3/more", response_class=HTMLResponse)
-    def step3_more(request: Request, only: str = "pending", after: int = 0):
-        return templates.TemplateResponse(request, "partials/capture_rows.html",
-                                          {"caps": captures_page(only, after), "only": only})
+    @app.get("/rename/rows", response_class=HTMLResponse)
+    def step3_rows(request: Request, filter: str = "all", q: str = "", sort: str = "folder", dir: str = "asc",
+                   offset: int = 0):
+        return templates.TemplateResponse(request, "partials/grid_rows.html", grid_ctx(filter, q, sort, dir, offset))
+
+    @app.post("/step/3/columns")
+    def step3_columns(cols: list[str] = Form(default=[])):
+        rename_grid.save_columns(lib, cols)
+        return Response(status_code=204, headers={"HX-Trigger": "grid-reload"})
+
+    def grid_oob(request: Request, keep) -> HTMLResponse:
+        """Re-render only the affected rows (out-of-band), so the grid keeps its scroll position."""
+        rows = [r for r in rename_grid.build_rows(lib) if keep(r)]
+        return templates.TemplateResponse(request, "partials/grid_oob.html", {
+            "rows": rows, "cols": rename_grid.visible_columns(lib), "status_labels": rename_grid.STATUS_LABELS})
+
+    @app.post("/rename/exclude", response_class=HTMLResponse)
+    def rename_exclude(request: Request, file_id: int = Form(...), on: str | None = Form(None)):
+        with lib.connect() as con:
+            if on:  # checkbox ticked = include in renaming
+                con.execute("DELETE FROM rename_exclude WHERE file_id = ?", (file_id,))
+            else:
+                con.execute("INSERT OR IGNORE INTO rename_exclude(file_id) VALUES (?)", (file_id,))
+        return grid_oob(request, lambda r: r["id"] == file_id)
 
     @app.post("/harmonize", response_class=HTMLResponse)
     def run_harmonize(request: Request):
@@ -329,20 +339,18 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             harmonize.set_status(lib, cid, field, "edited", (value or "").strip())
         else:
             harmonize.set_status(lib, cid, field, {"accept": "accepted", "reject": "rejected", "reset": "suggested"}[action])
-        cap = next(c for c in captures_page("all", cid - 1) if c["id"] == cid)
-        return templates.TemplateResponse(request, "partials/capture_rows.html", {"caps": [cap], "only": "all", "single": True})
+        return grid_oob(request, lambda r: r["capture"] == cid)  # every copy of the photo changes together
 
-    @app.post("/proposals/accept", response_class=HTMLResponse)
+    @app.post("/proposals/accept")
     def accept_bulk(min_conf: float = Form(...), field: str | None = Form(None)):
         n = harmonize.accept_above(lib, min_conf, field or None)
-        return Response(headers={"HX-Redirect": "/step/3", "HX-Trigger": json.dumps({"toast": f"Accepted {n} recommendations"})})
+        return Response(status_code=204, headers={"HX-Trigger": json.dumps(
+            {"grid-reload": True, "toast": f"Accepted {n} recommendations"})})
 
-    @app.post("/settings/pattern", response_class=HTMLResponse)
-    def pattern(request: Request, pattern: str = Form(...), save: str | None = Form(None)):
-        if save:
-            lib.set_setting("filename_pattern", pattern)
-        return templates.TemplateResponse(request, "partials/name_preview.html",
-                                          {"preview": harmonize.rename_preview(lib, pattern=pattern, limit=8), "saved": bool(save)})
+    @app.post("/settings/pattern")
+    def pattern(pattern: str = Form(...)):
+        lib.set_setting("filename_pattern", pattern.strip() or harmonize.DEFAULT_PATTERN)
+        return Response(status_code=204, headers={"HX-Trigger": "grid-reload"})
 
     @app.post("/plans/rename")
     def rename(write_xmp: str | None = Form(None), set_mtime: str | None = Form(None)):

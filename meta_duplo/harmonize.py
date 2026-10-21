@@ -245,8 +245,9 @@ def rename_preview(lib: Library, pattern: str | None = None, limit: int | None =
     with lib.connect() as con:
         values = effective_values(con)
         rows = con.execute(
-            "SELECT f.id, f.source_id, f.rel_path, f.name, f.original_name, f.ext, c.capture_id "
-            "FROM files f JOIN captures c ON c.file_id = f.id "
+            "SELECT f.id, f.source_id, f.rel_path, f.name, f.original_name, f.ext, c.capture_id, "
+            "(x.file_id IS NOT NULL) AS excluded "
+            "FROM files f JOIN captures c ON c.file_id = f.id LEFT JOIN rename_exclude x ON x.file_id = f.id "
             "WHERE f.present = 1 AND f.removed = 0 ORDER BY f.rel_path"
         ).fetchall()
     taken: dict[tuple, set[str]] = defaultdict(set)
@@ -258,7 +259,9 @@ def rename_preview(lib: Library, pattern: str | None = None, limit: int | None =
         parent = str(PurePosixPath(r["rel_path"]).parent)
         new = render_name(pattern, values.get(r["capture_id"], {}), r["original_name"], r["ext"] or "")
         status = "ok"
-        if new is None:
+        if r["excluded"]:
+            new, status = r["name"], "excluded"
+        elif new is None:
             new, status = r["name"], "no_date"
         elif new != r["name"]:
             used = taken[(r["source_id"], parent)]

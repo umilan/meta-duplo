@@ -129,6 +129,9 @@ CREATE TABLE IF NOT EXISTS selection (     -- files ticked for removal in the re
   group_id INTEGER NOT NULL,
   step INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS rename_exclude (  -- files the user left out of renaming (step 3)
+  file_id INTEGER PRIMARY KEY REFERENCES files(id)
+);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
 """
 

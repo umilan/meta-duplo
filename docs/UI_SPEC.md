@@ -28,7 +28,7 @@ Previous versions: `research/meta-duplo-UI_SPEC-v1.md` (12 screens) and
 | 1 | **Identical files** | Remove 100 % copies | Results table (below) | ✓ |
 | 2 | **Near duplicates** | Resolve almost-identical files | Results table with tabs *Duplicates* / *Similar shots, review only*; verdict per group; values that differ from the kept copy highlighted | ✓ |
 | – | **Compare** | Look before deciding | Swipe compare (Alpine range slider over two images); metadata table per member | ✓ |
-| 3 | **Harmonize & rename** | One date/place/device per capture; new names | File name rule editor with **live preview**; recommendation table (current → recommended, confidence badge, explanation, Accept / Keep current / Confirm / Edit / Undo); bulk accept; *Needs a decision* / *All*; rename plan options | ✓ |
+| 3 | **Harmonize & rename** | One date/place/device per photo; new names | File name rule bar; **rename grid** (below): one row per file, old → new name, metadata columns, inline decisions | ✓ |
 | 4 | **Re-check** | New candidates after harmonizing | Results table on harmonized date/place/device, with a minimum-confidence filter | ✓ |
 | ↺ | **Plans & undo** | Approve, apply, undo | Plan list; plan detail = dry-run diff (action, before → after, status, error); Apply / Discard / Undo | ✓ |
 | ⚙ | **Settings** | Config | Home time zone, near-duplicate threshold, re-check minimum | ✓ |
@@ -75,24 +75,42 @@ Modelled on the Disk Drill duplicate finder: one compact table, built for hundre
 - **Paging:** 100 groups per page, the next page loads when the end of the table scrolls into view.
 - The **row height** stays one line: cells truncate with an ellipsis instead of wrapping.
 
-### Step 3: recommendation row (`partials/capture_rows.html`)
+### Step 3: rename grid (`step3.html`, `partials/grid_row.html`)
 
-One row per capture. Columns: thumbnail · copies (removed copies listed as *removed, used as evidence*)
-· Date & time · Place · Device · New name of the kept copy.
-
-Each field cell:
+Modelled on Advanced Renamer's file list: a spreadsheet-like grid with one row per file.
 
 ```
-now: 2019-06-02 10:15:30            ← current value of the kept copy
-keep as is?   /   2019-05-18 11:47:10   /   ✓ already correct   /   nothing found
-[70 %] [accepted]                   ← band colour + text, status chip
-From metadata of IMG_0004.JPG. Copies disagree by 81870 s; the earliest is used.
-[Accept] [Keep current] [Edit]      ← or [Confirm] [Edit], or [Undo]
+File name rule [{date:%Y-%m-%d %H-%M-%S} ({location_name}, {device_name}) - {original_filename}.{ext}]
+               {date…} {location_name} {country} {device_name} {original_filename} {ext} {EXT}  Reset to default
+All files 721 · Needs a decision 1 · Name changes 719 · Problems 0 · Excluded 1
+[Search…] [Accept all ≥ 90 %] [Accept all ≥ 70 %]                                    [Columns ▾]
+┌──┬──────────────┬───────────────────────────────────────┬────────────┬────────┬─────────────────────────────┬──────────────┐
+│✓ │ Filename     │ New filename                          │ Path ↑     │ Status │ Date                        │ Place        │ …
+│☑ │ IMG_0001.JPG │ 2019-05-14 18-22-03 (Bratislava, …)…  │ disk/DCIM  │ OK     │ 2019-05-14 18:22:03         │ Bratislava   │
+│☑ │ IMG_…crop.jpg│ = unchanged                           │ disk/Edited│ Needs… │ — → 2019-05-18 11:47:10 ✓ ✗ │ — → Viedeň ↺ │
+└──┴──────────────┴───────────────────────────────────────┴────────────┴────────┴─────────────────────────────┴──────────────┘
+ 719 files get a new name · 1 still needs a decision   ☑ Write XMP sidecars ☐ Set file date   [Review rename plan…]
 ```
 
-- A left bar shows the status: green accepted, blue edited, grey rejected.
-- *Edit* opens an inline form (Alpine `x-show`); a date must match `YYYY-MM-DD HH:MM:SS`.
-- Every action swaps only that row (`hx-target="#cap-<id>"`).
+- **Rule bar:** typing in the rule saves it after 400 ms and re-renders the grid, so the *New filename* column is the live preview.
+  Token chips insert at the cursor. *Reset to default* restores the default rule.
+- **Columns** (picker, saved per library). Default: Filename, New filename, Path, Status, Date, Place, Device, Date confidence.
+  Optional: Date from, DateTimeOriginal, DateTime (modified), File date, Make, Model, Software, GPS, Size, Dimensions, Copies.
+- **Every header sorts** (click again to reverse). Empty values always sort last. Sort, filter and search live in the URL.
+- **Harmonized cells** (Date, Place, Device) show `now → new`:
+  - *suggested*: italic accent, with the confidence and **✓** (accept) / **✗** (keep current);
+  - *accepted*: current value struck through, new value bold, **↺** to undo;
+  - *edited*: same, accent colour;
+  - *rejected*: current value with **↺** to show the recommendation again.
+
+  **Double-click** a cell to type a value (Enter saves, Esc cancels). The explanation is the cell tooltip.
+  Decisions apply to the whole photo, so every copy's row updates in place (out-of-band swap, no reload, scroll kept).
+- **Status:** OK · Unchanged · Needs decision · No date · Renumbered (collision) · Read-only (source not writable) · Excluded.
+- **Filters:** All files, Needs a decision, Name changes, Problems (no date / read-only / renumbered), Excluded, with counts.
+- **Checkbox per row** = include in renaming; unticked files keep their name and get no sidecar or file date.
+- The grid scrolls in its own box with a sticky header; 200 rows load at a time as you scroll.
+- **Apply bar** (sticky): how many files get a new name, how many still need a decision, the sidecar and file-date options,
+  *Review rename plan…*.
 
 ## Interaction patterns (htmx)
 
@@ -101,10 +119,11 @@ From metadata of IMG_0004.JPG. Copies disagree by 81870 s; the earliest is used.
 | Boosted navigation | `<body hx-boost="true">` turns links and forms into AJAX page swaps |
 | Token on every POST | `<body hx-headers='{"X-Meta-Duplo-Token": "…"}'>`; the server rejects POSTs without it |
 | Job progress | `#job` polls `GET /job?watch=1` every second (`hx-trigger="every 1s"`); when the job ends, `HX-Refresh` reloads the page with fresh results |
-| Live preview | Pattern input: `hx-post="/settings/pattern" hx-trigger="input changed delay:300ms"` |
+| Live preview | Rule input: `hx-post="/settings/pattern" hx-trigger="input changed delay:400ms"` → `HX-Trigger: grid-reload` |
+| Row updates | Decisions and include/exclude return the affected rows wrapped in `<template>` with `hx-swap-oob="true"` |
 | In-place update | Card / row actions return the re-rendered card or row (`hx-swap="outerHTML"`) |
 | Server-driven redirect | Plan builders answer with `HX-Redirect: /plans/<id>` |
-| Infinite scroll | Last `<tbody class="more">`: `hx-get="/step/<n>/rows?offset=…" hx-trigger="revealed"` (step 3: `/step/3/more`) |
+| Infinite scroll | Results: last `<tbody class="more">`, `hx-get="/step/<n>/rows?offset=…" hx-trigger="revealed"`. Rename grid: last `<tr class="more">`, `hx-get="/rename/rows?offset=…" hx-trigger="intersect once"` (it scrolls inside its own box) |
 | Sorting, search | Toolbar form `hx-get` → `hx-target="#results" hx-select="#results"` + `hx-push-url="true"`. `#results` sets `hx-disinherit="*"` so rows do not inherit its select/swap |
 | Selection | Checkbox `hx-post="/select" hx-swap="none"` → `HX-Trigger: selection-changed` → the bar re-fetches itself |
 | Confirm | `hx-confirm` on Apply and Undo |

@@ -1,51 +1,86 @@
 {% extends "base.html" %}
+{% set p = params %}
 {% block title %}3 · Harmonize & rename{% endblock %}
 {% block content %}
-<div class="page-head">
+<div class="results-head">
   <div>
     <h1>3 · Harmonize &amp; rename</h1>
-    <p>One date, place and device per photo. Each recommendation pools every copy found in steps 1–2, including copies you already removed, and says where it came from. Nothing changes on disk until you approve a rename plan.</p>
+    <p class="muted">One row per file: current name and values on the left of the arrow, new ones on the right. Recommendations come from every copy of a photo, removed ones included. Accept with ✓, keep the current value with ✗, double-click a value to type your own. Nothing changes on disk until you apply a rename plan.</p>
   </div>
-  <button class="btn" hx-post="/harmonize" hx-target="#job">{{ 'Rebuild' if counts.captures else 'Build' }} recommendations</button>
+  <button class="btn" hx-post="/harmonize" hx-target="#job">{{ 'Rebuild' if fcounts.all else 'Build' }} recommendations</button>
 </div>
 
-<section class="panel pattern" aria-labelledby="pattern-h">
-  <h3 id="pattern-h">File name rule</h3>
-  <form class="pattern" hx-post="/settings/pattern" hx-target="#name-preview" hx-trigger="input changed delay:300ms from:#pattern-input, submit">
-    <input type="text" id="pattern-input" name="pattern" value="{{ pattern }}" aria-label="File name pattern" spellcheck="false">
-    <div class="toolbar">
-      {% for tok, help in tokens.items() %}<span class="chip" title="{{ help }}">{{ tok }}</span>{% endfor %}
-      <button class="btn btn--small" name="save" value="1">Save rule</button>
-    </div>
-  </form>
-  <div id="name-preview">{% include "partials/name_preview.html" %}</div>
-  <p class="small muted">Empty parts are dropped: no place gives <code>(Apple iPhone 12)</code>, not <code>( , Apple iPhone 12)</code>. Files with no date keep their name. Names that would collide get <code>(2)</code>.</p>
-</section>
-
-{% if counts.captures %}
-<h2>Recommendations</h2>
-<div class="toolbar">
-  <nav class="tabs" aria-label="Filter">
-    <a class="tabs__tab {{ 'tabs__tab--active' if only == 'pending' }}" href="?only=pending">Needs a decision <span class="chip">{{ counts.step3 }}</span></a>
-    <a class="tabs__tab {{ 'tabs__tab--active' if only == 'all' }}" href="?only=all">All captures <span class="chip">{{ counts.captures }}</span></a>
-  </nav>
-  <form hx-post="/proposals/accept"><input type="hidden" name="min_conf" value="0.9"><button class="btn">Accept all ≥ 90 %</button></form>
-  <form hx-post="/proposals/accept"><input type="hidden" name="min_conf" value="0.7"><button class="btn">Accept all ≥ 70 %</button></form>
-</div>
-<table class="harmonize">
-  <thead><tr><th></th><th>Copies</th>{% for f in ['capture_time', 'location_name', 'device_name'] %}<th>{{ field_labels[f] }}</th>{% endfor %}<th>New name (kept copy)</th></tr></thead>
-  <tbody>{% include "partials/capture_rows.html" %}</tbody>
-</table>
-{% if not caps %}<div class="empty">Every capture has a decision. Switch to “All captures” to review them.</div>{% endif %}
-
-<h2>Apply</h2>
-<form class="panel toolbar" hx-post="/plans/rename">
-  <label><input type="checkbox" name="write_xmp" checked> Write an XMP sidecar with the harmonized date, place and device</label>
-  <label><input type="checkbox" name="set_mtime"> Set the file date to the capture date</label>
-  <button class="btn btn--primary">Review rename plan…</button>
+<form class="rule" hx-post="/settings/pattern" hx-trigger="input changed delay:400ms from:#pattern-input, submit" hx-swap="none"
+      x-data="{ insert(t) { const el = this.$refs.p; const at = el.selectionStart ?? el.value.length; el.value = el.value.slice(0, at) + t + el.value.slice(el.selectionEnd ?? at); el.focus(); el.setSelectionRange(at + t.length, at + t.length); el.dispatchEvent(new Event('input', { bubbles: true })); } }">
+  <label class="rule__label" for="pattern-input">File name rule</label>
+  <input type="text" id="pattern-input" name="pattern" value="{{ pattern }}" x-ref="p" spellcheck="false" autocomplete="off">
+  <div class="rule__tokens">
+    {% for tok, help in [('{date:%Y-%m-%d %H-%M-%S}', 'capture date and time; strftime codes'), ('{location_name}', 'place (town)'), ('{country}', 'country code'), ('{device_name}', 'camera or phone'), ('{original_filename}', 'first name the file was seen with'), ('{ext}', 'extension, lower case'), ('{EXT}', 'extension, upper case')] %}
+    <button type="button" class="chip chip--btn" title="Insert: {{ help }}" @click="insert('{{ tok }}')">{{ tok }}</button>
+    {% endfor %}
+    <button type="button" class="linkbtn" @click="$refs.p.value = '{{ default_pattern }}'; $refs.p.dispatchEvent(new Event('input', { bubbles: true }))">Reset to default</button>
+  </div>
 </form>
-<p class="small muted">Only values you accepted or edited are used; otherwise the file's current value is kept. Writing inside the files themselves is deliberately not offered in this prototype.</p>
-{% else %}
-<div class="empty">No recommendations yet. Run a scan, clean up steps 1–2, then build recommendations.</div>
+
+<div class="results-toolbar">
+  <nav class="tabs tabs--compact" aria-label="Filter">
+    {% for key, label in filters.items() %}
+    <a class="tabs__tab {{ 'tabs__tab--active' if p.filter == key }}" href="/step/3?filter={{ key }}&sort={{ p.sort }}&dir={{ p.dir }}">{{ label }} <span class="chip">{{ fcounts[key] }}</span></a>
+    {% endfor %}
+  </nav>
+</div>
+<div class="results-toolbar">
+  <form hx-get="/step/3" hx-target="#grid" hx-select="#grid" hx-swap="outerHTML" hx-push-url="true"
+        hx-trigger="input changed delay:300ms from:find input[type=search]">
+    <input type="hidden" name="filter" value="{{ p.filter }}"><input type="hidden" name="sort" value="{{ p.sort }}"><input type="hidden" name="dir" value="{{ p.dir }}">
+    <input type="search" name="q" value="{{ p.q }}" placeholder="Search old or new names and folders" aria-label="Search">
+  </form>
+  <form hx-post="/proposals/accept" hx-swap="none"><input type="hidden" name="min_conf" value="0.9"><button class="btn">Accept all ≥ 90 %</button></form>
+  <form hx-post="/proposals/accept" hx-swap="none"><input type="hidden" name="min_conf" value="0.7"><button class="btn">Accept all ≥ 70 %</button></form>
+  <span class="results-toolbar__spacer"></span>
+  <div class="colpick" x-data="{ open: false }" @click.outside="open = false" @keydown.escape="open = false">
+    <button class="btn" type="button" @click="open = !open" :aria-expanded="open.toString()">Columns ▾</button>
+    <form class="colpick__menu" x-show="open" x-cloak hx-post="/step/3/columns" hx-trigger="change" hx-swap="none">
+      {% for c in all_cols %}
+      <label><input type="checkbox" name="cols" value="{{ c.key }}" {{ 'checked' if c in cols }}> {{ c.label }}</label>
+      {% endfor %}
+    </form>
+  </div>
+</div>
+
+<div id="grid" hx-get="/step/3?{{ query }}" hx-trigger="grid-reload from:body" hx-select="#grid" hx-swap="outerHTML" hx-disinherit="*">
+  <p class="small muted results-count">{{ total }} file{{ '' if total == 1 else 's' }}{% if p.q %} matching “{{ p.q }}”{% endif %}</p>
+  {% if rows %}
+  <div class="grid-scroll">
+    <table class="grid">
+      <thead><tr>
+        <th class="col-check" title="Include in renaming">✓</th>
+        {% for c in cols %}
+        {% set next_dir = 'desc' if p.sort == c.key and p.dir == 'asc' else 'asc' %}
+        <th class="grid__h grid__h--{{ c.key }} {{ 'col-num' if c.kind == 'num' }}">
+          <a class="{{ 'is-sorted' if p.sort == c.key }}" href="/step/3?filter={{ p.filter }}&q={{ p.q|urlencode }}&sort={{ c.key }}&dir={{ next_dir }}"
+             hx-get="/step/3?filter={{ p.filter }}&q={{ p.q|urlencode }}&sort={{ c.key }}&dir={{ next_dir }}" hx-target="#grid" hx-select="#grid" hx-swap="outerHTML" hx-push-url="true">{{ c.label }}{% if p.sort == c.key %} {{ '↑' if p.dir == 'asc' else '↓' }}{% endif %}</a>
+        </th>
+        {% endfor %}
+      </tr></thead>
+      <tbody>{% include "partials/grid_rows.html" %}</tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">{% if fcounts.all %}No files match this filter.{% else %}No recommendations yet. Run a scan, clean up steps 1–2, then build recommendations.{% endif %}</div>
+  {% endif %}
+</div>
+
+{% if fcounts.all %}
+<form class="selbar-slot" hx-post="/plans/rename">
+  <div class="selbar selbar--active">
+    <strong>{{ fcounts.changes }} file{{ '' if fcounts.changes == 1 else 's' }} get a new name</strong>
+    {% if fcounts.pending %}<span class="selbar__warn">{{ fcounts.pending }} still need a decision; they use their current values</span>{% endif %}
+    <label class="small"><input type="checkbox" name="write_xmp" checked> Write XMP sidecars</label>
+    <label class="small"><input type="checkbox" name="set_mtime"> Set file date to capture date</label>
+    <span class="results-toolbar__spacer"></span>
+    <button class="btn btn--primary">Review rename plan…</button>
+  </div>
+</form>
 {% endif %}
 {% endblock %}

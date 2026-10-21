@@ -106,7 +106,7 @@ Copies disagree by 81870 s; the earliest is used."*
 
 A value that equals the current one is auto-accepted only when it is confident (≥ 90 %). Otherwise
 it is shown as *keep as is?* with a **Confirm** button, e.g. when copies disagree.
-Bulk actions: *Accept all ≥ 90 %*, *Accept all ≥ 70 %*. Filter: *Needs a decision* / *All captures*.
+The rename grid (UI_SPEC) shows one row per file with old → new name and `now → new` for each value. Accept with ✓, keep the current value with ✗, double-click to type your own. Bulk actions: *Accept all ≥ 90 %*, *Accept all ≥ 70 %*. Filters: *All files*, *Needs a decision*, *Name changes*, *Problems*, *Excluded*. A checkbox per file leaves it out of renaming.
 Rebuilding recommendations keeps accepted, edited and rejected decisions.
 
 ### File name rule (editable)
@@ -132,7 +132,7 @@ Tidying rules: empty tokens drop their separators: `( , Apple iPhone 12)` → `(
 `()` disappears. Illegal characters (`/ \ : * ? " < > |`) become `-`. Names are NFC and
 at most 200 characters before the extension. Files without a date keep their name and are
 flagged. Collisions get ` (2)`, ` (3)`, so names are collision-free by construction.
-The rule has a live preview while typing (htmx, 300 ms debounce) and is saved per library.
+The rule is saved per library while you type, and the grid's *New filename* column is the live preview.
 
 ### Rename plan
 

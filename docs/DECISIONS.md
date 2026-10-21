@@ -117,3 +117,18 @@ accepted ones. Supersede them with a new entry instead.
   - New `selection` table.
   - `build_cleanup_plan` accepts an explicit set of files, still never empties a group.
   - The card templates are gone; Compare stays for side-by-side checks.
+
+### ADR-015 Step 3 as a rename grid, one row per file
+- **Context:** the per-photo recommendation rows did not scale and hid the result that matters: the new file name.
+- **Decision:** an Advanced Renamer-style grid:
+  - one row per file: old name, new name, path, status;
+  - harmonized fields as `now → new` cells with ✓ / ✗ / double-click edit;
+  - every metadata column optional (saved per library) and sortable;
+  - a per-file include checkbox (`rename_exclude`).
+
+  Decisions still apply per photo (capture); the grid re-renders only that photo's rows.
+- **Consequences:**
+  - Row-level exclusion: `rename_preview` reports `excluded`, and the plan skips those files.
+  - The rule is saved as you type (it changes nothing on disk).
+  - Paging is 200 rows. The read model recomputes the preview per request, which is fine for thousands of files;
+    hundreds of thousands need a cached preview table (milestone M5).
