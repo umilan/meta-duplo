@@ -30,7 +30,7 @@
     {% elif c.key == 'path' %}
       <td class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ 'is-same' if same else 'is-diff' }}">{{ seg }}</span> / {% endfor %}</td>
     {% elif c.key == 'filename' %}
-      <td class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}{% if r.keeper and view.group == 'dups' %} <span class="keep-pill">Keep</span>{% endif %}</td>
+      <td class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
     {% elif c.key == 'dup_count' %}<td>{{ r.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td>{{ conf_label(r) }}</td>
     {% elif c.key == 'checks' %}
