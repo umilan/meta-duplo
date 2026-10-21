@@ -156,11 +156,13 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 └─┴─────┴───────────────────────────┴──────────────────────┴───────────────────────────┴────┴───────────────┴────────────────┴────────────┴─────────┘
 ```
 
-- **Grouping column:** its header has a **›** button (on the right, shown on hover like ⋯) that collapses or expands all groups (groups loaded later
-  follow it; a group row still toggles on its own). When grouped, the second column (after the checkbox) is the grouping itself: *Duplicate set*,
-  *Photo*, *Folder*, *Day*, *Device* or *Place*. The group row shows the value and the number of files (e.g.
-  “Apple iPhone 12 (95)”), file rows show └. A regular column that the grouping already shows (Device, Place, Folder)
-  is hidden while grouped. Thumbnails are an ordinary column next to it. The grouping column is resizable.
+- **Expander column:** when grouped, the second column is a 40 px expander column (as wide as the checkbox column):
+  › on group rows (click the row to fold it), └ on file rows; its header › (shown on hover) collapses or expands all
+  groups, and groups loaded later follow it. The group's name and file count (e.g. “Apple iPhone 12 (95)”) show in
+  the group row's cell of the matching data column: Filename for Duplicates and Photo, Path for Folder, Date taken
+  for Day, Device, Place, Author; the tooltip on › names it too.
+- **Pinned columns:** checkbox, expander and, when it is the first column, the thumbnail stay on the left when the
+  table scrolls sideways.
 - **Group by** sets the task: *Duplicates* (only files with copies; the kept copy is the reference row),
   *Photo (all copies)*, *Folder*, *Day*, *Device*, *Place*, *No grouping*. The group row shows the reference
   thumbnail and, per column, **Same** (green) or **Diff** (red).
@@ -209,7 +211,6 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere
   (the direction a click would give).
-- **Checkbox column** is pinned to the left edge when the table scrolls sideways (header cell pinned to the top too).
 - **Filtered columns** show a funnel icon (accent colour) next to the header text; its tooltip lists the filters.
 - **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name
   is in the tooltip.

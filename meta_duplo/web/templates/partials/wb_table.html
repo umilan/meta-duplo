@@ -53,7 +53,7 @@
 
 {% if ngroups %}
 <div class="wb-scroll" @scroll.passive="menu = null">
-  <table class="wbt {{ 'wbt--colors' if view.colors }}" style="width: {{ table_width }}px">{# widths are user data; the only inline styles besides the swipe clip #}
+  <table class="wbt {{ 'wbt--colors' if view.colors }} {{ 'wbt--tree' if tree }}" style="width: {{ table_width }}px">{# widths are user data; the only inline styles besides the swipe clip #}
     <colgroup>
       <col class="wbt__c-check">
       {% if tree %}<col data-key="__group" style="width: {{ tree.width }}px">{% endif %}
@@ -64,19 +64,17 @@
       <th class="wbt__check"><input type="checkbox" aria-label="Select all rows in the table"
           :checked="$store.wb.all" x-effect="$el.indeterminate = $store.wb.count > 0 && !$store.wb.all" @change="$store.wb.selectAll($event.target.checked)"></th>
       {% if tree %}
-      <th class="wbh-cell wbh-cell--tree" x-data="wbHead('__group', '')">
+      <th class="wbh-cell wbh-cell--tree wbt__tree" title="Grouped by {{ tree.label|lower }}">
         <div class="wbh">
-          <span class="wbh__label" title="Grouped by {{ tree.label|lower }}">{{ tree.label }}</span>
           <button type="button" class="wbh__act wbh__fold" @click.stop="$store.wb.expandAll(!$store.wb.expanded)"
                   :title="$store.wb.expanded ? 'Collapse all groups' : 'Expand all groups'"
                   :aria-label="$store.wb.expanded ? 'Collapse all groups' : 'Expand all groups'"><span class="chev" :class="$store.wb.expanded && 'chev--open'">›</span></button>
-          <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" title="Drag to resize"></span>
         </div>
       </th>
       {% endif %}
       {% for c in cols %}
       {% set sorted = view.sort[0] == c.key %}
-      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }}" data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}')"
+      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }} {{ 'wbt__pin' if loop.first and c.key == 'thumb' }}" data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}')"
           @dragover.prevent="over($event)" @drop.prevent="drop($event)"{% if sorted %} aria-sort="{{ 'ascending' if view.sort[1] == 'asc' else 'descending' }}"{% endif %}>
         <div class="wbh {{ 'wbh--sortable' if c.key != 'thumb' }}"{% if c.key != 'thumb' %} @click="sort()"{% endif %}>
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)"

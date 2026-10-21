@@ -7,9 +7,10 @@
   <tr class="wbg__head" @click="open = !open">
     <td class="wbt__check" @click.stop><input type="checkbox" aria-label="Select group" @change="$store.wb.setMany({{ ids|tojson }}, $event.target.checked)"
         :checked="{{ ids|tojson }}.every(i => $store.wb.has(i))"></td>
-    {% if tree %}<td class="wbg__label" title="{{ g.label }}"><span class="chev" :class="open && 'chev--open'">›</span> {{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>{% endif %}
+    {% if tree %}<td class="wbt__tree wbg__exp" title="{{ g.label }} ({{ g.rows|length }})"><span class="chev" :class="open && 'chev--open'">›</span></td>{% endif %}
     {% for c in cols %}
-    {% if c.key == 'thumb' %}<td{{ " data-sorted" if c.key == sc }}></td>
+    {% if c.key == 'thumb' %}<td{{ " data-sorted" if c.key == sc }} class="{{ 'wbt__pin' if loop.first }}"></td>
+    {% elif tree and c.key == tree.name_col %}<td{{ " data-sorted" if c.key == sc }} class="wbg__label" title="{{ g.label }}">{{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>
     {% elif singles and c.key in ('dup_count', 'dup_conf', 'checks') %}<td{{ " data-sorted" if c.key == sc }} class="muted">–</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}>{{ g.ref.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}>{{ conf_label(g.ref) }}</td>
@@ -30,7 +31,7 @@
     {% for c in cols %}
     {% set d = r.diff.get(c.key) %}
     {% if c.key == 'thumb' %}
-      <td{{ " data-sorted" if c.key == sc }} class="wbt__thumbcell"><img class="wbt__thumb" src="/thumb/{{ r.id }}" alt="" loading="lazy"></td>
+      <td{{ " data-sorted" if c.key == sc }} class="wbt__thumbcell {{ 'wbt__pin' if loop.first }}"><img class="wbt__thumb" src="/thumb/{{ r.id }}" alt="" loading="lazy"></td>
     {% elif c.key == 'path' %}
       <td{{ " data-sorted" if c.key == sc }} class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ '' if singles else ('is-same' if same else 'is-diff') }}">{{ seg }}</span> / {% endfor %}</td>
     {% elif c.key == 'filename' %}

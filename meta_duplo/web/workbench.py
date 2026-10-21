@@ -98,10 +98,11 @@ DEFAULT_VIEW = {
     "colors": True,
 }
 # Grouping column (right after the checkbox): its label, and the regular column it replaces (shown only once).
-GROUP_COLUMN = {
-    "dups": ("Duplicate set", ""), "capture": ("Photo", ""), "folder": ("Folder", "path"),
-    "day": ("Day", ""), "device": ("Device", "device"), "place": ("Place", "place"), "author": ("Author", "author"),
+GROUP_COLUMN = {  # grouping → (its name, the data column whose group-row cell shows the group's name)
+    "dups": ("Duplicate set", "filename"), "capture": ("Photo", "filename"), "folder": ("Folder", "path"),
+    "day": ("Day", "date"), "device": ("Device", "device"), "place": ("Place", "place"), "author": ("Author", "author"),
 }
+TREE_WIDTH = 40  # the expander column (› on group rows, └ on file rows) is as narrow as the checkbox column
 
 
 # ───────────────────────── view state ─────────────────────────

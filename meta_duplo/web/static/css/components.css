@@ -364,8 +364,16 @@
 /* the checkbox column stays put when the table scrolls sideways; it needs an opaque background of its own
    (row colours — group, ticked, previewed, zebra — still win, they are more specific) */
 .wbt .wbt__check { position: sticky; left: 0; z-index: 1; box-shadow: inset -1px 0 0 var(--line); }
-:where(.wbt tbody td.wbt__check) { background-color: var(--surface); }
-.wbt thead th.wbt__check { z-index: 3; }
+/* pinned on the left as well: the expander column (40px, as wide as the checkbox column) and the thumbnail
+   column when it comes first */
+.wbt .wbt__tree, .wbt .wbt__pin { position: sticky; z-index: 1; box-shadow: inset -1px 0 0 var(--line); }
+.wbt .wbt__tree, .wbt .wbt__pin { left: var(--space-500); }
+.wbt--tree .wbt__pin { left: calc(2 * var(--space-500)); }
+:where(.wbt tbody td.wbt__check, .wbt tbody td.wbt__tree, .wbt tbody td.wbt__pin) { background-color: var(--surface); }
+.wbt thead th.wbt__check, .wbt thead th.wbt__tree, .wbt thead th.wbt__pin { z-index: 3; }
+.wbt td.wbt__tree.wbg__exp { color: var(--muted); }
+.wbh-cell--tree .wbh { justify-content: center; padding: 0; }
+.wbh-cell--tree .wbh__fold { margin: 0; }
 .wbh { position: relative; display: flex; align-items: center; gap: var(--space-050); height: calc(var(--control-h) + var(--space-100)); padding: 0 var(--space-100); overflow: hidden; container-type: inline-size; }
 .wbh__label { flex: 0 1 auto; min-width: var(--space-300); overflow: hidden; font-weight: 600; color: var(--text); cursor: pointer;
   white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }  /* long names wrap to two lines */
@@ -416,7 +424,7 @@
 .wbt__edit--same { color: var(--muted); }
 .wbt__thumb { width: calc(var(--thumb-h) * 4 / 3); height: var(--thumb-h); max-width: none; object-fit: cover; border-radius: var(--radius-sm); display: inline-block; vertical-align: middle; }
 .wbt__thumb--small { width: 24px; height: 16px; margin-left: var(--space-050); }
-.wbt td.wbt__tree { color: var(--line-strong); padding-left: var(--space-100); font-size: var(--text-md); }
+.wbt td.wbt__tree { color: var(--line-strong); padding-inline: 0; text-align: center; font-size: var(--text-md); }
 .wbt td.wbt__thumbcell { padding-top: 0; padding-bottom: 0; text-overflow: clip; }
 .wbt__path span { padding: 0 var(--space-025); }
 .wb-panel { max-height: calc(100vh - var(--space-400)); }

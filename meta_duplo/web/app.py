@@ -386,12 +386,10 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         groups, exif_keys, nrows = wb.table(lib, view)
         tree = None
         if view["group"] in wb.GROUP_COLUMN:
-            label, replaces = wb.GROUP_COLUMN[view["group"]]
-            tree = {"label": label, "replaces": replaces, "width": wb.snap(view.get("group_width", 232))}
+            label, name_col = wb.GROUP_COLUMN[view["group"]]
+            tree = {"label": label, "name_col": name_col, "width": wb.TREE_WIDTH}
         cols = []
         for key, width in view["columns"]:
-            if tree and key == tree["replaces"]:
-                continue  # the grouping column already shows it
             f = wb.field_for(key)
             if f:
                 target = key[5:] if key.startswith("edit:") else f.editable
