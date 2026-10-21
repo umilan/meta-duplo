@@ -429,7 +429,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         if act == "sort":
             view["sort"] = [f.get("key", ""), f.get("dir", "asc")]
         elif act == "group":
-            view["group"] = f.get("group", "dups")
+            wb.set_group(view, f.get("group", "dups") if f.get("group") in wb.GROUPS else "dups")
         elif act == "q":
             view["q"] = f.get("q", "")
         elif act == "colors":

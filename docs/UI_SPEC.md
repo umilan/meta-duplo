@@ -121,6 +121,9 @@ Header (three rows, as in the user's mockup):
   a sheet listing each folder (name, path, file count, writable / read-only / reference) and *Add or manage folders…*.
 - **Grouping by**, **Sort by** (Default or any visible data column; numbers start high-first, the ↑/↓ button
   flips the direction; header clicks and the picker stay in sync) and a **Search** field with an icon and a clear ×.
+- **Duplicates grouping** starts with the chip **Dup.: ≥ 2** (switching to it adds the chip, switching away removes
+  it if it was added that way). Remove the chip and files without any copy come back as one **No duplicates (n)**
+  group, always last and collapsed; it shows no differences or match values.
 - **Applied filters** as grey chips (*Type: JPG ×*) and a **+** button; on the right **Selection** (presets) and
   **Action** (*Save edits*, *Remove selected copies…*, *Review rename plan…*; disabled with nothing selected).
 The page has no padding: the table runs from the left edge of the screen to the right (or to the preview panel);

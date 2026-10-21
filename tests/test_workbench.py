@@ -53,7 +53,7 @@ def test_filters_and_grouping_modes(lib):
 
 def test_edit_rules_commit_and_partial_rename(lib):
     view = wb.load_view(lib)
-    view.update(group="none")
+    wb.set_group(view, "none")  # as the Grouping picker does: drops the automatic duplicates chip
     assert view["edits"] == {}  # no purple columns until the user asks for one
     view["edits"]["date"] = {"kind": "shift", "column": "date", "seconds": 3600}
     view["edits"]["filename"] = {"kind": "pattern"}
@@ -90,3 +90,20 @@ def test_selection_presets(lib):
     for g in groups:  # every preset keeps at least one copy of each duplicate set
         for picked in (newer, older, less):
             assert any(r["id"] not in picked for r in g.rows)
+
+
+def test_duplicates_filter_chip_and_singles_group(lib):
+    view = wb.load_view(lib)
+    assert view["group"] == "dups" and view["filters"] == [wb.DUP_FILTER]
+    groups, _, _ = wb.table(lib, view)
+    assert all(g.key != wb.SINGLES for g in groups)  # the chip hides files without copies
+    view["filters"] = []  # chip removed: they come back as one group at the bottom
+    groups, _, _ = wb.table(lib, view)
+    assert groups[-1].key == wb.SINGLES and groups[-1].label == "No duplicates"
+    assert all(r["dup"] is None and not any(r["diff"].values()) for r in groups[-1].rows)
+    wb.set_group(view, "folder")
+    assert view["filters"] == []
+    wb.set_group(view, "dups")
+    assert view["filters"] == [wb.DUP_FILTER]
+    wb.set_group(view, "folder")
+    assert view["filters"] == []  # the automatic chip goes away again

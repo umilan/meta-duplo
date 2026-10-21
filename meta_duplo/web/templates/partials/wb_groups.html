@@ -1,7 +1,8 @@
 {% set sc = view.sort[0] %}
 {% for g in groups %}
 {% set ids = g.rows|map(attribute='id')|list %}
-<tbody class="wbg" x-data="{ open: $store.wb.expanded }" @wb-fold.window="open = $event.detail">
+{% set singles = g.key == "__singles__" %}
+<tbody class="wbg {{ 'wbg--singles' if singles }}" x-data="{ open: {{ 'false' if singles else '$store.wb.expanded' }} }" @wb-fold.window="open = $event.detail">
   {% if view.group != 'none' %}
   <tr class="wbg__head" @click="open = !open">
     <td class="wbt__check" @click.stop><input type="checkbox" aria-label="Select group" @change="$store.wb.setMany({{ ids|tojson }}, $event.target.checked)"
@@ -9,6 +10,7 @@
     {% if tree %}<td class="wbg__label" title="{{ g.label }}"><span class="chev" :class="open && 'chev--open'">›</span> {{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>{% endif %}
     {% for c in cols %}
     {% if c.key == 'thumb' %}<td{{ " data-sorted" if c.key == sc }}></td>
+    {% elif singles and c.key in ('dup_count', 'dup_conf', 'checks') %}<td{{ " data-sorted" if c.key == sc }} class="muted">–</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}>{{ g.ref.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}>{{ conf_label(g.ref) }}</td>
     {% elif c.key == 'checks' %}<td{{ " data-sorted" if c.key == sc }} class="muted">–</td>

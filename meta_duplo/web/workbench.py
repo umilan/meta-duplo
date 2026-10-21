@@ -78,14 +78,18 @@ DATE_SOURCES = ["date", "digitized", "modify", "file_date", "gps_date", "name_da
 VERDICT_TEXT = {"identical": "exact", "same_pixels": "diff meta", "same_photo": "same photo", "edited": "edited",
                 "same_video": "same video", "likely": "likely", "similar_shot": "similar shot"}
 
-VIEW_VERSION = 2
+VIEW_VERSION = 3
+# Duplicates grouping starts with this filter (a removable chip); without it, files that have no copy
+# show as one "No duplicates" group at the bottom.
+DUP_FILTER = {"key": "dup_count", "op": "gte", "value": "2", "auto": True}
+SINGLES = "__singles__"  # group key of files without duplicates
 DEFAULT_VIEW = {
     "v": VIEW_VERSION,
     "columns": [["thumb", 48], ["path", 248], ["filename", 192], ["dup_count", 64], ["dup_conf", 144],
                 ["checks", 152], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 112],
                 ["device", 152], ["author", 128]],
     "edits": {},              # purple edit columns appear only after "Edit…" in a header's Actions sheet
-    "filters": [],
+    "filters": [DUP_FILTER],
     "group": "dups",
     "group_width": 232,       # width of the grouping (tree) column
     "sort": ["", "asc"],
@@ -111,12 +115,25 @@ def load_view(lib: Library) -> dict:
         v = json.loads(lib.setting("workbench_view") or "null") or {}
     except ValueError:
         v = {}
-    if v and v.get("v") != VIEW_VERSION:  # v1 opened with default edit columns: drop them once
+    if v and v.get("v", 1) < 2:  # v1 opened with default edit columns: drop them once
         v["columns"] = [c for c in v.get("columns", []) if not str(c[0]).startswith("edit:")]
-        v["edits"], v["v"] = {}, VIEW_VERSION
+        v["edits"] = {}
+    if v and v.get("v", 1) < 3:  # v3: the duplicates filter became a visible chip
+        set_group(v, v.get("group", "dups"))
+    if v:
+        v["v"] = VIEW_VERSION
     view = json.loads(json.dumps(DEFAULT_VIEW))
     view.update({k: v[k] for k in v if k in DEFAULT_VIEW})
     return view
+
+
+def set_group(view: dict, group: str) -> None:
+    """Change the grouping; Duplicates adds the "Dup. ≥ 2" chip, other groupings drop it if it was added for them."""
+    view["group"] = group
+    filters = [f for f in view.get("filters", []) if not f.get("auto")]
+    if group == "dups" and not any(f.get("key") == "dup_count" for f in filters):
+        filters.insert(0, dict(DUP_FILTER))
+    view["filters"] = filters
 
 
 def save_view(lib: Library, view: dict) -> None:
@@ -333,7 +350,7 @@ def value(r: dict, key: str):
 def _group_key(r: dict, by: str):
     v = r["v"]
     return {
-        "dups": r["cluster"],
+        "dups": r["cluster"] if r["cluster"] is not None else SINGLES,
         "capture": r["capture"] if r["capture"] is not None else f"f{r['id']}",
         "folder": v["path"],
         "day": v["date"][:10] or "No date",
@@ -382,8 +399,6 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
     rows, exif_keys = build_rows(lib)
     apply_edits(rows, view["edits"])
     by = view["group"] if view["group"] in GROUPS else "dups"
-    if by == "dups":
-        rows = [r for r in rows if r["cluster"] is not None]  # duplicates task: only files that have copies
     q = (view.get("q") or "").strip().lower()
     if q:
         rows = [r for r in rows if q in r["v"]["path"].lower() or q in r["v"]["filename"].lower()
@@ -411,14 +426,17 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
         else:
             rs.sort(key=lambda r: (not r["keeper"], r["v"]["path"].lower(), r["v"]["filename"].lower()))
         ref = next((r for r in rs if r["keeper"]), rs[0]) if by == "dups" else rs[0]
+        unrelated = gk == SINGLES  # files without copies: nothing to compare
         for r in rs:  # differences against the group's reference row
-            r["diff"] = {k: len(rs) > 1 and r is not ref and str(value(r, k)) != str(value(ref, k)) for k in keys}
+            r["diff"] = {k: not unrelated and len(rs) > 1 and r is not ref and str(value(r, k)) != str(value(ref, k)) for k in keys}
             r["is_ref"] = r is ref
             r["path_parts"] = _path_diff(r["v"]["path"], ref["v"]["path"], r is ref or len(rs) == 1)
             r["checks"] = {t: (str(r["v"][t]) == str(ref["v"][t])) for t in ("date", "place", "device")}
         label = {"dups": ref["v"]["filename"], "capture": ref["v"]["filename"], "none": "All files"}.get(by, str(gk))
+        if unrelated:
+            label = "No duplicates"
         g = Group(gk, label, rs, ref)
-        g.summary = {k: ("Diff" if any(r["diff"].get(k) for r in rs) else "Same") for k in keys}
+        g.summary = {k: ("" if unrelated else "Diff" if any(r["diff"].get(k) for r in rs) else "Same") for k in keys}
         groups.append(g)
 
     # filters: per row when ungrouped, per group otherwise (a duplicate set needs its context)
@@ -437,6 +455,7 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
         groups.sort(key=lambda g: -sum(r["v"]["size"] for r in g.rows))
     else:
         groups.sort(key=lambda g: str(g.key))
+    groups.sort(key=lambda g: g.key == SINGLES)  # stable: "No duplicates" always last
     return groups, exif_keys, sum(len(g.rows) for g in groups)
 
 
