@@ -60,13 +60,14 @@
       {% for c in cols %}
       {% set sorted = view.sort[0] == c.key %}
       <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }}" data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}')"
-          @dragover.prevent="over($event)" @drop.prevent="drop($event)">
-        <div class="wbh">
-          <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)" @click="sort()"
-                title="{{ c.label }} — click to sort, drag to move">{{ c.label }}{% if sorted %} {{ '↑' if view.sort[1] == 'asc' else '↓' }}{% endif %}</span>
+          @dragover.prevent="over($event)" @drop.prevent="drop($event)"{% if sorted %} aria-sort="{{ 'ascending' if view.sort[1] == 'asc' else 'descending' }}"{% endif %}>
+        <div class="wbh {{ 'wbh--sortable' if c.key != 'thumb' }}"{% if c.key != 'thumb' %} @click="sort()"{% endif %}>
+          <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)"
+                title="{{ c.label }} — click to sort, drag to move">{{ c.label }}</span>
+          {% if c.key != 'thumb' %}<span class="wbh__sort {{ 'is-on' if sorted }}" aria-hidden="true">{% if sorted %}{{ '↑' if view.sort[1] == 'asc' else '↓' }}{% else %}{{ '↓' if c.kind == 'num' else '↑' }}{% endif %}</span>{% endif %}
           {% if c.key != 'thumb' %}<button type="button" class="wbh__act" aria-haspopup="menu"
               @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}' }, $el)" title="Column menu: sort, filter, search, edit" aria-label="Column menu">⋯</button>{% endif %}
-          <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" title="Drag to resize"></span>
+          <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" @click.stop title="Drag to resize"></span>
         </div>
       </th>
       {% endfor %}
