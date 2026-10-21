@@ -416,7 +416,9 @@
 .wbg__label .chev { margin-right: var(--space-050); }
 .wbg__sum--same { color: var(--same); }
 .wbg__sum--diff { color: var(--differ); }
-.wbg__sum--na { color: var(--muted); }
+/* no real value ("—", "–", "N/A"): dimmed, so the data stands out; a "differs" stays faintly red */
+.wbt .nil, .wbt .wbg__sum--na, .wbt td.nil { color: color-mix(in srgb, var(--muted) 56%, var(--surface)); font-weight: 400; }
+.wbt--colors .is-diff .nil { color: color-mix(in srgb, var(--differ) 40%, var(--surface)); }
 .wbt:not(.wbt--colors) .wbg__sum--same, .wbt:not(.wbt--colors) .wbg__sum--diff { color: var(--muted); }
 .wbr { cursor: pointer; }
 /* hover: row, column and cell tints are overlays, so they work on purple edit cells and group rows too */

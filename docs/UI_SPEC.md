@@ -217,6 +217,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name
   is in the tooltip.
 - **Group row summaries:** *Same*, *Diff*, or *N/A* (grey) when no row of the group has a value in that column.
+- **Empty values** (“—”, “–”, “N/A”) are dimmed, so real values stand out; an empty value that differs from the
+  reference row is a faint red.
   *Meta checks* summarise the same way: *Diff* if any date / loc / dvc / aut badge differs, *N/A* if no row has any of them.
 - **Meta check badges**: *date (n)*, *loc (n)*, *dvc (n)*, *aut (n)* — one per kind of metadata, compared with the
   group's reference row: green (same), red (differs), grey dashed (no value here or in the reference row). *n* is how
