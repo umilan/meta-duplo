@@ -36,7 +36,7 @@
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)" @click="sort()"
                 title="{{ c.label }} — click to sort, drag to move">{{ c.label }}{% if sorted %} {{ '↑' if view.sort[1] == 'asc' else '↓' }}{% endif %}</span>
           {% if c.key != 'thumb' %}<button type="button" class="wbh__act" aria-haspopup="menu"
-              @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}' }, $el)" title="Actions: sort, filter, search, edit"><span class="wbh__act-text">Actions </span>▾</button>{% endif %}
+              @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}' }, $el)" title="Column menu: sort, filter, search, edit" aria-label="Column menu">⋯</button>{% endif %}
           <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" title="Drag to resize"></span>
         </div>
       </th>

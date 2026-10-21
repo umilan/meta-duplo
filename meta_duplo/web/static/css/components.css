@@ -224,11 +224,9 @@
 .wbh { position: relative; display: flex; align-items: center; gap: 4px; height: 34px; padding: 0 10px 0 var(--space-2); overflow: hidden; }
 .wbh__label[draggable] { cursor: grab; }
 .wbh { container-type: inline-size; }  /* on the inner box: table cells cannot be containers */
-@container (max-width: 160px) { .wbh__act-text { display: none; } }  /* narrow column: keep the name, show only ▾ */
 .wbh__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--text); cursor: pointer; }
 .wbh__label.is-sorted { color: var(--accent); }
-.wbh__act { flex: none; position: relative; z-index: 1; border: 0; background: none; color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; cursor: pointer; padding: 2px; }
-.wbh__act:hover { color: var(--accent); }
+.wbh__act { flex: none; position: relative; z-index: 1; }  /* looks like the cell ⋯ button (.cellbtn below) */
 .wbh__resize { position: absolute; right: 0; top: 0; bottom: 0; width: 7px; cursor: col-resize; border-right: 1px solid var(--line); }
 .wbh__resize:hover, .is-resizing .wbh__resize { border-right: 2px solid var(--accent); }
 .is-resizing { cursor: col-resize; user-select: none; }
@@ -257,8 +255,9 @@
 .wbt tbody td:not(.wbt__check):hover { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); }
 .wbt tbody td { position: relative; }
 .wbt tbody td:has(> .cellbtn) { padding-right: 28px; }
-.cellbtn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); z-index: 1; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 4px; padding: 0 5px; font-size: 13px; line-height: 16px; cursor: pointer; }
-.cellbtn:hover, .cellbtn:focus-visible { color: var(--accent); border-color: var(--accent); }
+.cellbtn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); z-index: 1; }
+.cellbtn, .wbh__act { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 4px; padding: 0 5px; font-size: 13px; line-height: 16px; cursor: pointer; }
+.cellbtn:hover, .cellbtn:focus-visible, .wbh__act:hover, .wbh__act:focus-visible { color: var(--accent); border-color: var(--accent); }
 /* navigation hidden on the workbench, toggled from the title */
 .app--nonav { grid-template-columns: 1fr; }
 .app--nonav .nav { display: none; }

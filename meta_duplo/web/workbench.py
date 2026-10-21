@@ -125,8 +125,31 @@ def field_for(key: str, exif_keys: set[str] | None = None) -> Field | None:
         return Field(key, EDIT_LABELS[key[5:]], "Edit", "date" if key == "edit:date" else "text", width=170)
     if key.startswith("exif:"):
         group, _, name = key[5:].partition(":")
-        return Field(key, f"{name} ({group})", "EXIF", width=150)
+        return Field(key, f"{name} ({group})", exif_category(key[5:]), width=150)
     return None
+
+
+# Raw tags join the core categories by what they describe (first match wins, so ExposureTime is a setting,
+# not a date); the rest go to "Other".
+TAG_CATEGORIES = (
+    ("Capture settings", ("exposure", "fnumber", "aperture", "isospeed", "focal", "flash", "shutter", "metering",
+                          "whitebalance", "scene", "brightness", "gain", "contrast", "saturation", "sharpness",
+                          "zoom", "subjectdistance", "lightsource", "sensing")),
+    ("Dates", ("date", "time", "offset", "subsec")),
+    ("Location", ("gps", "location", "latitude", "longitude", "altitude", "city", "country", "sublocation", "iso6709")),
+    ("Device", ("make", "model", "serial", "lens", "software", "encoder", "firmware", "camera", "hostcomputer")),
+    ("Author", ("artist", "author", "copyright", "owner", "creator", "byline", "credit", "rights")),
+    ("File", ("width", "height", "dimension", "resolution", "orientation", "colorspace", "compression", "brand",
+              "version", "bits", "ycbcr", "pixel", "thumbnail", "components", "duration", "codec")),
+)
+CATEGORY_ORDER = ["Dates", "Location", "Device", "Author", "Capture settings", "Duplicates", "File", "Other"]
+
+
+def exif_category(tag: str) -> str:
+    name = tag.split(":", 1)[-1].rsplit(".", 1)[-1].lower().replace("_", "")  # com.apple.quicktime.model → model
+    if name == "iso":
+        return "Capture settings"
+    return next((cat for cat, words in TAG_CATEGORIES if any(w in name for w in words)), "Other")
 
 
 def catalog(exif_keys: list[str]) -> dict[str, list[Field]]:
@@ -135,9 +158,9 @@ def catalog(exif_keys: list[str]) -> dict[str, list[Field]]:
     for f in CORE:
         out[f.group].append(f)
     for k in exif_keys:
-        out["EXIF"].append(field_for(f"exif:{k}"))
-    order = ["Dates", "Location", "Device", "Author", "Duplicates", "File", "EXIF"]
-    return {g: out[g] for g in order if out.get(g)}
+        f = field_for(f"exif:{k}")
+        out[f.group].append(f)
+    return {g: out[g] for g in CATEGORY_ORDER if out.get(g)}
 
 
 # ───────────────────────── rows ─────────────────────────

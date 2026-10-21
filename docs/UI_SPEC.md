@@ -121,7 +121,7 @@ One table for every task; the four step screens stay as the guided path.
 Group by [Duplicates ▾] [Search path, filename, new filename]  ☑ Colour differences          [◧ Preview] [Reset view]
 Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ “100” ×]
 47 groups · 111 files with duplicates
-┌─┬─────┬──────────────────Actions▾┬─────────────Actions▾┬──New filename────Actions▾┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
+┌─┬─────┬─────────────────────────⋯┬────────────────────⋯┬──New filename───────────⋯┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
 │☐│[▣]  │ Diff                      │ Diff                 │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ –              │ Same       │ → …     │
 │☐│└ ▫  │ disk / Camera / DCIM /    │ IMG_0003.JPG (Keep)  │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │
 │☐│└ ▫  │ disk / Backup 2019 /      │ Copy of IMG_0003.JPG │ → …                       │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │
@@ -140,10 +140,11 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
   green when equal, red when not. *Colour differences* switches the colours off.
 - **Path and Filename are separate columns.**
 - **Columns:** the catalog has the core fields first (Dates, Location, Device, Author, Duplicates, File) and
-  then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), dates, GPS,
-  device and author tags first. *+* opens the searchable picker: one plain checkbox per field, grouped by category; tick to show, untick to hide (applies at once, the picker stays open), with a count of shown columns. Width (drag the right edge of a header), order
+  then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), sorted into the same
+  categories by what they describe (date/time tags under Dates, GPS under Location, make/model/lens under Device,
+  artist/copyright under Author, exposure/ISO/focal length under Capture settings, size/orientation under File, the rest under Other). *+* opens the searchable picker: one plain checkbox per field, grouped by category; tick to show, untick to hide (applies at once, the picker stays open), with a count of shown columns. Width (drag the right edge of a header), order
   (drag a header label: a white line in dark mode, dark in light mode, shows where it lands; the left half of a header drops before it, the right half after it, including at the end) and visibility are saved per library (`workbench_view` setting).
-- **Header actions ▾** (just ▾ in narrow columns, so the name stays readable) open a **menu sheet** (page-level, positioned under the button, so the scrolling table never
+- **Header ⋯ button** (same look as the cell ⋯ button) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
   (*contains*), Show groups where it differs; *Change*: Edit… (new purple column), Group by this (Path, Date, Device,
   Place, Dup.), Hide column. Clicking the label toggles the sort; drag the label to move the column.
@@ -151,7 +152,7 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
   differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
   its context); *No grouping* filters rows.
 - **Edit columns** (light purple, inserted right of the source column) exist **only on demand**: none by default,
-  *Edit…* in a header's Actions sheet opens the rule dialog and adds one.
+  *Edit…* in a header's ⋯ sheet opens the rule dialog and adds one.
   - **Filename:** the rename rule with token chips. It uses the New date / place / device columns when present.
   - **Date:** recommended value; copy from another column (taken, digitized, modified, file date, GPS date,
     date in filename, recommended); **shift** a date by ± h:m:s (wrong camera clock, time zone); fixed value.
