@@ -15,7 +15,8 @@
 <body hx-boost="true" hx-headers='{"X-Meta-Duplo-Token": "{{ token }}"}'
       x-data="{ toast: '' }" @toast.window="toast = $event.detail.value; setTimeout(() => toast = '', 3500)">
   {% set path = request.url.path %}
-  <div class="app">
+  <div class="app" x-data="{ nav: {{ 'false' if path.startswith('/workbench') else 'true' }} }" :class="!nav && 'app--nonav'"
+       @toggle-nav.window="nav = !nav">
     <nav class="nav" aria-label="Workflow">
       <div class="nav__brand">meta-duplo</div>
       <ul class="nav__list">

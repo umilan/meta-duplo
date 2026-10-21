@@ -17,6 +17,50 @@
       if ((r.headers.get("HX-Trigger") || "").includes("wb-reload")) htmx.trigger(document.body, "wb-reload");
     });
 
+  // Hover: tint the row (CSS), the column (classes set here) and the cell; one ⋯ button follows the pointer.
+  const hover = { table: null, idx: -1 };
+  const clearColumn = () => {
+    document.querySelectorAll(".wbt .is-hcol").forEach((el) => el.classList.remove("is-hcol"));
+    hover.table = null; hover.idx = -1;
+  };
+  const cellButton = () => {
+    let btn = document.getElementById("wb-cellbtn");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "wb-cellbtn"; btn.type = "button"; btn.className = "cellbtn"; btn.textContent = "⋯";
+      btn.title = "Cell menu"; btn.setAttribute("aria-label", "Cell menu");
+      btn.addEventListener("click", (ev) => {  // never let it reach the row (that opens the preview)
+        ev.stopPropagation();
+        window.dispatchEvent(new CustomEvent("wb-cellmenu", { detail: { btn } }));
+      });
+    }
+    return btn;
+  };
+  document.addEventListener("mouseover", (e) => {
+    const td = e.target.closest && e.target.closest(".wbt tbody td");
+    if (!td) return;
+    const table = td.closest("table"), idx = td.cellIndex;
+    if (table !== hover.table || idx !== hover.idx) {
+      clearColumn();
+      hover.table = table; hover.idx = idx;
+      if (idx > 0 && idx < td.parentElement.cells.length - 1) {
+        table.querySelectorAll(`tr > :nth-child(${idx + 1})`).forEach((c) => c.classList.add("is-hcol"));
+      }
+    }
+    const inCanvas = idx > 0 && idx < td.parentElement.cells.length - 1 && !td.closest("tbody.more");
+    if (inCanvas) {
+      const btn = cellButton();
+      if (btn.parentElement !== td) td.appendChild(btn);
+    }
+  });
+  document.addEventListener("mouseout", (e) => {
+    const table = e.target.closest && e.target.closest(".wbt");
+    if (table && !(e.relatedTarget && table.contains(e.relatedTarget))) {
+      clearColumn();
+      document.getElementById("wb-cellbtn")?.remove();
+    }
+  });
+
   document.addEventListener("alpine:init", () => {
     // Selection as a plain object (id → true): reliably reactive in every browser, Safari included.
     Alpine.store("wb", {
@@ -44,6 +88,12 @@
       e: { target: "", kind: "recommended" },
       colQuery: "",
       menu: null,            // the open column menu: { key, label, target, groupable, x, y }
+      openCellMenu(btn) {
+        if (this.menu && this.menu.cell && this.menu.btn === btn && this.menu.td === btn.parentElement) { this.menu = null; return; }
+        const r = btn.getBoundingClientRect();
+        this.menu = { cell: true, btn, td: btn.parentElement, key: "__cell", label: "Cell menu",
+                      x: Math.max(8, Math.min(r.right - 260, window.innerWidth - 270)), y: r.bottom + 4 };
+      },
       openMenu(d, btn) {
         if (this.menu && this.menu.key === d.key) { this.menu = null; return; }
         const r = btn.getBoundingClientRect();

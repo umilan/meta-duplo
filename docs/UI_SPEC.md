@@ -173,6 +173,12 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
   Nothing touches the disk before a plan is applied.
 - **Preview panel:** image; the edits not yet applied; Dates, Location, Device, Author, File; the duplicate set with
   confidences; **all metadata tags** in a monospace list.
+- **Hover:** a light tint on the row and the column under the pointer, a stronger tint and outline on the cell; the
+  column header lights up too. Tints are overlays, so they also work on purple and group rows.
+- **Cell menu:** hovering a cell shows **⋯** on its right; it opens the menu sheet titled *Cell menu* (empty for now,
+  reserved for per-cell actions). One button is reused and moved into the hovered cell, so large tables stay light.
+- **Navigation:** the left navigation is hidden on the Workbench to give the table the full width; the sidebar icon
+  left of the title shows or hides it.
 - 60 groups load at a time as you scroll. The table scrolls in its own box with a sticky header.
 
 ## Interaction patterns (htmx)
