@@ -154,7 +154,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 └─┴─────┴───────────────────────────┴──────────────────────┴───────────────────────────┴────┴───────────────┴────────────────┴────────────┴─────────┘
 ```
 
-- **Grouping column:** its header has a **›** button that collapses or expands all groups (groups loaded later
+- **Grouping column:** its header has a **›** button (on the right, shown on hover like ⋯) that collapses or expands all groups (groups loaded later
   follow it; a group row still toggles on its own). When grouped, the second column (after the checkbox) is the grouping itself: *Duplicate set*,
   *Photo*, *Folder*, *Day*, *Device* or *Place*. The group row shows the value and the number of files (e.g.
   “Apple iPhone 12 (95)”), file rows show └. A regular column that the grouping already shows (Device, Place, Folder)

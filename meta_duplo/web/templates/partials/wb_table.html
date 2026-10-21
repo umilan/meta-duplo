@@ -66,10 +66,10 @@
       {% if tree %}
       <th class="wbh-cell wbh-cell--tree" x-data="wbHead('__group', '')">
         <div class="wbh">
+          <span class="wbh__label" title="Grouped by {{ tree.label|lower }}">{{ tree.label }}</span>
           <button type="button" class="wbh__act wbh__fold" @click.stop="$store.wb.expandAll(!$store.wb.expanded)"
                   :title="$store.wb.expanded ? 'Collapse all groups' : 'Expand all groups'"
                   :aria-label="$store.wb.expanded ? 'Collapse all groups' : 'Expand all groups'"><span class="chev" :class="$store.wb.expanded && 'chev--open'">›</span></button>
-          <span class="wbh__label" title="Grouped by {{ tree.label|lower }}">{{ tree.label }}</span>
           <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" title="Drag to resize"></span>
         </div>
       </th>
