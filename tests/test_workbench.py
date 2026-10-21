@@ -75,3 +75,18 @@ def test_old_views_lose_default_edit_columns(lib):
                                                   "edits": {"filename": {"kind": "pattern"}}, "group": "device"}))
     view = wb.load_view(lib)
     assert view["columns"] == [["path", 200]] and view["edits"] == {} and view["group"] == "device"
+
+
+def test_selection_presets(lib):
+    view = wb.load_view(lib)
+    groups, _, nrows = wb.table(lib, view)
+    ids = {r["v"]["filename"]: r["id"] for g in groups for r in g.rows}
+    newer, older, less = (set(wb.preset_ids(lib, view, p)) for p in ("dup_newer", "dup_older", "dup_lessmeta"))
+    assert len(wb.preset_ids(lib, view, "all")) == nrows
+    # same pixels, edited date: newer ticks the later copy, older ticks the original
+    assert ids["prague castle.jpg"] in newer and ids["prague castle.jpg"] not in older
+    assert ids["IMG_0004.JPG"] in older and ids["IMG_0004.JPG"] not in newer
+    assert ids["IMG-20190515-WA0003.jpg"] in less  # WhatsApp copy lost its EXIF
+    for g in groups:  # every preset keeps at least one copy of each duplicate set
+        for picked in (newer, older, less):
+            assert any(r["id"] not in picked for r in g.rows)

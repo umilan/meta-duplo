@@ -36,25 +36,31 @@
       </label>
       <input type="search" placeholder="Search path, filename, new filename" aria-label="Search" value="{{ view.q }}"
              @input.debounce.400ms="post({ action: 'q', q: $event.target.value })">
+      <span class="results-toolbar__spacer"></span>
+      <label class="small selpick">Selection
+        <select aria-label="Selection" x-effect="$el.value = $store.wb.preset" @change="$store.wb.applyPreset($event.target.value)"
+                :class="$store.wb.count && 'is-active'">
+          <option value="none">None</option>
+          <option value="all" x-text="'All (' + $store.wb.total + ')'">All</option>
+          <option value="custom" :hidden="$store.wb.preset !== 'custom'" x-text="'Custom (' + $store.wb.count + ')'">Custom</option>
+          <option value="dup_newer" x-text="'Duplicates – newer' + ($store.wb.preset === 'dup_newer' ? ' (' + $store.wb.count + ')' : '')"
+                  title="In each duplicate set keep the copy with the oldest creation date; tick the newer ones">Duplicates – newer</option>
+          <option value="dup_older" x-text="'Duplicates – older' + ($store.wb.preset === 'dup_older' ? ' (' + $store.wb.count + ')' : '')"
+                  title="In each duplicate set keep the copy with the newest creation date; tick the older ones">Duplicates – older</option>
+          <option value="dup_lessmeta" x-text="'Duplicates – less metadata' + ($store.wb.preset === 'dup_lessmeta' ? ' (' + $store.wb.count + ')' : '')"
+                  title="In each duplicate set keep the copy with the most metadata; tick the others">Duplicates – less metadata</option>
+        </select>
+      </label>
+      <button class="btn btn--small" type="button" :disabled="!$store.wb.count" hx-post="/wb/commit" hx-swap="none"
+              hx-vals='js:{ids: Alpine.store("wb").csv()}' title="Store the purple edit values of the selected rows as decisions">Save edits</button>
+      <button class="btn btn--small" type="button" :disabled="!$store.wb.count" hx-post="/wb/remove-plan"
+              hx-vals='js:{ids: Alpine.store("wb").csv()}'>Remove selected copies…</button>
+      <button class="btn btn--small btn--primary" type="button" :disabled="!$store.wb.count" hx-post="/wb/rename-plan"
+              hx-vals='js:{ids: Alpine.store("wb").csv(), write_xmp: "1"}'>Review rename plan…</button>
     </div>
 
     <div id="wb-table" hx-get="/wb/table" hx-trigger="wb-reload from:body" hx-swap="innerHTML" hx-disinherit="*">
       {% include "partials/wb_table.html" %}
-    </div>
-
-    <div class="selbar-slot">
-      <div class="selbar" :class="$store.wb.count && 'selbar--active'">
-        <strong x-text="$store.wb.count + ' selected'"></strong>
-        <button class="btn btn--small" type="button" @click="$store.wb.selectDuplicates()" title="Every copy except the kept one, in all duplicate groups">Select duplicates</button>
-        <button class="btn btn--small" type="button" @click="$store.wb.clear()">Clear</button>
-        <span class="results-toolbar__spacer"></span>
-        <button class="btn" type="button" :disabled="!$store.wb.count" hx-post="/wb/commit" hx-swap="none"
-                hx-vals='js:{ids: Alpine.store("wb").csv()}' title="Store the purple edit values of the selected rows as decisions">Save edits</button>
-        <button class="btn" type="button" :disabled="!$store.wb.count" hx-post="/wb/remove-plan"
-                hx-vals='js:{ids: Alpine.store("wb").csv()}'>Remove selected copies…</button>
-        <button class="btn btn--primary" type="button" :disabled="!$store.wb.count" hx-post="/wb/rename-plan"
-                hx-vals='js:{ids: Alpine.store("wb").csv(), write_xmp: "1"}'>Review rename plan…</button>
-      </div>
     </div>
   </div>
 

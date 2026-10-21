@@ -6,7 +6,7 @@ import secrets
 from urllib.parse import urlencode
 from pathlib import Path
 
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -490,11 +490,10 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
 
     @app.get("/wb/ids")
     def wb_ids(which: str = "nonkeepers"):
-        view = wb.load_view(lib)
-        if which == "all":  # every row of the current view, also the groups not loaded yet
-            groups, _, _ = wb.table(lib, view)
-            return {"ids": [r["id"] for g in groups for r in g.rows]}
-        return {"ids": wb.nonkeeper_ids(lib, view)}
+        """Selection presets over the whole current view, also the groups not loaded yet."""
+        if which not in wb.SELECTION_PRESETS:
+            raise HTTPException(400, "unknown selection preset")
+        return {"ids": wb.preset_ids(lib, wb.load_view(lib), which)}
 
     def _ids(raw: str) -> set[int]:
         return {int(x) for x in raw.split(",") if x.strip().isdigit()}

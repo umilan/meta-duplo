@@ -474,9 +474,54 @@ def commit(lib: Library, view: dict, ids: set[int]) -> int:
     return n
 
 
-def nonkeeper_ids(lib: Library, view: dict) -> list[int]:
+SELECTION_PRESETS = ("all", "nonkeepers", "dup_newer", "dup_older", "dup_lessmeta")
+_DATE_KEYS = ("date", "digitized", "gps_date", "name_date")  # what the metadata says about creation, best first
+
+
+def _created(r: dict) -> str:
+    return next((str(r["v"][k]) for k in _DATE_KEYS if r["v"].get(k)), "")
+
+
+def _richness(r: dict) -> int:
+    """How much metadata a copy carries: non-empty tags plus the core date/place/device/author fields."""
+    core = ("date", "digitized", "gps", "make", "model", "lens", "serial", "author", "copyright", "owner")
+    return sum(1 for v in r["tags"].values() if v not in ("", None)) + sum(1 for k in core if r["v"].get(k))
+
+
+def preset_ids(lib: Library, view: dict, preset: str) -> list[int]:
+    """Rows a selection preset ticks, within the current view (filters apply).
+
+    all: every row. The duplicate presets keep one copy per duplicate set and tick the others:
+    dup_newer keeps the oldest creation date (ticks the newer copies), dup_older keeps the newest,
+    dup_lessmeta keeps the copy with the most metadata. A copy without any date counts as newest
+    for dup_newer and as oldest for dup_older, so it is ticked either way. Ties keep the current keeper.
+    """
     groups, _, _ = table(lib, view)
-    return [r["id"] for g in groups for r in g.rows if r["dup"] and not r["keeper"]]
+    rows = [r for g in groups for r in g.rows]
+    if preset == "all":
+        return [r["id"] for r in rows]
+    if preset == "nonkeepers":
+        return [r["id"] for r in rows if r["dup"] and not r["keeper"]]
+    sets: dict = defaultdict(list)
+    for r in rows:
+        if r["dup"] and r["cluster"] is not None:
+            sets[r["cluster"]].append(r)
+    out = []
+    for members in sets.values():
+        if len(members) < 2:
+            continue
+        tie = lambda r: (not r["keeper"], r["v"]["path"].lower(), r["v"]["filename"].lower())  # noqa: E731
+        dated = [r for r in members if _created(r)]
+        if preset == "dup_lessmeta":
+            keep = min(members, key=lambda r: (-_richness(r), *tie(r)))
+        elif preset in ("dup_newer", "dup_older") and dated:
+            newest = preset == "dup_older"
+            best = (max if newest else min)(_created(r) for r in dated)
+            keep = min((r for r in dated if _created(r) == best), key=tie)
+        else:
+            keep = min(members, key=tie)
+        out += [r["id"] for r in members if r is not keep]
+    return out
 
 
 def groups_for(lib: Library, ids: set[int]) -> list[int]:

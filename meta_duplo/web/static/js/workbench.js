@@ -98,18 +98,24 @@
       cols: [],              // keys of the columns shown, set by the table (drives the column picker)
       active: null,          // row shown in the preview (clicked, or just ticked)
       panel: false,          // preview panel open (mirrors wbPage.panel for the settings sheet)
+      preset: "none",        // selection picker: none | all | custom | dup_newer | dup_older | dup_lessmeta
       has(id) { return this.sel[id] === true; },
       add(id) { if (!this.sel[id]) { this.sel[id] = true; this.count++; } },
       remove(id) { if (this.sel[id]) { delete this.sel[id]; this.count--; } },
-      toggle(id) { this.has(id) ? this.remove(id) : this.add(id); },
-      setMany(ids, on) { ids.forEach((id) => (on ? this.add(id) : this.remove(id))); },
-      clear() { this.sel = {}; this.count = 0; },
+      edited() { this.preset = this.count ? "custom" : "none"; },  // a hand change leaves the preset
+      toggle(id) { this.has(id) ? this.remove(id) : this.add(id); this.edited(); },
+      setMany(ids, on) { ids.forEach((id) => (on ? this.add(id) : this.remove(id))); this.edited(); },
+      clear() { this.sel = {}; this.count = 0; this.preset = "none"; },
       csv() { return Object.keys(this.sel).join(","); },
       get all() { return this.total > 0 && this.count >= this.total; },
-      load(which) { return fetch(`/wb/ids?which=${which}`).then((r) => r.json()).then((d) => { this.clear(); this.setMany(d.ids, true); }); },
-      selectDuplicates() { return this.load("nonkeepers"); },
-      // Header checkbox: every row of the table, including groups not loaded yet.
-      selectAll(on) { return on ? this.load("all") : this.clear(); },
+      // Presets are computed by the server over the whole view, including groups not loaded yet.
+      load(which) {
+        return fetch(`/wb/ids?which=${which}`).then((r) => r.json()).then((d) => {
+          this.clear(); d.ids.forEach((id) => this.add(id)); this.preset = this.count ? which : "none";
+        });
+      },
+      applyPreset(p) { return p === "none" ? this.clear() : p === "custom" ? null : this.load(p); },
+      selectAll(on) { return on ? this.load("all") : this.clear(); },  // header checkbox
     });
 
     Alpine.data("wbPage", () => ({

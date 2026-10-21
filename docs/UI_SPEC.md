@@ -120,7 +120,7 @@ The page has no padding: the table runs from the left edge of the screen to the 
 only the title, toolbar, filters and count above it are inset slightly.
 
 ```
-Group by [Duplicates ▾] [Search path, filename, new filename]                                             [⚙]
+Group by [Duplicates ▾] [Search…]   Selection [Duplicates – older (64) ▾] [Save edits] [Remove selected copies…] [Review rename plan…]   [⚙]
 Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ “100” ×]
 47 groups · 111 files with duplicates
 ┌─┬─────┬─────────────────────────⋯┬────────────────────⋯┬──New filename───────────⋯┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
@@ -128,7 +128,6 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
 │☐│└ ▫  │ disk / Camera / DCIM /    │ IMG_0003.JPG (Keep)  │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │
 │☐│└ ▫  │ disk / Backup 2019 /      │ Copy of IMG_0003.JPG │ → …                       │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │
 └─┴─────┴───────────────────────────┴──────────────────────┴───────────────────────────┴────┴───────────────┴────────────────┴────────────┴─────────┘
- 0 selected [Select duplicates] [Clear]                       [Save edits] [Remove selected copies…] [Review rename plan…]
 ```
 
 - **Grouping column:** when grouped, the second column (after the checkbox) is the grouping itself: *Duplicate set*,
@@ -168,7 +167,13 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
 
   *Meta checks* shows date / loc / device pills: green when equal to the reference row, red when not.
 - **Selection and actions** (sticky bar):
-  - *Select duplicates* selects every copy except the kept one;
+  - The **Selection** picker sits on the right of the Group by row, with the action buttons next to it (no footer bar):
+    *None*, *All (n)*, *Custom (n)* (shown once you tick or untick rows by hand after a preset),
+    *Duplicates – newer* (in each duplicate set keep the copy with the oldest creation date, tick the newer ones),
+    *Duplicates – older* (keep the newest, tick the older ones) and *Duplicates – less metadata* (keep the copy
+    with the most metadata, tick the others). Creation date = date taken, else digitized, GPS date or date in the
+    filename; a copy with no date is ticked by both date presets. Presets cover the whole view (filters apply),
+    including groups not loaded yet; ties keep the current kept copy;
   - *Save edits* stores the selected rows' edit values as decisions (`proposals` = edited, per photo);
   - *Remove selected copies…* builds a cleanup plan (a group never loses its last copy);
   - *Review rename plan…* saves the edits and builds a rename + XMP plan for the selected files only.

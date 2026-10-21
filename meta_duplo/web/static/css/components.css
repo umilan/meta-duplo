@@ -352,8 +352,7 @@
 .main--flush .wb { gap: 0; }
 .wb-pad { padding-inline: var(--space-3); }
 .results-head.wb-pad { padding-top: var(--space-3); padding-right: 56px; }  /* room for the settings button */
-.main--flush .wb-scroll { border-inline: 0; border-radius: 0; max-height: calc(100vh - 200px); }
-.main--flush .selbar-slot { padding-top: 0; background: none; }
-.main--flush .selbar { border-radius: 0; border-inline: 0; }
+.main--flush .wb-scroll { border-inline: 0; border-radius: 0; max-height: calc(100vh - 150px); }
+.selpick select.is-active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .main--flush .wb-panel { top: 0; border-radius: 0; border-top: 0; border-right: 0; max-height: 100vh; }
 .main--flush .wb-panel { padding-top: 56px; }  /* the settings button sits above the preview */
