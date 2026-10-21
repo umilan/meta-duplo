@@ -125,7 +125,7 @@ readers) and the pickers narrow to 128 px.
   marks for choices and a short grey hint under items that need one.
 - **Workbench** title and **Data input**: a field with *N folders* (or *N of M folders*) and *Found N files*. Its
   sheet, as wide as the field, never leaves the page:
-  - *Add new…* opens the macOS folder dialog right away (the local server runs `osascript` *choose folder*;
+  - *+ Add new…* (accent colour, bold) opens the macOS folder dialog right away (the local server runs `osascript` *choose folder*;
     in the Tauri app this becomes the native dialog). Picking a folder adds it; Cancel does nothing. Where no
     dialog is available, the page asks for a typed path instead;
   - one row per folder: a checkbox (include it in the view; unticked folders stay in the library), the path,

@@ -307,7 +307,7 @@
 .datain__field { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); width: 100%; height: var(--control-h);
   padding: 0 var(--space-100); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); cursor: pointer; text-align: left; }
 .datain__field:hover, .datain__field[aria-expanded="true"] { border-color: var(--accent); }
-.wbsheet.datain__sheet { width: auto; right: 0; }  /* as wide as the field */
+.wbsheet.datain__sheet { width: max(100%, 560px); max-width: calc(100vw - 2 * var(--space-200)); right: auto; }  /* at least as wide as the field, wide enough for paths */
 .pick.datain { display: block; }
 .datain__src { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 0 var(--space-200); min-height: var(--control-h); padding: 0 var(--space-100); border-radius: var(--radius-sm); }
 .datain__src:hover { background: var(--surface-2); }
@@ -315,7 +315,8 @@
 .datain__path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: var(--text-sm); }
 .datain__remove { color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .datain__remove:hover { color: var(--conflict); }
-.datain__addbtn { font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.wbsheet .datain__addbtn { font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); }
+.datain__plus { display: inline-grid; place-items: center; width: var(--space-200); font-size: var(--text-lg); line-height: 1; }
 .datain__writable { display: flex; align-items: center; gap: var(--space-100); min-height: var(--control-h); padding: var(--space-050) var(--space-100); border-top: 1px solid var(--line); cursor: pointer; }
 .wbsheet .datain__demo { color: var(--muted); border-top: 1px solid var(--line); margin-top: var(--space-050); }
 /* dropdown sheets (Data input, Grouping by, Sort by, Selection, Actions): a select-like button + a menu sheet */
