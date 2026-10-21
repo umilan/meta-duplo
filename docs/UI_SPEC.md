@@ -152,7 +152,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), sorted into the same
   categories by what they describe (date/time tags under Dates, GPS under Location, make/model/lens under Device,
   artist/copyright under Author, exposure/ISO/focal length under Capture settings, size/orientation under File, the rest under Other). *+* opens the searchable picker: one plain checkbox per field, grouped by category; tick to show, untick to hide (applies at once, the picker stays open), with a count of shown columns. Width (drag the right edge of a header), order
-  (drag a header label: a white line in dark mode, dark in light mode, shows where it lands; the left half of a header drops before it, the right half after it, including at the end) and visibility are saved per library (`workbench_view` setting).
+  (drag a header label: a strong 4 px accent line with round ends, running the full table height, shows where it lands and the target header is tinted; the left half of a header drops before it, the right half after it, including at the end) and visibility are saved per library (`workbench_view` setting).
 - **Header ⋯ button** (same look as the cell ⋯ button) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
   (*contains*), Show groups where it differs; *Change*: Edit… (new purple column), Group by this (Path, Date, Device,
@@ -230,6 +230,7 @@ SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for
   - Buttons (`.btn`): 32 px tall, 16 px side padding, 4 px radius; *primary* (filled accent), default (outlined),
     *danger*; `.btn--small` (24 px) only inside tables and filter rows; `.btn--icon` is square.
   - Text fields, search fields and selects: 32 px, 8 px padding, a stronger border than hairlines, accent focus ring.
+    Native look is switched off (`appearance: none`, Safari search fields included); selects draw their own arrow.
   - Checkboxes and radios: 16 px, accent colour; a label wrapping one lines it up with an 8 px gap.
   - Menus and sheets (column menu, cell menu, settings): 4 px padding, 8 px radius, items 32 px tall,
     uppercase 12 px section labels.

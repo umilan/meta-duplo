@@ -311,7 +311,7 @@
 .wbt td.wbt__check { text-align: center; }
 .wbh { position: relative; display: flex; align-items: center; gap: var(--space-050); height: calc(var(--control-h) + var(--space-100)); padding: 0 var(--space-100); overflow: hidden; container-type: inline-size; }
 .wbh__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--text); cursor: pointer; }
-.wbh__label[draggable] { cursor: grab; }
+.wbh__label[draggable] { cursor: grab; -webkit-user-drag: element; }
 .wbh__label.is-sorted { color: var(--text); font-weight: 700; }
 .wbh__act { flex: none; position: relative; z-index: 1; }
 .wbh__fold .chev { color: inherit; }
@@ -358,8 +358,11 @@
 .app--nonav .nav { display: none; }
 
 /* column drag: drop position line (text colour: white in dark mode, near-black in light) */
-.dropline { position: fixed; z-index: 45; width: 2px; background: var(--text); border-radius: var(--space-025); pointer-events: none; box-shadow: 0 0 0 1px var(--bg); }
-.dropline::before { content: ""; position: absolute; top: calc(-1 * var(--space-050)); left: 50%; transform: translateX(-50%); width: var(--space-100); height: var(--space-100); border-radius: 50%; background: var(--text); }
+.dropline { position: fixed; z-index: 45; width: var(--space-050); background: var(--accent); border-radius: var(--space-025); pointer-events: none; box-shadow: 0 0 0 1px var(--bg), 0 0 var(--space-100) var(--accent); }
+.dropline::before, .dropline::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); width: var(--space-200); height: var(--space-200); border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
+.dropline::before { top: calc(-1 * var(--space-100)); }
+.dropline::after { bottom: calc(-1 * var(--space-100)); }
+.wbh-cell.is-droptarget { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); }
 
 /* ───────── dialogs (ADS modal) ───────── */
 .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; }

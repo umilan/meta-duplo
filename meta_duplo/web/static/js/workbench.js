@@ -81,12 +81,17 @@
     const box = (th.closest(".wb-scroll") || th).getBoundingClientRect();
     const x = Math.min(Math.max(side === "after" ? r.right : r.left, box.left + 1), box.right - 1);
     const el = dropLine();
-    el.style.left = `${Math.round(x) - 1}px`;
+    el.style.left = `${Math.round(x) - 2}px`;  // centre the 4px line on the border
     el.style.top = `${Math.round(r.top)}px`;
     el.style.height = `${Math.round(box.bottom - r.top)}px`;
     el.hidden = false;
+    document.querySelectorAll(".wbh-cell.is-droptarget").forEach((c) => c !== th && c.classList.remove("is-droptarget"));
+    th.classList.add("is-droptarget");
   };
-  const hideLine = () => { const el = document.getElementById("wb-dropline"); if (el) el.hidden = true; };
+  const hideLine = () => {
+    const el = document.getElementById("wb-dropline"); if (el) el.hidden = true;
+    document.querySelectorAll(".wbh-cell.is-droptarget").forEach((c) => c.classList.remove("is-droptarget"));
+  };
   document.addEventListener("dragover", (e) => { if (!e.target.closest || !e.target.closest(".wbh-cell[data-key]")) hideLine(); });
   document.addEventListener("dragend", () => {
     hideLine();
