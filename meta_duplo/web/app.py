@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import secrets
 import subprocess
 import sys
@@ -9,6 +10,7 @@ from urllib.parse import urlencode
 from pathlib import Path
 
 from fastapi import FastAPI, Form, HTTPException, Request
+from markupsafe import Markup, escape
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -24,6 +26,11 @@ HERE = Path(__file__).parent
 PAGE = 100
 GRID_PAGE = 200
 WB_PAGE = 60  # groups per chunk in the workbench
+
+
+def soft_breaks(text: str) -> Markup:
+    """Line-break opportunities for header labels: between CamelCase words and before "(…)"."""
+    return Markup(re.sub(r"(?<=[a-z])(?=[A-Z])|(?= \()", "<wbr>", str(escape(text))))
 
 
 def human_size(n: int | None) -> str:
@@ -45,7 +52,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
     app = FastAPI(title="meta-duplo", docs_url=None, redoc_url=None)
     runner = Runner(lib)
     templates = Jinja2Templates(directory=str(HERE / "templates"))
-    templates.env.filters.update(size=human_size, band=band, pct=lambda p: "–" if p is None else f"{p * 100:.0f} %")
+    templates.env.filters.update(size=human_size, band=band, pct=lambda p: "–" if p is None else f"{p * 100:.0f} %",
+                                 wbr=soft_breaks)
     templates.env.globals.update(token=token or "", field_labels=harmonize.FIELD_LABELS)
     app.mount("/static", StaticFiles(directory=str(HERE / "static")), name="static")
 

@@ -440,7 +440,9 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
         if unrelated:
             label = "No duplicates"
         g = Group(gk, label, rs, ref)
-        g.summary = {k: ("" if unrelated else "Diff" if any(r["diff"].get(k) for r in rs) else "Same") for k in keys}
+        g.summary = {k: ("" if unrelated
+                         else "N/A" if all(value(r, k) in ("", None) for r in rs)  # nothing to compare
+                         else "Diff" if any(r["diff"].get(k) for r in rs) else "Same") for k in keys}
         groups.append(g)
 
     # filters: per row when ungrouped, per group otherwise (a duplicate set needs its context)

@@ -15,7 +15,7 @@
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}>{{ conf_label(g.ref) }}</td>
     {% elif c.key == 'checks' %}<td{{ " data-sorted" if c.key == sc }} class="muted">–</td>
     {% elif c.edit %}<td{{ " data-sorted" if c.key == sc }} class="wbt__edit">{% set ev = value(g.ref, c.key) %}{% if ev %}→ {{ ev }}{% else %}<span class="muted">—</span>{% endif %}</td>
-    {% else %}<td{{ " data-sorted" if c.key == sc }} class="wbg__sum wbg__sum--{{ g.summary[c.key]|lower }}">{{ g.summary[c.key] }}</td>
+    {% else %}<td{{ " data-sorted" if c.key == sc }} class="wbg__sum wbg__sum--{{ g.summary[c.key]|lower|replace("/", "") }}">{{ g.summary[c.key] }}</td>
     {% endif %}
     {% endfor %}
     <td></td>

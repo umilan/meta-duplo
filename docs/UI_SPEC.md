@@ -207,6 +207,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere
   (the direction a click would give).
+- **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name
+  is in the tooltip.
+- **Group row summaries:** *Same*, *Diff*, or *N/A* (grey) when no row of the group has a value in that column.
 - **Sorted column:** its header label and its cells are bold; cells keep their red / green. Group rows are
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light blue; the row shown in the preview is a darker blue. Clicking a row or
