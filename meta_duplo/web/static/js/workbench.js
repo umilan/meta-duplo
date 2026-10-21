@@ -61,6 +61,34 @@
     }
   });
 
+  // Column drag: a vertical line shows where the dragged header will land.
+  const dropLine = () => {
+    let el = document.getElementById("wb-dropline");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "wb-dropline"; el.className = "dropline"; el.hidden = true;
+      document.body.appendChild(el);
+    }
+    return el;
+  };
+  const showLine = (th, side) => {
+    const r = th.getBoundingClientRect();
+    const box = (th.closest(".wb-scroll") || th).getBoundingClientRect();
+    const x = Math.min(Math.max(side === "after" ? r.right : r.left, box.left + 1), box.right - 1);
+    const el = dropLine();
+    el.style.left = `${Math.round(x) - 1}px`;
+    el.style.top = `${Math.round(r.top)}px`;
+    el.style.height = `${Math.round(box.bottom - r.top)}px`;
+    el.hidden = false;
+  };
+  const hideLine = () => { const el = document.getElementById("wb-dropline"); if (el) el.hidden = true; };
+  document.addEventListener("dragover", (e) => { if (!e.target.closest || !e.target.closest(".wbh-cell[data-key]")) hideLine(); });
+  document.addEventListener("dragend", () => {
+    hideLine();
+    document.querySelectorAll(".wbh-cell.is-dragging").forEach((th) => th.classList.remove("is-dragging"));
+  });
+  document.addEventListener("drop", hideLine);
+
   document.addEventListener("alpine:init", () => {
     // Selection as a plain object (id → true): reliably reactive in every browser, Safari included.
     Alpine.store("wb", {
@@ -129,10 +157,27 @@
         window.addEventListener("mousemove", move);
         window.addEventListener("mouseup", up);
       },
-      dragStart(e) { e.dataTransfer.setData("text/plain", key); e.dataTransfer.effectAllowed = "move"; },
+      side: "before",
+      dragStart(e) {
+        e.dataTransfer.setData("text/plain", key);
+        e.dataTransfer.effectAllowed = "move";
+        e.target.closest("th")?.classList.add("is-dragging");
+      },
+      over(e) {
+        const th = e.currentTarget, r = th.getBoundingClientRect();
+        this.side = e.clientX > r.left + r.width / 2 ? "after" : "before";  // right half: drop after this column
+        e.dataTransfer.dropEffect = "move";
+        showLine(th, this.side);
+      },
       drop(e) {
+        hideLine();
         const from = e.dataTransfer.getData("text/plain");
-        if (from && from !== key) postView({ action: "col_move", key: from, before: key });
+        let before = key;
+        if (this.side === "after") {
+          const next = e.currentTarget.nextElementSibling;
+          before = next && next.dataset.key ? next.dataset.key : "";  // "" = move to the end
+        }
+        if (from && from !== key && from !== before) postView({ action: "col_move", key: from, before });
       },
     }));
   });

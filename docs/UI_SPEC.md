@@ -142,7 +142,7 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
 - **Columns:** the catalog has the core fields first (Dates, Location, Device, Author, Duplicates, File) and
   then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), dates, GPS,
   device and author tags first. *+* opens the searchable picker. Width (drag the right edge of a header), order
-  (drag a header onto another) and visibility are saved per library (`workbench_view` setting).
+  (drag a header label: a white line in dark mode, dark in light mode, shows where it lands; the left half of a header drops before it, the right half after it, including at the end) and visibility are saved per library (`workbench_view` setting).
 - **Header actions ▾** (just ▾ in narrow columns, so the name stays readable) open a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
   (*contains*), Show groups where it differs; *Change*: Edit… (new purple column), Group by this (Path, Date, Device,

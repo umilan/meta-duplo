@@ -315,3 +315,8 @@
 .themeswitch button:hover { color: var(--text); }
 .themeswitch button[aria-checked="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .themeswitch svg { width: 14px; height: 14px; }
+
+/* column drag: drop position line (text colour: white in dark mode, near-black in light) */
+.dropline { position: fixed; z-index: 45; width: 2px; background: var(--text); border-radius: 1px; pointer-events: none; box-shadow: 0 0 0 1px var(--bg); }
+.dropline::before { content: ""; position: absolute; top: -3px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
+.wbh-cell.is-dragging { opacity: .45; }
