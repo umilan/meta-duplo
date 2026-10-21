@@ -4,7 +4,8 @@
              $store.wb.sort = {{ view.sort|tojson }}'>
   <span class="filters__label">Applied filters:</span>
   {% for flt in view.filters %}
-  <span class="fchip">{{ field_label(flt.key) }}: {% if flt.op == 'equals' %}{{ flt.value }}{% elif flt.op in no_value_ops %}{{ ops[flt.op] }}{% else %}{{ ops[flt.op] }} {{ flt.value }}{% endif %}
+  <span class="fchip"><button type="button" class="fchip__edit" title="Edit this filter"
+      @click='openFilter({ key: {{ flt.key|tojson }}, label: "", value: {{ (flt.value or "")|tojson }}, index: {{ loop.index0 }} }, {{ flt.op|tojson }})'>{{ field_label(flt.key) }}: {% if flt.op == 'equals' %}{{ flt.value }}{% elif flt.op in no_value_ops %}{{ ops[flt.op] }}{% else %}{{ ops[flt.op] }} {{ flt.value }}{% endif %}</button>
     <button type="button" aria-label="Remove filter" @click="post({ action: 'filter_remove', index: {{ loop.index0 }} })">×</button></span>
   {% endfor %}
   <button class="btn btn--icon" type="button" title="Add a filter" aria-label="Add a filter"

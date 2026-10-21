@@ -183,7 +183,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   values with counts, most frequent first, searchable; picking one adds an *is* filter), Filter…, Search in this
   column… (*contains*), Show groups where it differs; *Change*: Edit these values… (new purple column), Group by this (Path, Date, Device,
   Place, Dup.). *Remove* (top right, next to the column name) takes the column out of the table; section labels are a lighter grey than the items. Clicking the label toggles the sort; drag the label to move the column.
-- **Filters** (bar above the table, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
+- **Filters** (bar above the table; click a chip to edit it in the filter dialog, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
   differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
   its context); *No grouping* filters rows.
 - **Edit columns** (light purple, inserted right of the source column) exist **only on demand**: none by default,

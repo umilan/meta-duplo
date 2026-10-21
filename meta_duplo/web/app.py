@@ -535,7 +535,12 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         elif act == "colors":
             view["colors"] = not view.get("colors", True)
         elif act == "filter_add" and f.get("key") and f.get("op") in wb.OPS:
-            view["filters"].append({"key": f["key"], "op": f["op"], "value": f.get("value", "")})
+            flt = {"key": f["key"], "op": f["op"], "value": f.get("value", "")}
+            idx = int(f["index"]) if f.get("index", "").isdigit() else -1
+            if 0 <= idx < len(view["filters"]):  # edited from its chip: replace it in place
+                view["filters"][idx] = flt
+            else:
+                view["filters"].append(flt)
         elif act == "filter_remove":
             idx = int(f.get("index", -1))
             if 0 <= idx < len(view["filters"]):

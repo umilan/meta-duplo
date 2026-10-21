@@ -365,6 +365,8 @@
 .fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h); padding: 0 var(--space-050) 0 var(--space-100); border: 1px solid var(--filter-c); background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 600; color: var(--muted); }
 .fchip button { display: inline-grid; place-items: center; width: var(--control-h-sm); height: var(--control-h-sm); border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; color: var(--muted); font-size: var(--text-md); line-height: 1; padding: 0; }
 .fchip button:hover { background: var(--line); color: var(--text); }
+.fchip .fchip__edit { width: auto; height: auto; padding: 0; font: inherit; font-weight: 600; color: inherit; font-size: inherit; line-height: inherit; }
+.fchip .fchip__edit:hover { background: none; color: var(--text); text-decoration: underline; }
 .wb-scroll { overflow: auto; max-height: calc(100vh - 304px); min-height: 256px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .wbt { table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: var(--text-sm); line-height: var(--line-sm); }
 .wbt__c-check { width: 40px; } .wbt__c-add { width: 40px; }

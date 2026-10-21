@@ -308,7 +308,7 @@
         window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
       },
       dialog: null,          // "filter" | "edit" | "addcol" | null
-      f: { key: "", op: "contains", value: "", label: "" },
+      f: { key: "", op: "contains", value: "", label: "", index: "" },  // index: the filter being edited, "" = a new one
       e: { target: "", kind: "recommended" },
       colQuery: "",
       menu: null,            // the open column menu: { key, label, target, groupable, x, y }
@@ -352,7 +352,9 @@
         const r = btn.getBoundingClientRect();
         this.menu = { ...d, x: Math.max(8, Math.min(r.right - 304, window.innerWidth - 312)), y: r.bottom + 4 };
       },
-      openFilter(d, op = "contains") { this.f = { key: d.key, label: d.label, op, value: "" }; this.dialog = "filter"; },
+      openFilter(d, op = "contains") {
+        this.f = { key: d.key, label: d.label, op, value: d.value ?? "", index: d.index ?? "" }; this.dialog = "filter";
+      },
       openEdit(d) {
         if (d.target === "filename") { this.dialog = "naming"; window.dispatchEvent(new CustomEvent("wb-naming")); return; }
         this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit";

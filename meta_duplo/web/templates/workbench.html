@@ -285,8 +285,8 @@
     </div>
 
     <form class="modal__box" x-show="dialog === 'filter'" hx-post="/wb/view" hx-swap="none" @submit="close()">
-      <h3>Add filter</h3>
-      <input type="hidden" name="action" value="filter_add">
+      <h3 x-text="f.index !== '' ? 'Edit filter' : 'Add filter'">Add filter</h3>
+      <input type="hidden" name="action" value="filter_add"><input type="hidden" name="index" :value="f.index">
       <label>Column
         <select name="key" x-model="f.key">
           {% for g, fields in catalog.items() %}<optgroup label="{{ g }}">{% for fl in fields %}<option value="{{ fl.key }}">{{ fl.label }}</option>{% endfor %}</optgroup>{% endfor %}
@@ -298,7 +298,7 @@
       </label>
       <label x-show="!['empty', 'not_empty', 'diff', 'same'].includes(f.op)">Value <input type="text" name="value" x-model="f.value" x-effect="if (dialog === 'filter') $nextTick(() => $el.focus())"></label>
       <p class="small muted">Grouped views keep a whole group when any of its rows matches; “No grouping” filters rows.</p>
-      <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button><button class="btn btn--primary">Apply filter</button></div>
+      <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button><button class="btn btn--primary" x-text="f.index !== '' ? 'Save filter' : 'Apply filter'">Apply filter</button></div>
     </form>
 
     <form class="modal__box modal__box--wide" x-show="dialog === 'edit'" hx-post="/wb/view" hx-swap="none" @submit="close()">
