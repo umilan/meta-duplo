@@ -368,7 +368,7 @@
 }
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); margin: 0 0 var(--space-200); }
 .filters label { display: inline-flex; align-items: center; gap: var(--space-100); }
-.fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h); padding: 0 var(--space-050) 0 var(--space-100); border: 1px solid var(--filter-c); background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 600; color: var(--muted); }
+.fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h); padding: 0 var(--space-050) 0 var(--space-100); border: 2px solid var(--filter-c); background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 600; color: var(--muted); }
 .fchip button { display: inline-grid; place-items: center; width: var(--control-h-sm); height: var(--control-h-sm); border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; color: var(--muted); font-size: var(--text-md); line-height: 1; padding: 0; }
 .fchip button:hover { background: var(--line); color: var(--text); }
 .fchip .fchip__edit { width: auto; height: auto; padding: 0; font: inherit; font-weight: 600; color: inherit; font-size: inherit; line-height: inherit; }
@@ -534,7 +534,8 @@
 .pv-head h2 { margin: 0; font-size: var(--text-lg); line-height: var(--line-lg); }
 
 /* the inputs above the table use the same colours: filter chips orange, an active Sort by cyan */
-.selectbtn.is-sorting { border-color: var(--sort-c); }
+.selectbtn.is-sorting { border: 2px solid var(--sort-c); }
+.selectbtn.is-grouping { background-color: var(--group-bg); }  /* the same beige as the group rows it makes */
 /* preview panel: drag its left edge to resize (the width is kept per browser) */
 .wb-panel__resize { position: absolute; left: 0; top: 0; bottom: 0; width: var(--space-100); cursor: col-resize; z-index: 3; border-left: 2px solid transparent; }
 .wb-panel__resize:hover, .is-resizing .wb-panel__resize { border-left-color: var(--accent); }

@@ -261,8 +261,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   the red **!** when the column has one; hovering shows the full name at once, above the header, with “(empty)”
   when it has no values.
 - **Filtered columns** show a funnel icon (accent colour) next to the header text (its tooltip lists the filters)
-  and a 2 px **orange** outline down the whole column, header included; the filter chips above the table have an
-  orange border too.
+  and a 2 px **orange** outline down the whole column, header included; the filter chips above the table have a
+  2 px orange border too. The *Grouping by* picker has the beige background of the group rows while grouping is on.
 - **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name
   is in the tooltip.
 - **Group row summaries:** *Same*, *Diff*, or *N/A* (grey) when no row of the group has a value in that column.
@@ -275,7 +275,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   dates and our recommendations do not count). Below 208 px of column width only the numbers stay; the tooltip names
   each badge.
 - **Sorted column:** its header label and its cells are bold; cells keep their red / green; it has a 2 px **cyan**
-  outline (header arrow cyan too), and the *Sort by* picker gets a cyan border while a column is sorted. A column
+  outline (header arrow cyan too), and the *Sort by* picker gets a 2 px cyan border while a column is sorted. A column
   that is both gets orange outside, cyan inside. Group rows are
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light grey (a little darker than *Shade odd rows*); the row shown in the preview is a darker blue. Clicking a row or

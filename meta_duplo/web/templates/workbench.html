@@ -52,7 +52,7 @@
       </div>
       <div class="pick" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
         <span class="wbbar__label" id="group-label">Grouping by</span>
-        <button type="button" class="selectbtn" aria-labelledby="group-label" aria-haspopup="menu" :aria-expanded="open.toString()"
+        <button type="button" class="selectbtn {{ 'is-grouping' if view.group != 'none' }}" aria-labelledby="group-label" aria-haspopup="menu" :aria-expanded="open.toString()"
                 @click="open = !open">{{ group_names[view.group] }}</button>
         <div class="wbsheet pick__sheet" role="menu" x-show="open" x-cloak x-transition.opacity>
           {% for k, label in group_names.items() %}
