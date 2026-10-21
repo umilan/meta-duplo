@@ -115,6 +115,9 @@ All files 721 · Needs a decision 1 · Name changes 719 · Problems 0 · Exclude
 
 ### Workbench (experimental, `workbench.html`, `workbench.py`, `static/js/workbench.js`)
 
+On screen it is called **Filomena** (title, nav item, page title, settings section); the code, URL (`/workbench`)
+and docs keep the name Workbench.
+
 One table for every task; the four step screens stay as the guided path. No description text under the title.
 Header: two rows. Row 1 holds the title, Data input, Grouping by, Sort by, Search and ⚙ (⚙ is part of the row, so a
 job progress stripe above it pushes the whole row down; the stripe's bar uses all the free width); row 2 the filters

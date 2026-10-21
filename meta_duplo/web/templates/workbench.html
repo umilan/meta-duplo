@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Workbench{% endblock %}
+{% block title %}Filomena{% endblock %}
 {% block head %}<script src="/static/js/workbench.js" defer></script>{% endblock %}
 {% block main_class %}main--flush{% endblock %}
 {% block topbar_place %}{% endblock %}{# ⚙ sits in the Workbench header row instead #}
@@ -8,7 +8,7 @@
        @change="on = $event.target.checked; $dispatch('wb-colors')"> Text colours (same / different)</label>
 {% endblock %}
 {% block settings_menu %}
-<div class="setsheet__section">Workbench</div>
+<div class="setsheet__section">Filomena</div>
 <label class="setsheet__item setsheet__check">
   <input type="checkbox" :checked="$store.wb.panel" @change="$dispatch('wb-panel', { on: $event.target.checked })"> Preview panel</label>
 <button type="button" class="setsheet__item" @click="$dispatch('wb-addcol'); open = false">Columns…</button>
@@ -23,7 +23,7 @@
       <button type="button" class="navtoggle" @click="$dispatch('toggle-nav')" title="Show or hide the navigation" aria-label="Show or hide the navigation">
         <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="7.5" y1="4" x2="7.5" y2="16" stroke="currentColor" stroke-width="1.5"/></svg>
       </button>
-      <h1 class="wb-title">Workbench</h1>
+      <h1 class="wb-title">Filomena</h1>
       <span class="wbbar__label" id="datain-label">Data input</span>
       {% set n_on = sources|rejectattr("id", "in", sources_off)|list|length %}
       <div class="pick datain" x-data="dataInput" @click.outside="open = false" @keydown.escape.window="open = false"
