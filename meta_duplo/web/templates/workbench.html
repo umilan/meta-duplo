@@ -107,7 +107,14 @@
       </div>
       <div class="lightbox__one" x-show="mode === 'one' && current">
         <template x-if="current && current.kind === 'video'"><video :src="'/media/' + current.id" controls></video></template>
-        <template x-if="current && current.kind !== 'video'"><img :src="'/media/' + current.id" :alt="current.name"></template>
+        <template x-if="current && current.kind !== 'video'">
+          <div class="zoomview" :class="dragging && 'is-dragging'" x-ref="view" @wheel.prevent="wheel($event)"
+               @pointerdown="down($event)" @pointermove="drag($event)" @pointerup="up($event)" @pointercancel="up($event)"
+               @dblclick="dbl($event)">
+            <img :src="'/media/' + current.id" :alt="current.name" @load="loaded($event)" draggable="false"
+                 :style="`width: ${nw}px; transform: translate(${tx}px, ${ty}px) scale(${s})`">
+          </div>
+        </template>
       </div>
       <div class="lightbox__grid" x-show="mode === 'grid'" :class="'lightbox__grid--' + Math.min(Math.max(items.length, 1), 4)">
         <template x-for="it in items" :key="it.id">
@@ -120,10 +127,23 @@
           </figure>
         </template>
       </div>
-      <div class="lightbox__modes themeswitch" role="radiogroup" aria-label="View">
-        <button type="button" role="radio" :aria-checked="(mode === 'one').toString()" @click="mode = 'one'">One</button>
-        <button type="button" role="radio" :aria-checked="(mode === 'grid').toString()" @click="mode = 'grid'"
-                x-text="'Duplicate set (' + items.length + ')'">Duplicate set</button>
+      <div class="lightbox__foot">
+        <div class="lightbox__modes themeswitch" role="radiogroup" aria-label="View">
+          <button type="button" role="radio" :aria-checked="(mode === 'one').toString()" @click="mode = 'one'">One</button>
+          <button type="button" role="radio" :aria-checked="(mode === 'grid').toString()" @click="mode = 'grid'"
+                  x-text="'Duplicate set (' + items.length + ')'">Duplicate set</button>
+        </div>
+        <div class="lightbox__zoom" x-show="mode === 'one' && current && current.kind !== 'video'">
+          <button type="button" class="btn btn--small btn--icon" @click="zoomBy(1 / 1.25)" title="Zoom out (−)" aria-label="Zoom out">−</button>
+          <span class="lightbox__pct mono small" x-text="Math.round(s * 100) + ' %'"></span>
+          <button type="button" class="btn btn--small btn--icon" @click="zoomBy(1.25)" title="Zoom in (+)" aria-label="Zoom in">+</button>
+          <div class="themeswitch" role="radiogroup" aria-label="Fit">
+            <button type="button" role="radio" :aria-checked="(fit === 'contain').toString()" @click="setFit('contain')" title="Whole image (0)">Fit</button>
+            <button type="button" role="radio" :aria-checked="(fit === 'width').toString()" @click="setFit('width')" title="Fit the width (W)">Width</button>
+            <button type="button" role="radio" :aria-checked="(fit === 'height').toString()" @click="setFit('height')" title="Fit the height (H)">Height</button>
+            <button type="button" role="radio" :aria-checked="(fit === 'actual').toString()" @click="setFit('actual')" title="Actual pixels (1)">100 %</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

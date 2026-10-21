@@ -269,10 +269,15 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Column groups:** a 2 px divider where a column-picker category begins (File, Duplicates, Dates, Location,
   Device, Author, …), header included.
 - **Table height:** the table reaches down to the bottom edge of the window (no empty band below it).
-- **Large viewer:** clicking the preview image opens it almost full screen (96 × 94 % of the window). The table
+- **Large viewer:** clicking the preview image opens it full screen (16 px margin all round). The table
   behind keeps the keyboard: ↑ ↓ move the cursor and the viewer follows. A switch at the bottom centre chooses
   *One* (the file alone) or *Duplicate set (n)* (every copy of its set side by side, up to four per row, each with
   its name, confidence and path; ✓ = kept copy, accent frame = the current file). Esc, × or a click outside closes it.
+  In *One*, photos zoom and pan (originals, so 100 % is real pixels): the wheel or a trackpad pinch zooms around
+  the pointer, dragging pans, − / + buttons zoom around the centre, and a fit switch at the bottom right picks *Fit*
+  (whole image), *Width*, *Height* or *100 %*; the image never leaves the view. Double-click toggles 100 % at that
+  point and back to Fit. Keys: + / − zoom, 0 Fit, 1 100 %, W width, H height. The chosen fit carries to the next
+  file and follows window resizes; a manual zoom resets to Fit on the next file.
 - **Preview panel:** resizable by dragging its left edge (256–720 px, kept per browser); a sticky header *Preview* with **×** to close it (⚙ stays in the table-side header row, left of
   the panel); then the image; the edits not yet applied; Dates, Location, Device, Author, File (labels and values
   each take half the width); the duplicate set stacked one copy per block (name, confidence, path; ✓ = kept copy,

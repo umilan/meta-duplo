@@ -111,6 +111,10 @@
   document.addEventListener("keydown", (e) => {
     if (!document.querySelector("#wb-table .wbt") || typing(e.target)) return;
     if (e.key === "Escape" && Alpine.store("wb").lightbox) { Alpine.store("wb").lightbox = false; return; }
+    if (Alpine.store("wb").lightbox) {  // zoom keys of the large viewer (+ − 0 1 W H)
+      const lb = document.querySelector(".lightbox");
+      if (lb && Alpine.$data(lb).key(e)) { e.preventDefault(); return; }
+    }
     const menuOpen = [...document.querySelectorAll(".wbsheet, .setsheet")].some((m) => m.getClientRects().length);
     if (menuOpen) return;  // a menu or sheet is open: its own keys (Esc) apply
     const rows = visibleRows();
@@ -481,6 +485,58 @@
         const id = Alpine.store("wb").active;
         if (!id || !Alpine.store("wb").lightbox) return;
         fetch(`/wb/mates/${id}`).then((r) => r.json()).then((d) => { this.items = d.items; });
+      },
+      // zoom and pan in "One": s = scale, (tx, ty) = image offset in the view; fit = the fit kept on resize (or null)
+      nw: 0, nh: 0, s: 1, tx: 0, ty: 0, fit: "contain", dragging: false, p0: null,
+      box() { const v = this.$refs.view; return v ? { w: v.clientWidth, h: v.clientHeight } : { w: 0, h: 0 }; },
+      loaded(ev) {
+        this.nw = ev.target.naturalWidth; this.nh = ev.target.naturalHeight;
+        this.setFit(this.fit || "contain");
+        // the view gets its size when the viewer shows (or the window resizes): re-apply the fit then
+        const view = ev.target.parentNode;
+        if (this.observed !== view) {
+          this.ro?.disconnect(); this.observed = view;
+          this.ro = new ResizeObserver(() => { if (this.fit) this.setFit(this.fit); }); this.ro.observe(view);
+        }
+      },
+      setFit(fit) {
+        const { w, h } = this.box();
+        if (!this.nw || !w) { this.fit = fit; return; }  // hidden yet: the ResizeObserver applies it
+        this.fit = fit;
+        this.s = { contain: Math.min(w / this.nw, h / this.nh), width: w / this.nw, height: h / this.nh, actual: 1 }[fit];
+        this.tx = (w - this.nw * this.s) / 2; this.ty = fit === "width" ? 0 : (h - this.nh * this.s) / 2;  // a tall image starts at its top
+        this.clamp();
+      },
+      // keep the image on screen: centred along an axis where it is smaller than the view, edges never pulled inside
+      clamp() {
+        const { w, h } = this.box(), iw = this.nw * this.s, ih = this.nh * this.s;
+        this.tx = iw <= w ? (w - iw) / 2 : Math.min(0, Math.max(w - iw, this.tx));
+        this.ty = ih <= h ? (h - ih) / 2 : Math.min(0, Math.max(h - ih, this.ty));
+      },
+      zoomAt(f, cx, cy) {
+        const s = Math.min(16, Math.max(0.02, this.s * f)), k = s / this.s;
+        this.tx = cx - (cx - this.tx) * k; this.ty = cy - (cy - this.ty) * k; this.s = s; this.fit = null; this.clamp();
+      },
+      zoomBy(f) { const { w, h } = this.box(); this.zoomAt(f, w / 2, h / 2); },
+      wheel(ev) {
+        const r = this.$refs.view.getBoundingClientRect();
+        this.zoomAt(Math.exp(-ev.deltaY * (ev.ctrlKey ? 0.01 : 0.002)), ev.clientX - r.left, ev.clientY - r.top);  // ctrl = trackpad pinch
+      },
+      down(ev) { if (ev.button !== 0) return; this.dragging = true; this.p0 = { x: ev.clientX - this.tx, y: ev.clientY - this.ty }; ev.currentTarget.setPointerCapture(ev.pointerId); },
+      drag(ev) { if (!this.dragging) return; this.tx = ev.clientX - this.p0.x; this.ty = ev.clientY - this.p0.y; this.fit = null; this.clamp(); },
+      up() { this.dragging = false; },
+      // double-click: 100 % at that point, or back to the whole image
+      dbl(ev) {
+        if (this.fit !== "contain") { this.setFit("contain"); return; }
+        const r = this.$refs.view.getBoundingClientRect(); this.zoomAt(1 / this.s, ev.clientX - r.left, ev.clientY - r.top);
+      },
+      key(e) {
+        if (this.mode !== "one" || !this.current || this.current.kind === "video") return false;
+        const act = { "+": () => this.zoomBy(1.25), "=": () => this.zoomBy(1.25), "-": () => this.zoomBy(1 / 1.25),
+                      0: () => this.setFit("contain"), 1: () => this.setFit("actual"),
+                      w: () => this.setFit("width"), h: () => this.setFit("height") }[e.key.toLowerCase()];
+        if (!act || e.metaKey || e.ctrlKey || e.altKey) return false;
+        act(); return true;
       },
     }));
 
