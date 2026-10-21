@@ -356,11 +356,13 @@
 .wbt thead th.wbt__check, .wbt thead th.wbt__add { padding: 0 var(--space-100); text-align: center; }
 .wbt td.wbt__check { text-align: center; }
 .wbh { position: relative; display: flex; align-items: center; gap: var(--space-050); height: calc(var(--control-h) + var(--space-100)); padding: 0 var(--space-100); overflow: hidden; container-type: inline-size; }
-.wbh__label { flex: 0 1 auto; min-width: 0; overflow: hidden; font-weight: 600; color: var(--text); cursor: pointer;
+.wbh__label { flex: 0 1 auto; min-width: var(--space-300); overflow: hidden; font-weight: 600; color: var(--text); cursor: pointer;
   white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }  /* long names wrap to two lines */
 .wbh__label[draggable] { cursor: grab; }
 .wbh--sortable { cursor: pointer; }
 /* sort icon next to the header text: always on the sorted column, on hover elsewhere (the direction a click gives) */
+.wbh__filter { flex: none; display: inline-grid; place-items: center; color: var(--accent); }  /* this column has a filter */
+.wbh__filter svg { width: var(--space-200); height: var(--space-200); }
 .wbh__sort { flex: none; color: var(--muted); opacity: 0; }
 .wbh:hover .wbh__sort { opacity: 1; }
 .wbh__sort.is-on { opacity: 1; color: var(--text); font-weight: 700; }
