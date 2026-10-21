@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Workbench{% endblock %}
 {% block head %}<script src="/static/js/workbench.js" defer></script>{% endblock %}
+{% block appearance_menu %}
+<label class="setsheet__item setsheet__check" x-data="{ on: {{ view.colors|tojson }} }"><input type="checkbox" :checked="on"
+       @change="on = $event.target.checked; $dispatch('wb-colors')"> Text colours (same / different)</label>
+{% endblock %}
 {% block settings_menu %}
 <div class="setsheet__section">Workbench</div>
 <label class="setsheet__item setsheet__check">
@@ -10,7 +14,7 @@
 {% block content %}
 <div class="wb" x-data="wbPage" :class="panel && 'wb--panel'"
      @wb-filter.window="openFilter($event.detail, $event.detail.op || 'contains')" @wb-edit.window="openEdit($event.detail)"
-     @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true" @wb-panel.window="panel = $event.detail.on" @wb-reset.window="post({ action: 'reset' })" @wb-cellmenu.window="openCellMenu($event.detail.btn)">
+     @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true" @wb-panel.window="panel = $event.detail.on" @wb-reset.window="post({ action: 'reset' })" @wb-colors.window="post({ action: 'colors' })" @wb-cellmenu.window="openCellMenu($event.detail.btn)">
   <div class="wb-main">
     <div class="results-head">
       <div>
@@ -32,7 +36,6 @@
       </label>
       <input type="search" placeholder="Search path, filename, new filename" aria-label="Search" value="{{ view.q }}"
              @input.debounce.400ms="post({ action: 'q', q: $event.target.value })">
-      <label class="small"><input type="checkbox" {{ 'checked' if view.colors }} @change="post({ action: 'colors' })"> Colour differences</label>
     </div>
 
     <div id="wb-table" hx-get="/wb/table" hx-trigger="wb-reload from:body" hx-swap="innerHTML" hx-disinherit="*">

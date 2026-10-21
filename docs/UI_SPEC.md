@@ -118,7 +118,7 @@ All files 721 · Needs a decision 1 · Name changes 719 · Problems 0 · Exclude
 One table for every task; the four step screens stay as the guided path.
 
 ```
-Group by [Duplicates ▾] [Search path, filename, new filename]  ☑ Colour differences                       [⚙]
+Group by [Duplicates ▾] [Search path, filename, new filename]                                             [⚙]
 Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ “100” ×]
 47 groups · 111 files with duplicates
 ┌─┬─────┬─────────────────────────⋯┬────────────────────⋯┬──New filename───────────⋯┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
@@ -205,7 +205,14 @@ SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for
 
 - Only **CSS custom properties** for colours, spacing, radius and type, in `static/css/tokens.css`.
   Dark values live in one block applied by `prefers-color-scheme` unless `<html data-theme="light">`, and by
-  `data-theme="dark"`. The **settings button** (⚙, top right of every page) opens a dropdown sheet: *Appearance* (Auto / Light / Dark theme switcher, which sets that attribute), page items (on the Workbench: *Preview panel* checkbox and *Reset view*), and *All settings…*. Esc or a click outside closes it.
+  `data-theme="dark"`. The **settings button** (⚙, top right of every page) opens a dropdown sheet:
+  - *Appearance*: Light / Dark (light is the default; sets `data-theme`), *Text colours* (Workbench only: green/red
+    for same/different, saved in the view), *Cell borders* (on by default), *Shade odd rows* (off by default) and
+    *Compact view* (slimmer table rows and tighter spacing and type everywhere). Theme, borders, shading and density
+    are per-viewer preferences in `localStorage`, applied as `data-theme`, `data-borders`, `data-zebra` and
+    `data-density` on `<html>` before the first paint (`static/js/theme.js`).
+  - Page items: on the Workbench, the *Preview panel* checkbox and *Reset view* (keeps Text colours).
+  - *All settings…*. Esc or a click outside closes the sheet.
   `static/js/theme.js` loads synchronously in `<head>` and applies the saved choice (browser storage) before the
   first paint. Auto follows the system.
 - Files: `base.css` (elements), `layout.css` (app shell, grids), `components.css` (cards, badges, tables, fields).

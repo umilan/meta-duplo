@@ -474,7 +474,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             view["edits"].pop(f["target"], None)
             view["columns"] = [c for c in cols if c[0] != f"edit:{f['target']}"]
         elif act == "reset":
-            view = json.loads(json.dumps(wb.DEFAULT_VIEW))
+            view = {**json.loads(json.dumps(wb.DEFAULT_VIEW)), "colors": view.get("colors", True)}  # colours: appearance
         wb.save_view(lib, view)
         return Response(status_code=204, headers={"HX-Trigger": "wb-reload"} if reload else {})
 

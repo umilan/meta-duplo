@@ -113,7 +113,7 @@
 .results td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .results .w-check { width: 30px; } .results .w-size { width: 90px; } .results .w-date { width: 162px; }
 .results .w-device { width: 136px; } .results .w-place { width: 104px; } .results .w-match { width: 76px; }
-.results th, .results td { padding: 5px var(--space-2); vertical-align: middle; }
+.results th, .results td { padding: var(--cell-py) var(--space-2); vertical-align: middle; }
 .results .col-check { width: 28px; text-align: center; }
 .results .col-num { text-align: right; white-space: nowrap; }
 .results .col-text { max-width: 0; }
@@ -177,8 +177,7 @@
 .grid th { position: sticky; top: 0; z-index: 1; background: var(--surface-2); border-right: 1px solid var(--line); padding: 6px var(--space-2); }
 .grid th a { color: var(--text); }
 .grid th a.is-sorted { color: var(--accent); }
-.grid td { padding: 4px var(--space-2); border-right: 1px solid var(--line); white-space: nowrap; max-width: 320px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
-.grid tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+.grid td { padding: var(--cell-py) var(--space-2); border-right: 1px solid var(--line); white-space: nowrap; max-width: 320px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
 .grid tbody tr:hover td { background: var(--accent-soft); }
 .grid .col-check { width: 30px; text-align: center; }
 .grid .g-name { max-width: 300px; }
@@ -218,9 +217,9 @@
 .wb-scroll { overflow: auto; max-height: calc(100vh - 300px); min-height: 260px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .wbt { table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: var(--text-sm); }
 .wbt__c-check { width: 36px; } .wbt__c-add { width: 40px; }
-.wbt th, .wbt td { padding: 5px var(--space-2); border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+.wbt th, .wbt td { padding: var(--cell-py) var(--space-2); border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
 .wbt thead th { position: sticky; top: 0; z-index: 2; background: var(--surface-2); padding: 0; overflow: visible; }
-.wbt thead th.wbt__check, .wbt thead th.wbt__add { padding: 5px var(--space-2); }
+.wbt thead th.wbt__check, .wbt thead th.wbt__add { padding: var(--cell-py) var(--space-2); }
 .wbh { position: relative; display: flex; align-items: center; gap: 4px; height: 34px; padding: 0 10px 0 var(--space-2); overflow: hidden; }
 .wbh__label[draggable] { cursor: grab; }
 .wbh { container-type: inline-size; }  /* on the inner box: table cells cannot be containers */
@@ -272,10 +271,10 @@
 .wbt .is-diff { background: none; }
 .wbt__edit { background: var(--edit-bg); color: var(--edit-text); }
 .wbt__edit--same { color: var(--muted); }
-.wbt__thumb { width: 34px; height: 26px; max-width: none; object-fit: cover; border-radius: 3px; display: inline-block; vertical-align: middle; }
+.wbt__thumb { width: calc(var(--thumb-h) * 4 / 3); height: var(--thumb-h); max-width: none; object-fit: cover; border-radius: 3px; display: inline-block; vertical-align: middle; }
 .wbt__thumb--small { width: 26px; height: 20px; margin-left: 4px; }
 .wbt td.wbt__tree { color: var(--muted); padding-left: 18px; font-size: 15px; }
-.wbt td.wbt__thumbcell { padding-top: 3px; padding-bottom: 3px; text-overflow: clip; }
+.wbt td.wbt__thumbcell { padding-top: 1px; padding-bottom: 1px; text-overflow: clip; }
 .wbh-cell--tree .wbh__label { cursor: default; }
 .wbt__path span { padding: 0 1px; }
 .check { display: inline-block; font-size: 11px; border-radius: 3px; padding: 0 4px; margin-right: 3px; border: 1px solid currentColor; }
@@ -333,3 +332,13 @@
 .dropline { position: fixed; z-index: 45; width: 2px; background: var(--text); border-radius: 1px; pointer-events: none; box-shadow: 0 0 0 1px var(--bg); }
 .dropline::before { content: ""; position: absolute; top: -3px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
 .wbh-cell.is-dragging { opacity: .45; }
+
+/* Appearance preferences (settings sheet), set on <html> by theme.js.
+   :where() keeps them at zero specificity, so selection, hover and diff backgrounds still win. */
+:where(:root[data-zebra="on"]) :where(tbody tr:nth-child(odd):not(.wbg__head, .wbr)) > td,
+:where(:root[data-zebra="on"]) :where(.wbt tbody tr:nth-child(odd of .wbr)) > td { background-color: var(--zebra); }
+:root[data-borders="on"] :is(.wbt, .grid, .results) tbody td + td { border-left: 1px solid var(--line); }
+:root[data-borders="on"] .grid td { border-right: 0; }
+:root[data-borders="off"] :is(td, th) { border-bottom-color: transparent; }
+:root[data-borders="off"] .grid :is(td, th) { border-right-color: transparent; }
+:root[data-borders="off"] .wbg__head td { border-top-color: transparent; }

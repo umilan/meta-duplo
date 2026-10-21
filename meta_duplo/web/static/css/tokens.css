@@ -13,6 +13,14 @@
   --shadow: 0 1px 2px rgb(0 0 0 / 6%);
   --edit-bg: #f6ecfd; --edit-text: #8a2fb8; --same: #1f8a4c; --differ: #c62f2f;   /* workbench */
   --tint: rgb(47 111 222 / 6%); --tint-cell: rgb(47 111 222 / 12%);              /* hover overlays */
+  --zebra: #f6f6f4;                                                                /* shaded odd rows */
+  --cell-py: 5px; --thumb-h: 26px;                                                 /* table density */
+}
+/* Compact view (settings sheet): slimmer rows and tighter spacing everywhere. */
+:root[data-density="compact"] {
+  --space-2: 6px; --space-3: 8px; --space-4: 12px; --space-6: 18px; --space-8: 24px;
+  --text-sm: 12px; --text-md: 13px; --text-lg: 16px; --text-xl: 19px;
+  --cell-py: 2px; --thumb-h: 20px;
 }
 /* Dark theme: from the system setting unless the switcher forces light, or forced by the switcher.
    The two blocks must stay identical. */
@@ -22,7 +30,7 @@
     --accent: #6a9cf0; --accent-soft: #1e2a40; --on-accent: #0d1220;
     --band-medium: #d9a63a; --diff: #3a3220; --keeper: #4cc27e; --shadow: none;
     --edit-bg: #33213f; --edit-text: #d59cf5; --same: #4cc27e; --differ: #ff6b6b;
-    --tint: rgb(140 170 255 / 7%); --tint-cell: rgb(140 170 255 / 15%);
+    --tint: rgb(140 170 255 / 7%); --tint-cell: rgb(140 170 255 / 15%); --zebra: #262629;
   }
 }
 :root[data-theme="dark"] {
@@ -30,7 +38,7 @@
     --accent: #6a9cf0; --accent-soft: #1e2a40; --on-accent: #0d1220;
     --band-medium: #d9a63a; --diff: #3a3220; --keeper: #4cc27e; --shadow: none;
     --edit-bg: #33213f; --edit-text: #d59cf5; --same: #4cc27e; --differ: #ff6b6b;
-    --tint: rgb(140 170 255 / 7%); --tint-cell: rgb(140 170 255 / 15%);
+    --tint: rgb(140 170 255 / 7%); --tint-cell: rgb(140 170 255 / 15%); --zebra: #262629;
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }

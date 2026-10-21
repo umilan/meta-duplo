@@ -35,7 +35,8 @@
       </ul>
     </nav>
     <main class="main" id="main">
-      <div class="topbar" x-data="{ open: false, mode: window.mdTheme ? mdTheme.get() : 'auto' }"
+      <div class="topbar" x-data="{ open: false, p: { ...['theme', 'borders', 'zebra', 'density'].reduce((o, k) => ({ ...o, [k]: mdPrefs.get(k) }), {}) },
+                                   set(k, v) { this.p[k] = v; mdPrefs.set(k, v); } }"
            @keydown.escape.window="open = false" @click.outside="open = false">
         <button type="button" class="setbtn" :aria-expanded="open.toString()" aria-haspopup="true" @click="open = !open"
                 title="Settings" aria-label="Settings">
@@ -44,13 +45,18 @@
         <div class="setsheet" x-show="open" x-cloak x-transition.opacity>
           <div class="setsheet__section">Appearance</div>
           <div class="themeswitch" role="radiogroup" aria-label="Colour theme">
-            <button type="button" role="radio" :aria-checked="(mode === 'auto').toString()" @click="mode = 'auto'; mdTheme.set('auto')" title="Follow the system setting">
-              <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg>Auto</button>
-            <button type="button" role="radio" :aria-checked="(mode === 'light').toString()" @click="mode = 'light'; mdTheme.set('light')" title="Light">
+            <button type="button" role="radio" :aria-checked="(p.theme === 'light').toString()" @click="set('theme', 'light')">
               <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M3 13l1-1M12 4l1-1"/></g></svg>Light</button>
-            <button type="button" role="radio" :aria-checked="(mode === 'dark').toString()" @click="mode = 'dark'; mdTheme.set('dark')" title="Dark">
+            <button type="button" role="radio" :aria-checked="(p.theme === 'dark').toString()" @click="set('theme', 'dark')">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 10.5A6 6 0 0 1 5.5 2.5a6 6 0 1 0 8 8z" fill="currentColor"/></svg>Dark</button>
           </div>
+          {% block appearance_menu %}{% endblock %}
+          <label class="setsheet__item setsheet__check"><input type="checkbox" :checked="p.borders === 'on'"
+                 @change="set('borders', $event.target.checked ? 'on' : 'off')"> Cell borders</label>
+          <label class="setsheet__item setsheet__check"><input type="checkbox" :checked="p.zebra === 'on'"
+                 @change="set('zebra', $event.target.checked ? 'on' : 'off')"> Shade odd rows</label>
+          <label class="setsheet__item setsheet__check"><input type="checkbox" :checked="p.density === 'compact'"
+                 @change="set('density', $event.target.checked ? 'compact' : 'normal')"> Compact view</label>
           {% block settings_menu %}{% endblock %}
           <a class="setsheet__item" href="/settings">All settings…</a>
         </div>
