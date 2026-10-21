@@ -78,16 +78,24 @@ DATE_SOURCES = ["date", "digitized", "modify", "file_date", "gps_date", "name_da
 VERDICT_TEXT = {"identical": "exact", "same_pixels": "diff meta", "same_photo": "same photo", "edited": "edited",
                 "same_video": "same video", "likely": "likely", "similar_shot": "similar shot"}
 
+VIEW_VERSION = 2
 DEFAULT_VIEW = {
-    "columns": [["thumb", 66], ["path", 250], ["filename", 180], ["edit:filename", 320], ["dup_count", 64],
-                ["dup_conf", 130], ["checks", 150], ["date", 160], ["edit:date", 170], ["modify", 160],
-                ["gps_date", 160], ["place", 110], ["device", 140], ["author", 130]],
-    "edits": {"filename": {"kind": "pattern"}, "date": {"kind": "recommended"}},
+    "v": VIEW_VERSION,
+    "columns": [["thumb", 52], ["path", 250], ["filename", 190], ["dup_count", 64], ["dup_conf", 140],
+                ["checks", 150], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 110],
+                ["device", 150], ["author", 130]],
+    "edits": {},              # purple edit columns appear only after "Edit…" in a header's Actions sheet
     "filters": [],
     "group": "dups",
+    "group_width": 230,       # width of the grouping (tree) column
     "sort": ["", "asc"],
     "q": "",
     "colors": True,
+}
+# Grouping column (right after the checkbox): its label, and the regular column it replaces (shown only once).
+GROUP_COLUMN = {
+    "dups": ("Duplicate set", ""), "capture": ("Photo", ""), "folder": ("Folder", "path"),
+    "day": ("Day", ""), "device": ("Device", "device"), "place": ("Place", "place"),
 }
 
 
@@ -98,6 +106,9 @@ def load_view(lib: Library) -> dict:
         v = json.loads(lib.setting("workbench_view") or "null") or {}
     except ValueError:
         v = {}
+    if v and v.get("v") != VIEW_VERSION:  # v1 opened with default edit columns: drop them once
+        v["columns"] = [c for c in v.get("columns", []) if not str(c[0]).startswith("edit:")]
+        v["edits"], v["v"] = {}, VIEW_VERSION
     view = json.loads(json.dumps(DEFAULT_VIEW))
     view.update({k: v[k] for k in v if k in DEFAULT_VIEW})
     return view
@@ -371,8 +382,7 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
             r["is_ref"] = r is ref
             r["path_parts"] = _path_diff(r["v"]["path"], ref["v"]["path"], r is ref or len(rs) == 1)
             r["checks"] = {t: (str(r["v"][t]) == str(ref["v"][t])) for t in ("date", "place", "device")}
-        label = {"dups": f"{len(rs)} copies", "none": "All files",
-                 "capture": ref["v"]["filename"]}.get(by, str(gk))
+        label = {"dups": ref["v"]["filename"], "capture": ref["v"]["filename"], "none": "All files"}.get(by, str(gk))
         g = Group(gk, label, rs, ref)
         g.summary = {k: ("Diff" if any(r["diff"].get(k) for r in rs) else "Same") for k in keys}
         groups.append(g)

@@ -129,6 +129,10 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
  0 selected [Select duplicates] [Clear]                       [Save edits] [Remove selected copies…] [Review rename plan…]
 ```
 
+- **Grouping column:** when grouped, the second column (after the checkbox) is the grouping itself: *Duplicate set*,
+  *Photo*, *Folder*, *Day*, *Device* or *Place*. The group row shows the value and the number of files (e.g.
+  “Apple iPhone 12 (95)”), file rows show └. A regular column that the grouping already shows (Device, Place, Folder)
+  is hidden while grouped. Thumbnails are an ordinary column next to it. The grouping column is resizable.
 - **Group by** sets the task: *Duplicates* (only files with copies; the kept copy is the reference row),
   *Photo (all copies)*, *Folder*, *Day*, *Device*, *Place*, *No grouping*. The group row shows the reference
   thumbnail and, per column, **Same** (green) or **Diff** (red).
@@ -139,14 +143,15 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
   then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), dates, GPS,
   device and author tags first. *+* opens the searchable picker. Width (drag the right edge of a header), order
   (drag a header onto another) and visibility are saved per library (`workbench_view` setting).
-- **Header actions ▾** open a **menu sheet** (page-level, positioned under the button, so the scrolling table never
+- **Header actions ▾** (just ▾ in narrow columns, so the name stays readable) open a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
   (*contains*), Show groups where it differs; *Change*: Edit… (new purple column), Group by this (Path, Date, Device,
   Place, Dup.), Hide column. Clicking the label toggles the sort; drag the label to move the column.
 - **Filters** (bar above the table, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
   differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
   its context); *No grouping* filters rows.
-- **Edit columns** (light purple, inserted right of the source column): *Edit…* opens a rule dialog.
+- **Edit columns** (light purple, inserted right of the source column) exist **only on demand**: none by default,
+  *Edit…* in a header's Actions sheet opens the rule dialog and adds one.
   - **Filename:** the rename rule with token chips. It uses the New date / place / device columns when present.
   - **Date:** recommended value; copy from another column (taken, digitized, modified, file date, GPS date,
     date in filename, recommended); **shift** a date by ± h:m:s (wrong camera clock, time zone); fixed value.

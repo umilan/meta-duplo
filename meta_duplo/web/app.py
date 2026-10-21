@@ -374,8 +374,14 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
     def wb_ctx(offset: int = 0) -> dict:
         view = wb.load_view(lib)
         groups, exif_keys, nrows = wb.table(lib, view)
+        tree = None
+        if view["group"] in wb.GROUP_COLUMN:
+            label, replaces = wb.GROUP_COLUMN[view["group"]]
+            tree = {"label": label, "replaces": replaces, "width": int(view.get("group_width", 230))}
         cols = []
         for key, width in view["columns"]:
+            if tree and key == tree["replaces"]:
+                continue  # the grouping column already shows it
             f = wb.field_for(key)
             if f:
                 target = key[5:] if key.startswith("edit:") else f.editable
@@ -385,7 +391,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                                            "dup_count": "dups", "dup_conf": "dups"}.get(key, "")})
         return {"view": view, "groups": groups[offset:offset + WB_PAGE], "ngroups": len(groups), "nrows": nrows,
                 "offset": offset, "next_offset": offset + WB_PAGE, "cols": cols,
-                "table_width": 36 + 40 + sum(c["width"] for c in cols),
+                "tree": tree,
+                "table_width": 36 + 40 + sum(c["width"] for c in cols) + (tree["width"] if tree else 0),
                 "catalog": wb.catalog(exif_keys), "group_names": wb.GROUPS, "ops": wb.OPS,
                 "no_value_ops": wb.NO_VALUE_OPS, "date_sources": wb.DATE_SOURCES,
                 "field_label": lambda k: (wb.field_for(k).label if wb.field_for(k) else k),
@@ -437,6 +444,9 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             rest = [c for c in cols if c[0] != f["key"]]
             at = next((i for i, c in enumerate(rest) if c[0] == f.get("before")), len(rest))
             view["columns"] = rest[:at] + [moving] + rest[at:]
+        elif act == "col_width" and f.get("key") == "__group":
+            view["group_width"] = max(80, min(900, int(float(f.get("width", 230)))))
+            reload = False
         elif act == "col_width" and f.get("key") in keys:
             for c in cols:
                 if c[0] == f["key"]:

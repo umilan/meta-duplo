@@ -13,12 +13,21 @@
   <table class="wbt {{ 'wbt--colors' if view.colors }}" style="width: {{ table_width }}px">{# widths are user data; the only inline styles besides the swipe clip #}
     <colgroup>
       <col class="wbt__c-check">
+      {% if tree %}<col data-key="__group" style="width: {{ tree.width }}px">{% endif %}
       {% for c in cols %}<col data-key="{{ c.key }}" style="width: {{ c.width }}px">{% endfor %}
       <col class="wbt__c-add">
     </colgroup>
     <thead><tr>
       <th class="wbt__check" x-init="$store.wb.total = {{ nrows }}"><input type="checkbox" aria-label="Select all rows in the table"
           :checked="$store.wb.all" x-effect="$el.indeterminate = $store.wb.count > 0 && !$store.wb.all" @change="$store.wb.selectAll($event.target.checked)"></th>
+      {% if tree %}
+      <th class="wbh-cell wbh-cell--tree" x-data="wbHead('__group', '')">
+        <div class="wbh">
+          <span class="wbh__label" title="Grouped by {{ tree.label|lower }}">{{ tree.label }}</span>
+          <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" title="Drag to resize"></span>
+        </div>
+      </th>
+      {% endif %}
       {% for c in cols %}
       {% set sorted = view.sort[0] == c.key %}
       <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}')"
@@ -27,7 +36,7 @@
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)" @click="sort()"
                 title="{{ c.label }} — click to sort, drag to move">{{ c.label }}{% if sorted %} {{ '↑' if view.sort[1] == 'asc' else '↓' }}{% endif %}</span>
           {% if c.key != 'thumb' %}<button type="button" class="wbh__act" aria-haspopup="menu"
-              @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}' }, $el)">Actions ▾</button>{% endif %}
+              @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}' }, $el)" title="Actions: sort, filter, search, edit"><span class="wbh__act-text">Actions </span>▾</button>{% endif %}
           <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" title="Drag to resize"></span>
         </div>
       </th>

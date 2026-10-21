@@ -54,7 +54,9 @@ def test_filters_and_grouping_modes(lib):
 def test_edit_rules_commit_and_partial_rename(lib):
     view = wb.load_view(lib)
     view.update(group="none")
+    assert view["edits"] == {}  # no purple columns until the user asks for one
     view["edits"]["date"] = {"kind": "shift", "column": "date", "seconds": 3600}
+    view["edits"]["filename"] = {"kind": "pattern"}
     groups, _, _ = wb.table(lib, view)
     r = next(r for g in groups for r in g.rows if r["v"]["filename"] == "IMG_4102.JPG")
     assert r["e"]["date"] == "2018-12-24 18:31:12"
@@ -65,3 +67,11 @@ def test_edit_rules_commit_and_partial_rename(lib):
     pid = plans.build_rename_plan(lib, write_xmp=False, only_ids={r["id"]})
     with lib.connect() as con:
         assert [a["file_id"] for a in con.execute("SELECT file_id FROM actions WHERE plan_id = ? AND op = 'rename'", (pid,))] == [r["id"]]
+
+
+def test_old_views_lose_default_edit_columns(lib):
+    import json
+    lib.set_setting("workbench_view", json.dumps({"columns": [["path", 200], ["edit:filename", 300]],
+                                                  "edits": {"filename": {"kind": "pattern"}}, "group": "device"}))
+    view = wb.load_view(lib)
+    assert view["columns"] == [["path", 200]] and view["edits"] == {} and view["group"] == "device"

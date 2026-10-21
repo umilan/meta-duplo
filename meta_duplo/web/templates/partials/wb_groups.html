@@ -5,9 +5,9 @@
   <tr class="wbg__head" @click="open = !open">
     <td class="wbt__check" @click.stop><input type="checkbox" aria-label="Select group" @change="$store.wb.setMany({{ ids|tojson }}, $event.target.checked)"
         :checked="{{ ids|tojson }}.every(i => $store.wb.has(i))"></td>
+    {% if tree %}<td class="wbg__label" title="{{ g.label }}"><span class="chev" :class="open && 'chev--open'">›</span> {{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>{% endif %}
     {% for c in cols %}
-    {% if c.key == 'thumb' %}<td><img class="wbt__thumb" src="/thumb/{{ g.ref.id }}" alt="" loading="lazy"></td>
-    {% elif c.key == 'path' and view.group != 'dups' %}<td class="wbg__label" title="{{ g.label }}"><span class="chev" :class="open && 'chev--open'">›</span> {{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>
+    {% if c.key == 'thumb' %}<td></td>
     {% elif c.key == 'dup_count' %}<td>{{ g.ref.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td>{{ conf_label(g.ref) }}</td>
     {% elif c.key == 'checks' %}<td class="muted">–</td>
@@ -23,10 +23,11 @@
       :class="$store.wb.has({{ r.id }}) && 'wbr--selected'"
       hx-get="/wb/preview/{{ r.id }}" hx-target="#wb-preview" hx-trigger="click" @click="$dispatch('wb-preview')">
     <td class="wbt__check" @click.stop><input type="checkbox" aria-label="Select {{ r.v.filename }}" :checked="$store.wb.has({{ r.id }})" @change="$store.wb.toggle({{ r.id }})"></td>
+    {% if tree %}<td class="wbt__tree" aria-hidden="true">└</td>{% endif %}
     {% for c in cols %}
     {% set d = r.diff.get(c.key) %}
     {% if c.key == 'thumb' %}
-      <td class="wbt__tree">{% if view.group != 'none' %}<span class="muted">└</span>{% endif %}<img class="wbt__thumb wbt__thumb--small" src="/thumb/{{ r.id }}" alt="" loading="lazy"></td>
+      <td class="wbt__thumbcell"><img class="wbt__thumb" src="/thumb/{{ r.id }}" alt="" loading="lazy"></td>
     {% elif c.key == 'path' %}
       <td class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ 'is-same' if same else 'is-diff' }}">{{ seg }}</span> / {% endfor %}</td>
     {% elif c.key == 'filename' %}
@@ -51,6 +52,6 @@
 {% endfor %}
 {% if next_offset < ngroups %}
 <tbody class="more" hx-get="/wb/more?offset={{ next_offset }}" hx-trigger="intersect once" hx-swap="outerHTML">
-  <tr><td colspan="{{ cols|length + 2 }}" class="muted small">Loading more groups…</td></tr>
+  <tr><td colspan="{{ cols|length + (3 if tree else 2) }}" class="muted small">Loading more groups…</td></tr>
 </tbody>
 {% endif %}
