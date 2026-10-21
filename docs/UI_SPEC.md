@@ -137,7 +137,7 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
   *Photo (all copies)*, *Folder*, *Day*, *Device*, *Place*, *No grouping*. The group row shows the reference
   thumbnail and, per column, **Same** (green) or **Diff** (red).
 - **Differences:** values that differ from the group's reference row are red. Path segments and file names are
-  green when equal, red when not. *Colour differences* switches the colours off.
+  green when equal, red when not. *Text colours* in the settings sheet switches the colours off.
 - **Path and Filename are separate columns.**
 - **Columns:** the catalog has the core fields first (Dates, Location, Device, Author, Duplicates, File) and
   then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), sorted into the same
@@ -213,8 +213,6 @@ SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for
     `data-density` on `<html>` before the first paint (`static/js/theme.js`).
   - Page items: on the Workbench, the *Preview panel* checkbox and *Reset view* (keeps Text colours).
   - *All settings…*. Esc or a click outside closes the sheet.
-  `static/js/theme.js` loads synchronously in `<head>` and applies the saved choice (browser storage) before the
-  first paint. Auto follows the system.
 - Files: `base.css` (elements), `layout.css` (app shell, grids), `components.css` (cards, badges, tables, fields).
 - Semantic class names (`.card`, `.member--keeper`, `.badge--high`, `.field--accepted`), BEM-style.
   The only inline style is the computed `clip-path` of the swipe compare.
