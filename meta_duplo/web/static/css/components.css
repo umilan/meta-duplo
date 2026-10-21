@@ -616,7 +616,10 @@
 .wbt td.wbt__edit:has(> .srclink) { padding-right: var(--space-500); }
 .wbt td.wbt__edit:has(> .srclink):has(> .cellbtn) { padding-right: var(--space-800); }
 .wbt td.wbt__edit:has(> .srclink) > .cellbtn { right: var(--space-500); }
-.srclink--head { cursor: help; margin-left: auto; }
+.srclink--head { cursor: help; order: 2; }  /* header: the tag sits at the right edge, after the ⋯ */
+.wbh:has(> .srclink--head) > .wbh__act { order: 1; }
+/* group rows: the edit value and its tag dimmed (the files below carry the real values) */
+.wbg__head td.wbt__edit > .wbt__ev, .wbg__head td.wbt__edit > .srclink { opacity: .5; }
 /* the column / row a hovered link points to */
 .wbt .is-srccol { box-shadow: inset 2px 0 0 var(--edit-text), inset -2px 0 0 var(--edit-text); background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); }
 .wbt tr.is-srcrow > td { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 2px 0 var(--edit-text), inset 0 -2px 0 var(--edit-text); }
