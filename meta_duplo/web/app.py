@@ -416,7 +416,10 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 "no_value_ops": wb.NO_VALUE_OPS, "date_sources": wb.DATE_SOURCES,
                 "field_label": lambda k: (wb.field_for(k).label if wb.field_for(k) else k),
                 "conf_label": wb.conf_label, "conf_parts": wb.conf_parts, "value": wb.value, "checks_meta": wb.CHECKS, "key_fields": wb.KEY_FIELDS,
-                "tokens": harmonize.TOKENS_HELP, "pattern": lib.setting("filename_pattern")}
+                "tokens": harmonize.TOKENS_HELP, "name_tokens": harmonize.NAME_TOKENS,
+                "name_labels": {tok: label for _g, label, tok in harmonize.NAME_TOKENS}, "pattern": lib.setting("filename_pattern"),
+                "name_pattern": (view["edits"].get("filename", {}).get("pattern")
+                                 or lib.setting("filename_pattern") or harmonize.DEFAULT_PATTERN)}
 
     @app.get("/workbench", response_class=HTMLResponse)
     def workbench(request: Request):
@@ -436,6 +439,53 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
     @app.get("/wb/more", response_class=HTMLResponse)
     def wb_more(request: Request, offset: int = 0):
         return templates.TemplateResponse(request, "partials/wb_groups.html", wb_ctx(offset))
+
+    # Naming-pattern dialog: preview values for one file, and the user's saved patterns (presets)
+    @app.post("/wb/name-preview")
+    def wb_name_preview(pattern: str = Form(""), fid: str = Form("")):
+        view = wb.load_view(lib)
+        rows, _ = wb.build_rows(lib)
+        wb.apply_edits(rows, {k: v for k, v in view["edits"].items() if k != "filename"})
+        r = next((x for x in rows if str(x["id"]) == fid), None) or (rows[0] if rows else None)
+        if r is None:
+            return {"name": "", "values": {}, "file": ""}
+        e, v, eff = r["e"], r["v"], r["effective"]
+        values = {"capture_time": e.get("date", eff.get("capture_time") or v["date"]),
+                  "location_name": e.get("place", eff.get("location_name") or v["place"]),
+                  "device_name": e.get("device", eff.get("device_name") or v["device"]),
+                  "country": eff.get("country") or v["country"]}
+        each = {}
+        for m in harmonize.TOKEN.finditer(pattern):
+            tok = m.group(0)
+            out = harmonize.render_name(tok + ".x", values, r["original_name"], r["ext_raw"])  # a token on its own
+            each[tok] = "" if out is None else out[:-2] if out.endswith(".x") else out
+        name = harmonize.render_name(pattern, values, r["original_name"], r["ext_raw"])
+        return {"name": name if name is not None else "(no date for this file: it keeps its name)", "values": each,
+                "file": r["v"]["filename"]}
+
+    def _presets() -> list[dict]:
+        try:
+            saved = json.loads(lib.setting("name_presets") or "[]")
+        except ValueError:
+            saved = []
+        return [{"name": "Default", "pattern": harmonize.DEFAULT_PATTERN, "builtin": True}] + saved
+
+    @app.get("/wb/presets")
+    def wb_presets():
+        return {"presets": _presets()}
+
+    @app.post("/wb/presets")
+    def wb_presets_change(action: str = Form(""), name: str = Form(""), pattern: str = Form(""), new: str = Form("")):
+        saved = [p for p in _presets() if not p.get("builtin")]
+        name, new = name.strip(), new.strip()
+        if action == "save" and name and name != "Default":
+            saved = [p for p in saved if p["name"] != name] + [{"name": name, "pattern": pattern}]
+        elif action == "delete":
+            saved = [p for p in saved if p["name"] != name]
+        elif action == "rename" and new and new != "Default" and not any(p["name"] == new for p in saved):
+            saved = [{**p, "name": new} if p["name"] == name else p for p in saved]
+        lib.set_setting("name_presets", json.dumps(saved))
+        return {"presets": _presets()}
 
     @app.get("/wb/values")
     def wb_values(key: str = ""):

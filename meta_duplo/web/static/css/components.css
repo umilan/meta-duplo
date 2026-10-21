@@ -564,3 +564,27 @@
 .valuelist__item > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* a row chosen as the reference of its group */
 .wbt td.wbt__tree.is-userref { color: var(--accent); font-size: var(--text-md); }
+
+/* ───────── naming-pattern dialog (Filename → Edit) ───────── */
+.modal__box--wide.namer { width: min(720px, 94vw); }
+.namer__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); }
+.namer__edit { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-025) 0; min-height: var(--control-h);
+  padding: var(--space-050) var(--space-100); border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  background: var(--surface); font-family: var(--font-mono); font-size: var(--text-md); line-height: var(--line-md); cursor: text; }
+.namer__edit:focus-within { border-color: var(--accent); }
+.namer__part { display: inline-flex; align-items: center; }
+.namer__edit .namer__text { width: auto; min-width: var(--space-050); min-height: 0; height: var(--line-md); padding: 0; border: 0;
+  background: none; font: inherit; color: var(--text); outline: none; }
+.namer__tok { padding: 0 var(--space-025); border: 0; border-radius: var(--radius-sm); background: none; font: inherit;
+  color: var(--edit-text); text-decoration: underline; text-underline-offset: var(--space-050); cursor: pointer; }
+.namer__tok:hover, .namer__tok.is-open { background: var(--edit-bg); }
+.wbsheet.namer__picker { position: static; width: auto; max-height: 256px; overflow-y: auto; }
+.namer__picker input[type="search"] { margin-bottom: var(--space-050); }
+.wbsheet .namer__remove { color: var(--conflict); border-bottom: 1px solid var(--line); border-radius: 0; }
+.wbsheet.namer__presets { width: 304px; }
+.wbsheet > .namer__preset { display: flex; align-items: center; gap: var(--space-100); }
+.wbsheet .namer__presetname { flex: 1; font-weight: 600; }
+.namer__preset .linkbtn { display: inline; min-height: 0; padding: 0; margin-right: var(--space-100); }
+.wbsheet .namer__preset .linkbtn:hover { background: none; }
+.wbsheet .namer__del { color: var(--conflict); }
+.wbsheet .namer__save { color: var(--accent); font-weight: 600; border-top: 1px solid var(--line); border-radius: 0; margin-top: var(--space-050); }

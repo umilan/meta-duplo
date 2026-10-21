@@ -202,6 +202,17 @@ TOKENS_HELP = {
 }
 
 
+# The naming-pattern dialog's parameter list: (group, label, token). Only what render_name knows.
+NAME_TOKENS = [
+    ("Date", "Date and time", "{date:%Y-%m-%d %H-%M-%S}"), ("Date", "Date", "{date:%Y-%m-%d}"),
+    ("Date", "Time", "{date:%H-%M-%S}"), ("Date", "Year", "{date:%Y}"), ("Date", "Month", "{date:%m}"),
+    ("Date", "Day", "{date:%d}"), ("Date", "Hour", "{date:%H}"), ("Date", "Min", "{date:%M}"), ("Date", "Sec", "{date:%S}"),
+    ("Place", "Place", "{location_name}"), ("Place", "Country", "{country}"),
+    ("Device", "Device", "{device_name}"),
+    ("File", "Original filename", "{original_filename}"), ("File", "Extension", "{ext}"), ("File", "EXTENSION", "{EXT}"),
+]
+
+
 def render_name(pattern: str, values: dict, original_name: str, ext: str) -> str | None:
     """Render a file name; None when the pattern needs a date the capture does not have."""
     t = values.get("capture_time") or ""

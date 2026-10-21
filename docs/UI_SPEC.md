@@ -188,7 +188,13 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   its context); *No grouping* filters rows.
 - **Edit columns** (light purple, inserted right of the source column) exist **only on demand**: none by default,
   *Edit…* in a header's ⋯ sheet opens the rule dialog and adds one.
-  - **Filename:** the rename rule with token chips. It uses the New date / place / device columns when present.
+  - **Filename:** the **Naming pattern** dialog. The pattern shows as underlined parameter chips (`<Date>`,
+    `<Place>`, …) with editable literal text between them; clicking a chip opens a searchable list to replace it
+    or *Remove* it; *+ Add new parameter* inserts one at the text cursor. *Tech names / Preview* switches the chips
+    between parameter names and the values of the previewed (or first) file; the full new name shows below.
+    **Presets** (picker in the header): load, *Save this pattern as a preset…*, Rename, Delete; stored in the
+    library setting `name_presets`, with a built-in *Default* that can't be changed. *Apply* sets the rule and adds
+    the New filename column. It uses the New date / place / device columns when present.
   - **Date:** recommended value; copy from another column (taken, digitized, modified, file date, GPS date,
     date in filename, recommended); **shift** a date by ± h:m:s (wrong camera clock, time zone); fixed value.
   - **Place, Device:** recommended; copy from any column; fixed value.

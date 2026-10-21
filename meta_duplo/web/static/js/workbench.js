@@ -349,7 +349,10 @@
         this.menu = { ...d, x: Math.max(8, Math.min(r.right - 304, window.innerWidth - 312)), y: r.bottom + 4 };
       },
       openFilter(d, op = "contains") { this.f = { key: d.key, label: d.label, op, value: "" }; this.dialog = "filter"; },
-      openEdit(d) { this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit"; },
+      openEdit(d) {
+        if (d.target === "filename") { this.dialog = "naming"; window.dispatchEvent(new CustomEvent("wb-naming")); return; }
+        this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit";
+      },
       close() { this.dialog = null; },
       // Column picker: [key, label] pairs matching the search, their shown state, and bulk show / hide
       colKeys(pairs) {
@@ -398,6 +401,71 @@
         const path = window.prompt("Folder to add (full path):", "/Volumes/");
         if (path) htmx.ajax("POST", "/wb/sources", { source: document.body, swap: "none", values: { path, writable: this.writable ? "1" : "" } });
       },
+    }));
+
+    // Naming-pattern dialog: tokens as chips (click: replace / remove), text between them editable,
+    // "Add new parameter" inserts at the text cursor; Tech names / Preview; presets kept in the library.
+    Alpine.data("namer", (labels = {}) => ({
+      parts: [], mode: "tech", picking: null, q: "", at: { i: 0, pos: 0 }, vals: {}, name: "", file: "",
+      presets: [], preset: "",
+      init() {
+        window.addEventListener("wb-naming", () => this.start());
+        this.$watch("parts", () => { clearTimeout(this.t); this.t = setTimeout(() => this.refresh(), 250); }, { deep: true });
+      },
+      pattern() { return this.parts.map((p) => p.v).join(""); },
+      parse(pattern) {
+        const out = [], re = /\{[^}]+\}/g; let last = 0, m;
+        while ((m = re.exec(pattern))) { out.push({ t: "text", v: pattern.slice(last, m.index) }, { t: "tok", v: m[0] }); last = re.lastIndex; }
+        out.push({ t: "text", v: pattern.slice(last) });
+        return out;
+      },
+      start() {
+        const current = document.querySelector("#wb-table")?.dataset.pattern || "";
+        this.parts = this.parse(current); this.preset = ""; this.mode = "tech"; this.picking = null; this.refresh();
+      },
+      load(p) { this.parts = this.parse(p.pattern); this.preset = p.name; },
+      techName(tok) { return labels[tok] ? `<${labels[tok]}>` : tok.slice(1, -1); },  // unknown tokens as typed
+      caret(i, ev) { this.at = { i, pos: ev.target.selectionStart ?? ev.target.value.length }; },
+      focusEnd() { const ins = this.$el.querySelectorAll(".namer__text"); ins[ins.length - 1]?.focus(); },
+      openPicker(i) { this.picking = i; this.q = ""; this.$nextTick(() => this.$refs.pq.focus()); },
+      choose(tok) {
+        if (this.picking >= 0) { this.parts[this.picking].v = tok; }
+        else {  // insert at the remembered text cursor
+          const { i, pos } = this.at, p = this.parts[i] && this.parts[i].t === "text" ? this.parts[i] : this.parts[this.parts.length - 1];
+          const idx = this.parts.indexOf(p), cut = Math.min(pos, p.v.length);
+          this.parts.splice(idx, 1, { t: "text", v: p.v.slice(0, cut) }, { t: "tok", v: tok }, { t: "text", v: p.v.slice(cut) });
+        }
+        this.picking = null; this.preset = "";
+      },
+      removeTok() {
+        const i = this.picking;
+        const merged = { t: "text", v: (this.parts[i - 1]?.v || "") + (this.parts[i + 1]?.v || "") };
+        this.parts.splice(i - 1, 3, merged); this.picking = null; this.preset = "";
+      },
+      refresh() {
+        const body = new URLSearchParams({ pattern: this.pattern(), fid: String(Alpine.store("wb").active || "") });
+        fetch("/wb/name-preview", { method: "POST", headers: { "X-Meta-Duplo-Token": token() }, body })
+          .then((r) => r.json()).then((d) => { this.vals = d.values; this.name = d.name; this.file = d.file; });
+      },
+      apply() {
+        const t = document.querySelector("#wb-table");
+        if (t) t.dataset.pattern = this.pattern();  // the table reloads inside this element, which stays
+        postView({ action: "edit_set", target: "filename", pattern: this.pattern() }); this.close();
+      },
+      presetCall(data) {
+        return fetch("/wb/presets", { method: "POST", headers: { "X-Meta-Duplo-Token": token() }, body: new URLSearchParams(data) })
+          .then((r) => r.json()).then((d) => { this.presets = d.presets; });
+      },
+      loadPresets() { fetch("/wb/presets").then((r) => r.json()).then((d) => { this.presets = d.presets; }); },
+      savePreset() {
+        const name = window.prompt("Name of the preset:", this.preset || "");
+        if (name) this.presetCall({ action: "save", name, pattern: this.pattern() }).then(() => { this.preset = name.trim(); });
+      },
+      renamePreset(p) {
+        const nn = window.prompt("New name:", p.name);
+        if (nn) this.presetCall({ action: "rename", name: p.name, new: nn });
+      },
+      deletePreset(p) { if (window.confirm(`Delete the preset “${p.name}”?`)) this.presetCall({ action: "delete", name: p.name }); },
     }));
 
     // Large viewer: the active file alone, or every copy of its duplicate set side by side.

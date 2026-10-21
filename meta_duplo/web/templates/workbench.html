@@ -92,7 +92,7 @@
       {{ self.topbar() }}
     </div>
 
-    <div id="wb-table" hx-get="/wb/table" hx-trigger="wb-reload from:body" hx-swap="innerHTML" hx-disinherit="*">
+    <div id="wb-table" data-pattern="{{ name_pattern }}" hx-get="/wb/table" hx-trigger="wb-reload from:body" hx-swap="innerHTML" hx-disinherit="*">
       {% include "partials/wb_table.html" %}
     </div>
   </div>
@@ -198,6 +198,63 @@
         </template>
         <p class="muted small" x-show="!vals.items.length">Loading…</p>
       </div>
+    </div>
+    <div class="modal__box modal__box--wide namer" x-show="dialog === 'naming'"
+         x-data='namer({{ name_labels|tojson }})'>
+      <div class="colpick-head"><h3>Naming pattern</h3>
+        <span class="colpick-head__tools">
+          <div class="pick pick--right" x-data="{ open: false }" @click.outside="open = false">
+            <button type="button" class="selectbtn" @click="open = !open; if (open) loadPresets()" x-text="preset ? 'Preset: ' + preset : 'Presets'">Presets</button>
+            <div class="wbsheet pick__sheet namer__presets" x-show="open" x-cloak>
+              <template x-for="p in presets" :key="p.name">
+                <div class="namer__preset">
+                  <button type="button" class="namer__presetname" @click="load(p); open = false" :title="p.pattern"
+                          x-text="p.name"></button>
+                  <template x-if="!p.builtin"><span>
+                    <button type="button" class="linkbtn" @click="renamePreset(p)">Rename</button>
+                    <button type="button" class="linkbtn namer__del" @click="deletePreset(p)">Delete</button></span></template>
+                </div>
+              </template>
+              <button type="button" class="namer__save" @click="savePreset(); open = false">+ Save this pattern as a preset…</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn--icon btn--small modal__close" @click="close()" aria-label="Close">×</button>
+        </span>
+      </div>
+      <div class="namer__bar">
+        <div class="themeswitch" role="radiogroup" aria-label="Show">
+          <button type="button" role="radio" :aria-checked="(mode === 'tech').toString()" @click="mode = 'tech'">Tech names</button>
+          <button type="button" role="radio" :aria-checked="(mode === 'preview').toString()" @click="mode = 'preview'; refresh()">Preview</button>
+        </div>
+        <button type="button" class="btn" @click="openPicker(-1)">+ Add new parameter (at the cursor)</button>
+      </div>
+      <label class="small muted">New filename</label>
+      <div class="namer__edit" @click.self="focusEnd()">
+        <template x-for="(p, i) in parts" :key="i">
+          <span class="namer__part">
+            <template x-if="p.t === 'text'">
+              <input class="namer__text" x-model="p.v" :size="Math.max(p.v.length, 1)" spellcheck="false" :data-i="i"
+                     @focus="caret(i, $event)" @keyup="caret(i, $event)" @click="caret(i, $event)" @input="caret(i, $event)" aria-label="Text">
+            </template>
+            <template x-if="p.t === 'tok'">
+              <button type="button" class="namer__tok" :class="picking === i && 'is-open'" @click="openPicker(i)"
+                      :title="p.v" x-text="mode === 'preview' ? (vals[p.v] || '∅') : techName(p.v)"></button>
+            </template>
+          </span>
+        </template>
+      </div>
+      <div class="namer__picker wbsheet" x-show="picking !== null" x-cloak @click.outside="picking = null">
+        <input type="search" placeholder="Search…" x-model="q" x-ref="pq" aria-label="Search parameters">
+        <button type="button" class="namer__remove" x-show="picking !== null && picking >= 0" @click="removeTok()">Remove</button>
+        {% for group, items in name_tokens|groupby(0) %}
+        <div class="wbsheet__section">{{ group }}</div>
+        {% for g, label, tok in items %}
+        <button type="button" role="menuitem" x-show="!q || '{{ label|lower }}'.includes(q.toLowerCase())" @click="choose('{{ tok }}')">&lt;{{ label }}&gt; <span class="muted small">{{ tok }}</span></button>
+        {% endfor %}{% endfor %}
+      </div>
+      <p class="small"><span class="muted" x-text="'Preview for ' + (file || 'the first file') + ':'"></span> <strong class="mono" x-text="name"></strong></p>
+      <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button>
+        <button type="button" class="btn btn--primary" @click="apply()">Apply</button></div>
     </div>
     <div class="modal__box" x-show="dialog === 'celledit'">
       <h3 x-text="'Edit ' + cellEdit.label"></h3>
