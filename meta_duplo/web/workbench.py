@@ -41,8 +41,8 @@ CORE = [
     Field("dup_count", "Dup.", "Duplicates", "num", width=72),
     Field("dup_conf", "Dup. confidence", "Duplicates", "num", width=152),
     Field("checks", "Meta checks", "Duplicates", "special", width=240),
-    Field("key_dto", "DateTimeOriginal (EXIF)", "Key dates", "date", width=168),
-    Field("key_created", "DateCreated (IPTC/XMP)", "Key dates", "date", width=168),
+    Field("key_dto", "DateTimeOriginal (EXIF)", "Dates", "date", width=168),
+    Field("key_created", "DateCreated (IPTC/XMP)", "Dates", "date", width=168),
     Field("date", "Date taken", "Dates", "date", editable="date", width=160),
     Field("digitized", "Date digitized", "Dates", "date", width=160),
     Field("modify", "Date modified (EXIF)", "Dates", "date", width=160),
@@ -81,15 +81,15 @@ DATE_SOURCES = ["date", "digitized", "modify", "file_date", "gps_date", "name_da
 VERDICT_TEXT = {"identical": "exact", "same_pixels": "diff meta", "same_photo": "same photo", "edited": "edited",
                 "same_video": "same video", "likely": "likely", "similar_shot": "similar shot"}
 
-VIEW_VERSION = 4
+VIEW_VERSION = 5
 # Duplicates grouping starts with this filter (a removable chip); without it, files that have no copy
 # show as one "No duplicates" group at the bottom.
 DUP_FILTER = {"key": "dup_count", "op": "gte", "value": "2", "auto": True}
 SINGLES = "__singles__"  # group key of files without duplicates
 DEFAULT_VIEW = {
     "v": VIEW_VERSION,
-    "columns": [["thumb", 48], ["key_dto", 168], ["key_created", 168], ["path", 248], ["filename", 192], ["dup_count", 64], ["dup_conf", 144],
-                ["checks", 240], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 112],
+    "columns": [["thumb", 48], ["path", 248], ["filename", 192], ["dup_count", 64], ["dup_conf", 144],
+                ["checks", 240], ["key_dto", 168], ["key_created", 168], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 112],
                 ["device", 152], ["author", 128]],
     "edits": {},              # purple edit columns appear only after "Edit…" in a header's Actions sheet
     "filters": [DUP_FILTER],
@@ -132,11 +132,12 @@ def load_view_from(v: dict) -> dict:
         v["edits"] = {}
     if v and v.get("v", 1) < 3:  # v3: the duplicates filter became a visible chip
         set_group(v, v.get("group", "dups"))
-    if v and v.get("v", 1) < 4:  # v4: the two key capture dates are shown by default, right after the thumbnail
-        shown = [c[0] for c in v.get("columns", [])]
-        for key in ("key_dto", "key_created"):
-            if key not in shown:
-                insert_column(v.setdefault("columns", []), key, CORE_BY_KEY[key].width)
+    if v and v.get("v", 1) < 5:  # v4/v5: the two key capture dates are shown, first among the date columns
+        cols = v.setdefault("columns", [])
+        widths = {c[0]: c[1] for c in cols}
+        cols[:] = [c for c in cols if c[0] not in KEY_FIELDS]
+        for key in KEY_FIELDS:
+            insert_column(cols, key, widths.get(key, CORE_BY_KEY[key].width))
     if v:
         v["v"] = VIEW_VERSION
     view = json.loads(json.dumps(DEFAULT_VIEW))
@@ -183,7 +184,7 @@ TAG_CATEGORIES = (
 )
 # The column picker lists categories in this order, and the table follows it: new columns land in their place,
 # and "Order like this list" sorts the shown ones the same way.
-CATEGORY_ORDER = ["Key dates", "File", "Duplicates", "Dates", "Location", "Device", "Author", "Capture settings", "Other"]
+CATEGORY_ORDER = ["File", "Duplicates", "Dates", "Location", "Device", "Author", "Capture settings", "Other"]
 
 
 def exif_category(tag: str) -> str:
@@ -209,8 +210,8 @@ def meta_counts(tags: dict) -> dict[str, int]:
     return out
 
 
-# The capture-date fields that matter most: marked with a red "!", their own first category in the picker and
-# the first data columns of the table (shown by default). The raw tags they come from are not listed again.
+# The capture-date fields that matter most: marked with a red "!", first among the dates in the picker and in the
+# table, shown by default. The raw tags they come from are not listed again.
 KEY_FIELDS = {
     "key_dto": "EXIF DateTimeOriginal: when the camera took the photo",
     "key_created": "DateCreated from XMP (photoshop:DateCreated) or IPTC (2:55 + 2:60): the creation date photo apps write",

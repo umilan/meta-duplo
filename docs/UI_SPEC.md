@@ -173,7 +173,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Columns:** the catalog has the core fields first (Dates, Location, Device, Author, Duplicates, File) and
   then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), sorted into the same
   categories by what they describe (date/time tags under Dates, GPS under Location, make/model/lens under Device,
-  artist/copyright under Author, exposure/ISO/focal length under Capture settings, size/orientation under File, the rest under Other). *+* opens the searchable picker: one plain checkbox per field, grouped by category; tick to show, untick to hide (applies at once, the picker stays open), with a count of shown columns. Categories are listed Key dates, File, Duplicates, Dates, Location, Device, Author, Capture settings, Other, and the table follows that order: a newly shown column lands in its place (an edit column right after the field it edits), and *Order like this list* sorts the shown columns the same way (dragging can still reorder them). Each category title has a checkbox (all / some / none) that shows or hides the whole category, and the header has *Select all*, *None* and a × to close; while searching, all of these act only on the fields found. Width (drag the right edge of a header), order
+  artist/copyright under Author, exposure/ISO/focal length under Capture settings, size/orientation under File, the rest under Other). *+* opens the searchable picker: one plain checkbox per field, grouped by category; tick to show, untick to hide (applies at once, the picker stays open), with a count of shown columns. Categories are listed File, Duplicates, Dates, Location, Device, Author, Capture settings, Other, and the table follows that order: a newly shown column lands in its place (an edit column right after the field it edits), and *Order like this list* sorts the shown columns the same way (dragging can still reorder them). Each category title has a checkbox (all / some / none) that shows or hides the whole category, and the header has *Select all*, *None* and a × to close; while searching, all of these act only on the fields found. Width (drag the right edge of a header), order
   (drag a header label: a strong 4 px accent line with round ends, running the full table height, shows where it lands and the target header is tinted; the left half of a header drops before it, the right half after it, including at the end) and visibility are saved per library (`workbench_view` setting).
 - **Header ⋯ button** (same look as the cell ⋯ button; shown only while hovering the header, while its menu is open or when focused) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
@@ -221,10 +221,10 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere
   (the direction a click would give).
 - **Key capture dates:** two built-in columns, *DateTimeOriginal (EXIF)* and *DateCreated (IPTC/XMP)* (XMP
-  photoshop:DateCreated, else IPTC 2:55 + 2:60), always available, shown by default and placed first: the first
-  category (*Key dates*) of the column picker and the first data columns of the table, right after the pinned
-  thumbnail. Both carry a red **!** badge. The raw tags they come from are not listed again. Extraction reads
-  DateCreated since `RAW_VERSION = 3`; saved views gain the two columns once (`VIEW_VERSION = 4`). They are shown
+  photoshop:DateCreated, else IPTC 2:55 + 2:60), always available and shown by default. They stay with the other
+  dates: the first two items of the *Dates* category in the column picker and the first two date columns in the
+  table. Both carry a red **!** badge. The raw tags they come from are not listed again. Extraction reads
+  DateCreated since `RAW_VERSION = 3`; saved views are brought in line once (`VIEW_VERSION = 5`). They are shown
   only, not yet weighed as capture-time candidates.
 - **Slim columns:** a shown column is never dropped, not even when no file has a value in it: an empty column is
   collapsed to 40 px (as wide as the checkbox column). Double-clicking any header collapses or expands it (the
