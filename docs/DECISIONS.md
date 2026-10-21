@@ -155,7 +155,7 @@ accepted ones. Supersede them with a new entry instead.
   - View state lives in one setting (`workbench_view`).
   - Column widths are inline styles because they are user data: the second exception to "no inline styles",
     after the swipe compare.
-  - Not yet: column filters by value list, an undo of view changes, keyboard navigation.
+  - Not yet: column filters by value list, an undo of view changes. (Keyboard navigation came later: a cell cursor, see UI_SPEC.)
 
 ### ADR-017 One design system on a 2 · 4 · 8 · 16 · 24 · 32 · 40 · 48 · 64 scale
 - **Context:** controls had grown different heights, paddings and radii screen by screen (6, 10, 12, 13 px …),
