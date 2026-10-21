@@ -126,3 +126,20 @@ def test_meta_check_counts():
     tags = {"ExifIFD:DateTimeOriginal": "2019:05:18 11:47:10", "IFD0:DateTime": "x", "GPS:GPSLatitude": "48",
             "IFD0:Make": "Apple", "IFD0:Model": "iPhone", "IFD0:Artist": "A", "IFD0:Orientation": "1", "IFD0:Copyright": ""}
     assert wb.meta_counts(tags) == {"date": 2, "place": 1, "device": 2, "author": 1}
+
+
+def test_key_date_fields_first_and_xmp_date_read(tmp_path):
+    from PIL import Image
+
+    from meta_duplo import metadata
+    path = tmp_path / "x.jpg"
+    xmp = (b'<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
+           b'<rdf:Description xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" '
+           b'photoshop:DateCreated="2019-05-18T11:47:10"/></rdf:RDF></x:xmpmeta>')
+    Image.new("RGB", (8, 8)).save(path, "JPEG", xmp=xmp)
+    assert metadata.read_image(path).raw["tags"]["XMP:DateCreated"] == "2019-05-18T11:47:10"
+    cat = wb.catalog(["ExifIFD:DateTimeDigitized", "ExifIFD:DateTimeOriginal", "XMP:DateCreated"])
+    assert [f.key for f in cat["Dates"]][:2] == ["exif:ExifIFD:DateTimeOriginal", "exif:XMP:DateCreated"]
+    cols = [["path", 248], ["date", 160]]
+    wb.insert_column(cols, "exif:ExifIFD:DateTimeOriginal", 152)
+    assert [c[0] for c in cols] == ["path", "exif:ExifIFD:DateTimeOriginal", "date"]

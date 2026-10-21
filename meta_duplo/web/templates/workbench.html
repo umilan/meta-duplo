@@ -230,7 +230,7 @@
           <label class="colcat__item" x-show="!colQuery || '{{ fl.label|lower }}'.includes(colQuery.toLowerCase())">
             <input type="checkbox" :checked="$store.wb.cols.includes('{{ fl.key }}')"
                    @change="post({ action: $event.target.checked ? 'col_add' : 'col_remove', key: '{{ fl.key }}' })">
-            <span>{{ fl.label }}</span>
+            <span>{{ fl.label }}{% if fl.key in key_fields %} <span class="keybadge" title="{{ key_fields[fl.key] }}">!</span>{% endif %}</span>
           </label>
           {% endfor %}
         </fieldset>

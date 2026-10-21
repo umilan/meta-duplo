@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from PIL import ExifTags, Image
+from PIL import ExifTags, Image, IptcImagePlugin
 
 try:  # HEIC/HEIF support is optional
     from pillow_heif import register_heif_opener
@@ -168,7 +168,7 @@ def _gps(gps: dict) -> tuple[float | None, float | None]:
     return round(lat, 6), round(lon, 6)
 
 
-RAW_VERSION = 2  # bump when the stored raw metadata changes; extract re-reads older rows
+RAW_VERSION = 3  # bump when the stored raw metadata changes; extract re-reads older rows (3: XMP / IPTC DateCreated)
 
 _XP_TAGS = {0x9C9B, 0x9C9C, 0x9C9D, 0x9C9E, 0x9C9F}  # Windows XP* tags: UTF-16LE bytes
 
@@ -208,6 +208,36 @@ def all_tags(exif, sub: dict, gps: dict) -> dict:
     return out
 
 
+_XMP_DATE = re.compile(rb'photoshop:DateCreated(?:="([^"]*)"|>([^<]*)<)')
+
+
+def xmp_iptc_dates(img: Image.Image) -> dict:
+    """DateCreated from XMP (photoshop:DateCreated) and IPTC (2:55 DateCreated + 2:60 TimeCreated), as written.
+
+    Only read and shown here: weighing them as capture-time candidates belongs to the date resolver skill."""
+    out = {}
+    xmp = img.info.get("xmp") or img.info.get("XML:com.adobe.xmp") or b""
+    if isinstance(xmp, str):
+        xmp = xmp.encode("utf-8", "replace")
+    if m := _XMP_DATE.search(xmp):
+        val = (m.group(1) or m.group(2) or b"").decode("utf-8", "replace").strip()
+        if val:
+            out["XMP:DateCreated"] = val
+    try:
+        iptc = IptcImagePlugin.getiptcinfo(img) or {}
+    except (OSError, SyntaxError, ValueError):
+        iptc = {}
+    day, time = iptc.get((2, 55)), iptc.get((2, 60))
+    if isinstance(day, bytes) and len(day) >= 8:
+        d = day.decode("ascii", "replace")
+        val = f"{d[:4]}-{d[4:6]}-{d[6:8]}"
+        if isinstance(time, bytes) and len(time) >= 6:
+            t = time.decode("ascii", "replace")
+            val += f" {t[:2]}:{t[2:4]}:{t[4:6]}{t[6:]}"
+        out["IPTC:DateCreated"] = val
+    return out
+
+
 def _gps_time(gps: dict) -> str | None:
     """GPSDateStamp + GPSTimeStamp (UTC), e.g. '2019-05-14 16:22:03'."""
     try:
@@ -238,7 +268,7 @@ def read_image(path: Path) -> Meta:
         m.unique_id = sub.get(0xA420)
         m.gps_lat, m.gps_lon = _gps(exif.get_ifd(0x8825))
         gps = exif.get_ifd(0x8825)
-        tags = all_tags(exif, sub, gps)
+        tags = all_tags(exif, sub, gps) | xmp_iptc_dates(img)
         digitized = parse_exif_time(sub.get(0x9004))
         m.raw = {
             "_v": RAW_VERSION,
@@ -255,6 +285,7 @@ def read_image(path: Path) -> Meta:
             "OwnerName": tags.get("ExifIFD:CameraOwnerName"),
             "SerialNumber": tags.get("ExifIFD:BodySerialNumber"),
             "LensModel": tags.get("ExifIFD:LensModel"),
+            "DateCreated": tags.get("XMP:DateCreated") or tags.get("IPTC:DateCreated"),
             "tags": tags,
         }
     return m

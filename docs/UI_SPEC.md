@@ -220,6 +220,10 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere
   (the direction a click would give).
+- **Key capture-date fields** — EXIF *DateTimeOriginal* and *DateCreated* from XMP (photoshop:DateCreated) or IPTC
+  (2:55 + 2:60) — carry a red **!** badge after their name, in the header and in the column picker, and come first
+  among the dates in both. Extraction reads the two DateCreated values since `RAW_VERSION = 3` (older libraries
+  re-read their files once); they are shown only, not yet weighed as capture-time candidates.
 - **Filtered columns** show a funnel icon (accent colour) next to the header text (its tooltip lists the filters)
   and a 2 px accent outline down the whole column, header included.
 - **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name

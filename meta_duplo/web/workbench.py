@@ -194,12 +194,22 @@ def meta_counts(tags: dict) -> dict[str, int]:
     return out
 
 
+# The capture-date fields that matter most: marked with a red "!" and listed first among the dates.
+KEY_FIELDS = {
+    "exif:ExifIFD:DateTimeOriginal": "EXIF DateTimeOriginal: when the camera took the photo",
+    "exif:XMP:DateCreated": "XMP DateCreated: the creation date written by photo apps",
+    "exif:IPTC:DateCreated": "IPTC DateCreated: the creation date in IPTC data",
+}
+
+
 def column_rank(key: str) -> tuple:
     """Position of a column in catalog order; an edit column sits right after the field it edits."""
     if key.startswith("edit:"):
         return column_rank(EDIT_BASE.get(key[5:], key[5:]))[:3] + (1,)
     f = field_for(key)
     cat = CATEGORY_ORDER.index(f.group) if f and f.group in CATEGORY_ORDER else len(CATEGORY_ORDER)
+    if key in KEY_FIELDS:
+        return (cat, -1, (list(KEY_FIELDS).index(key),), 0)
     if key in CORE_BY_KEY:
         return (cat, 0, (CORE.index(CORE_BY_KEY[key]),), 0)
     return (cat, 1, _exif_rank(key[5:]) if key.startswith("exif:") else (key,), 0)
@@ -220,6 +230,8 @@ def catalog(exif_keys: list[str]) -> dict[str, list[Field]]:
     for k in exif_keys:
         f = field_for(f"exif:{k}")
         out[f.group].append(f)
+    for fields in out.values():  # key capture-date fields first in their category
+        fields.sort(key=lambda f: column_rank(f.key))
     return {g: out[g] for g in CATEGORY_ORDER if out.get(g)}
 
 
