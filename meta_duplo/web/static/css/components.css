@@ -406,7 +406,11 @@
 .wbh-cell--edit .wbh__label { color: var(--edit-text); }
 .wbh-cell--tree .wbh__label { cursor: default; }
 .wbh-cell.is-dragging { opacity: .48; }
-.wbt td[data-sorted] { font-weight: 600; }  /* keeps its red / green */
+.wbt td[data-sorted] { font-weight: 600; }
+/* filtered columns: an accent outline down the whole column (header included) */
+.wbt [data-filtered] { box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent); }
+.wbt thead th[data-filtered] { box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent), inset 0 2px 0 var(--accent); }
+.wbt tbody:last-of-type tr:last-child > td[data-filtered] { box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent), inset 0 -2px 0 var(--accent); }
 .wbg__head td { background: var(--group-bg); font-weight: 400; cursor: pointer; border-top: 1px solid var(--line); }
 .wbg__head td.wbg__label { font-weight: 600; }  /* the group title stays bold; other group cells are regular */
 .wbg__label .chev { margin-right: var(--space-050); }
