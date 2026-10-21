@@ -93,6 +93,11 @@
   font-size: var(--text-sm); line-height: var(--line-sm); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted);
   padding: var(--space-100) var(--space-100) var(--space-050);
 }
+.wbsheet__section, .setsheet__section { color: color-mix(in srgb, var(--muted) 64%, var(--surface)); }  /* section labels lighter than the items */
+.wbsheet__title--row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-200); }
+.wbsheet__title--row > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wbsheet .wbsheet__remove { display: inline; min-height: 0; padding: 0; flex: none; font-weight: 400; color: var(--muted); }
+.wbsheet .wbsheet__remove:hover { background: none; color: var(--conflict); text-decoration: underline; }
 .setsheet a.setsheet__item { border-top: 1px solid var(--line); border-radius: 0 0 var(--radius-sm) var(--radius-sm); margin-top: var(--space-050); }
 .setsheet .themeswitch { margin: 0 var(--space-100) var(--space-100); justify-self: start; }
 

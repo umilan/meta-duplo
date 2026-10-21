@@ -177,7 +177,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Header ⋯ button** (same look as the cell ⋯ button; shown only while hovering the header, while its menu is open or when focused) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
   (*contains*), Show groups where it differs; *Change*: Edit… (new purple column), Group by this (Path, Date, Device,
-  Place, Dup.), Hide column. Clicking the label toggles the sort; drag the label to move the column.
+  Place, Dup.). *Remove* (top right, next to the column name) takes the column out of the table; section labels are a lighter grey than the items. Clicking the label toggles the sort; drag the label to move the column.
 - **Filters** (bar above the table, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
   differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
   its context); *No grouping* filters rows.

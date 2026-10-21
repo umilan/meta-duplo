@@ -112,7 +112,9 @@
     </template>
     <template x-if="menu && !menu.cell">
       <div>
-        <div class="wbsheet__title" x-text="menu.label"></div>
+        <div class="wbsheet__title wbsheet__title--row"><span x-text="menu.label"></span>
+          <button type="button" class="linkbtn wbsheet__remove" title="Remove this column from the table (add it back with +)"
+                  @click="post({ action: 'col_remove', key: menu.key }); menu = null">Remove</button></div>
         <div class="wbsheet__section">Sort by</div>
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'asc' }); menu = null">↑ Ascending (A → Z, old → new)</button>
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'desc' }); menu = null">↓ Descending (Z → A, new → old)</button>
@@ -126,7 +128,6 @@
         <template x-if="menu.groupable">
           <button type="button" role="menuitem" @click="post({ action: 'group', group: menu.groupable }); menu = null">Group by this</button>
         </template>
-        <button type="button" role="menuitem" @click="post({ action: 'col_remove', key: menu.key }); menu = null">Hide column</button>
       </div>
     </template>
   </div>
