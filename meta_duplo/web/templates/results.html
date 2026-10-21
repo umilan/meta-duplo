@@ -77,8 +77,8 @@
       <span class="small muted">Similar shots are never selected automatically. Tick a frame only if you really want it gone.</span>
       {% endif %}
       <span class="results-toolbar__spacer"></span>
-      <button class="btn btn--small" type="button" @click="$dispatch('expand-all', true)">Expand all</button>
-      <button class="btn btn--small" type="button" @click="$dispatch('expand-all', false)">Collapse all</button>
+      <button class="btn" type="button" @click="$dispatch('expand-all', true)">Expand all</button>
+      <button class="btn" type="button" @click="$dispatch('expand-all', false)">Collapse all</button>
     </div>
 
     <div id="results" hx-get="/step/{{ step }}?{{ query }}" hx-trigger="results-reload from:body" hx-select="#results" hx-swap="outerHTML"

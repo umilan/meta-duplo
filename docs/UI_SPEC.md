@@ -213,7 +213,22 @@ SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for
 
 ## Styling contract
 
-- Only **CSS custom properties** for colours, spacing, radius and type, in `static/css/tokens.css`.
+- **Design system** (ADR-017): modelled on the Atlassian Design System. Every length is on the scale
+  **2 · 4 · 8 · 16 · 24 · 32 · 40 · 48 · 64** (`--space-025` … `--space-800`); larger sizes (widths, column widths,
+  panels) are multiples of 8, and 1 px hairlines are the only exception. Type: 12/16, 14/20, 20/24, 24/32
+  (size/line height). Radius: 4 px for controls and chips, 8 px for panels, sheets and dialogs.
+- **One look per kind of control**, on every screen:
+  - Buttons (`.btn`): 32 px tall, 16 px side padding, 4 px radius; *primary* (filled accent), default (outlined),
+    *danger*; `.btn--small` (24 px) only inside tables and filter rows; `.btn--icon` is square.
+  - Text fields, search fields and selects: 32 px, 8 px padding, a stronger border than hairlines, accent focus ring.
+  - Checkboxes and radios: 16 px, accent colour; a label wrapping one lines it up with an 8 px gap.
+  - Menus and sheets (column menu, cell menu, settings): 4 px padding, 8 px radius, items 32 px tall,
+    uppercase 12 px section labels.
+  - Chips 24 px (filters, tokens); badges, status and meta-check pills 16 px.
+  - Small icon buttons (⋯ in cells and headers, ✓/× in the grid): 24 px.
+  - Tables: Workbench rows 32 px, headers 40 px; column widths snap to 8 px when resized.
+  - *Compact view* steps one size down the same scale: controls and rows 24 px, ⋯ buttons 16 px, body text 12/16.
+- Only **CSS custom properties** for colours, spacing, sizes, radius and type, in `static/css/tokens.css`.
   Dark values live in one block applied by `prefers-color-scheme` unless `<html data-theme="light">`, and by
   `data-theme="dark"`. The **settings button** (⚙, top right of every page) opens a dropdown sheet:
   - *Appearance*: Light / Dark (light is the default; sets `data-theme`), *Text colours* (Workbench only: green/red
@@ -228,7 +243,7 @@ SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for
   The only inline style is the computed `clip-path` of the swipe compare.
 - Confidence bands: verified ≥ 98 %, high ≥ 90 %, medium ≥ 70 %, low ≥ 40 %, unknown. Colour is never the only
   signal: the badge also shows the number.
-- Layout: left nav 232 px, main content up to 1500 px. Works at 1280 px and up; below 1000 px the nav stacks on top.
+- Layout: left nav 232 px, main content up to 1504 px. Works at 1280 px and up; below 1024 px the nav stacks on top.
 - Respect `prefers-reduced-motion`.
 
 ## Accessibility and keyboard

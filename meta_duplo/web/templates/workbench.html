@@ -21,7 +21,7 @@
       <div>
         <h1 class="wb-title">
           <button type="button" class="navtoggle" @click="$dispatch('toggle-nav')" title="Show or hide the navigation" aria-label="Show or hide the navigation">
-            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="7.5" y1="4" x2="7.5" y2="16" stroke="currentColor" stroke-width="1.5"/></svg>
+            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="7.5" y1="4" x2="7.5" y2="16" stroke="currentColor" stroke-width="1.5"/></svg>
           </button>
           Workbench <span class="chip chip--exp">experimental</span>
         </h1>
@@ -34,9 +34,10 @@
           {% for k, label in group_names.items() %}<option value="{{ k }}" {{ 'selected' if view.group == k }}>{{ label }}</option>{% endfor %}
         </select>
       </label>
-      <input type="search" placeholder="Search path, filename, new filename" aria-label="Search" value="{{ view.q }}"
+      <input type="search" placeholder="Search…" title="Search path, filename and new filename" aria-label="Search" value="{{ view.q }}"
              @input.debounce.400ms="post({ action: 'q', q: $event.target.value })">
       <span class="results-toolbar__spacer"></span>
+      <div class="results-toolbar__group">
       <label class="small selpick">Selection
         <select aria-label="Selection" x-effect="$el.value = $store.wb.preset" @change="$store.wb.applyPreset($event.target.value)"
                 :class="$store.wb.count && 'is-active'">
@@ -51,12 +52,13 @@
                   title="In each duplicate set keep the copy with the most metadata; tick the others">Duplicates – less metadata</option>
         </select>
       </label>
-      <button class="btn btn--small" type="button" :disabled="!$store.wb.count" hx-post="/wb/commit" hx-swap="none"
+      <button class="btn" type="button" :disabled="!$store.wb.count" hx-post="/wb/commit" hx-swap="none"
               hx-vals='js:{ids: Alpine.store("wb").csv()}' title="Store the purple edit values of the selected rows as decisions">Save edits</button>
-      <button class="btn btn--small" type="button" :disabled="!$store.wb.count" hx-post="/wb/remove-plan"
+      <button class="btn" type="button" :disabled="!$store.wb.count" hx-post="/wb/remove-plan"
               hx-vals='js:{ids: Alpine.store("wb").csv()}'>Remove selected copies…</button>
-      <button class="btn btn--small btn--primary" type="button" :disabled="!$store.wb.count" hx-post="/wb/rename-plan"
+      <button class="btn btn--primary" type="button" :disabled="!$store.wb.count" hx-post="/wb/rename-plan"
               hx-vals='js:{ids: Alpine.store("wb").csv(), write_xmp: "1"}'>Review rename plan…</button>
+      </div>
     </div>
 
     <div id="wb-table" hx-get="/wb/table" hx-trigger="wb-reload from:body" hx-swap="innerHTML" hx-disinherit="*">

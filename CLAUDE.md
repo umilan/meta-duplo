@@ -34,7 +34,8 @@ reorganization. Read `docs/ARCHITECTURE.md` first.
 6. **Stages are idempotent and versioned.** Bump `STAGE_VERSION` when output semantics
    change.
 7. **No frontend build step.** Templates in `meta_duplo/web/templates`, CSS in `static/css`, using
-   the tokens in `tokens.css` only; no inline styles; no new JS frameworks.
+   the tokens in `tokens.css` only (lengths on the 2 · 4 · 8 · 16 · 24 · 32 · 40 · 48 · 64 scale, ADR-017);
+   no inline styles; no new JS frameworks.
 8. **Localhost only**, with a session token; CSRF on POSTs.
 9. Paths are NFC-normalized in the DB; filesystem operations use the stored original bytes.
 10. Keep the Tauri prerequisites: host/port/token from the environment, relative asset URLs,

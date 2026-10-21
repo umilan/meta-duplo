@@ -1,22 +1,32 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { color-scheme: light dark; }
-body { margin: 0; font: var(--text-md)/1.45 var(--font-ui); background: var(--bg); color: var(--text); }
-h1 { font-size: var(--text-xl); margin: 0 0 var(--space-2); }
-h2 { font-size: var(--text-lg); margin: var(--space-6) 0 var(--space-3); }
-h3 { font-size: var(--text-md); margin: 0 0 var(--space-2); }
-p { margin: 0 0 var(--space-3); }
+body { margin: 0; font-family: var(--font-ui); font-size: var(--text-md); line-height: var(--line-md); background: var(--bg); color: var(--text); }
+h1 { font-size: var(--text-xl); line-height: var(--line-xl); margin: 0 0 var(--space-100); }
+h2 { font-size: var(--text-lg); line-height: var(--line-lg); margin: var(--space-300) 0 var(--space-100); }
+h3 { font-size: var(--text-md); line-height: var(--line-md); margin: 0 0 var(--space-100); }
+p { margin: 0 0 var(--space-200); }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 code, kbd, .mono { font-family: var(--font-mono); font-size: var(--text-sm); }
 table { border-collapse: collapse; width: 100%; }
-th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--line); vertical-align: top; }
-th { font-weight: 600; color: var(--muted); font-size: var(--text-sm); white-space: nowrap; }
-input, select, button, textarea { font: inherit; color: inherit; }
-input[type=text], input[type=number], select {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: var(--space-2) var(--space-3);
-}
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+th, td { text-align: left; padding: var(--space-100); border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: var(--text-sm); line-height: var(--line-sm); white-space: nowrap; }
 img { display: block; max-width: 100%; }
+
+/* form controls: one look everywhere (ADS text field / select / checkbox) */
+input, select, button, textarea { font: inherit; color: inherit; }
+input:is([type=text], [type=search], [type=number], [type=date], :not([type])), select, textarea {
+  min-height: var(--control-h); padding: 0 var(--space-100); background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm); font-size: var(--text-md); line-height: var(--line-md);
+}
+textarea { padding: var(--space-050) var(--space-100); }
+select { padding-right: var(--space-050); cursor: pointer; }
+input:is([type=text], [type=search], [type=number], [type=date], :not([type])):hover, select:hover, textarea:hover { border-color: var(--muted); }
+input:is([type=text], [type=search], [type=number], [type=date], :not([type])):focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 1px var(--accent); }
+input::placeholder { color: var(--muted); }
+input[type=checkbox], input[type=radio] { width: var(--check); height: var(--check); margin: 0; accent-color: var(--accent); cursor: pointer; vertical-align: middle; flex: none; }
+input[type=range] { accent-color: var(--accent); }
+label:has(> input[type=checkbox], > input[type=radio]) { display: inline-flex; align-items: center; gap: var(--space-100); cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 [x-cloak] { display: none !important; }

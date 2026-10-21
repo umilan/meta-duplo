@@ -1,47 +1,82 @@
-/* Design tokens: the only place colours, spacing, radius and type are defined. */
+/* Design tokens: the only place colours, spacing, sizes, radius and type are defined.
+   Design system: modelled on the Atlassian Design System (ADR-017). Every length is on the scale
+   2 · 4 · 8 · 16 · 24 · 32 · 40 · 48 · 64 (larger sizes are multiples of 8); 1px hairlines are the only exception. */
 :root {
   --font-ui: system-ui, -apple-system, "Helvetica Neue", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
-  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px;
-  --radius: 8px;
-  --text-sm: 12.5px; --text-md: 14px; --text-lg: 18px; --text-xl: 22px;
+
+  /* spacing (ADS space.025 … space.800) */
+  --space-025: 2px; --space-050: 4px; --space-100: 8px; --space-200: 16px; --space-300: 24px;
+  --space-400: 32px; --space-500: 40px; --space-600: 48px; --space-800: 64px;
+
+  /* type: size / line height */
+  --text-sm: 12px; --line-sm: 16px;   /* labels, table cells, chips */
+  --text-md: 14px; --line-md: 20px;   /* body, controls */
+  --text-lg: 20px; --line-lg: 24px;   /* h2 */
+  --text-xl: 24px; --line-xl: 32px;   /* h1, big numbers */
+
+  /* shape */
+  --radius-sm: 4px;                   /* controls, chips, menu items */
+  --radius: 8px;                      /* panels, cards, sheets, dialogs */
+  --radius-full: 999px;               /* pills */
+
+  /* component sizes (density-dependent, see compact view below) */
+  --control-h: 32px;                  /* buttons, inputs, selects, menu items */
+  --control-h-sm: 24px;               /* small buttons, chips, filter pills */
+  --control-h-xs: 24px;               /* in-cell ⋯ buttons */
+  --check: 16px;                      /* checkbox and radio */
+  --icon: 16px;
+  --cell-py: 4px;                     /* table cell vertical padding */
+  --row-h: 32px;                      /* workbench table rows, border included */
+  --thumb-h: 24px;                    /* table thumbnails (4:3) */
+  --gap: 16px;                        /* layout gaps between blocks */
+  --pad: 24px;                        /* page padding */
+
+  /* elevation */
+  --shadow: 0 2px 4px rgb(0 0 0 / 6%);
+  --shadow-pop: 0 8px 24px rgb(0 0 0 / 16%);     /* menus and sheets */
+  --shadow-modal: 0 16px 48px rgb(0 0 0 / 24%);
+
+  /* colour */
   --bg: #fbfbfa; --surface: #ffffff; --surface-2: #f3f3f1; --text: #1d1d1f; --muted: #6e6e73; --line: #e5e5e7;
+  --line-strong: #c7c7cc;             /* control borders */
   --accent: #2f6fde; --accent-soft: #e6eefc; --on-accent: #ffffff;
   --band-verified: #1f8a4c; --band-high: #3aa463; --band-medium: #b7840f;
   --band-low: #d2691f; --band-unknown: #8e8e93; --conflict: #c62f2f;
   --diff: #fff3d6; --keeper: #1f8a4c;
-  --shadow: 0 1px 2px rgb(0 0 0 / 6%);
   --edit-bg: #f6ecfd; --edit-text: #8a2fb8; --same: #1f8a4c; --differ: #c62f2f;   /* workbench */
   --tint: rgb(47 111 222 / 6%); --tint-cell: rgb(47 111 222 / 12%);              /* hover overlays */
   --zebra: #f6f6f4;                                                                /* shaded odd rows */
   --sel: #e9f0fc; --sel-active: #c9dbfa;                                           /* ticked / previewed row */
-  --cell-py: 5px; --thumb-h: 26px;                                                 /* table density */
+  --backdrop: rgb(0 0 0 / 32%);
 }
-/* Compact view (settings sheet): slimmer rows and tighter spacing everywhere. */
+/* Compact view (settings sheet): one step down the same scale. */
 :root[data-density="compact"] {
-  --space-2: 6px; --space-3: 8px; --space-4: 12px; --space-6: 18px; --space-8: 24px;
-  --text-sm: 12px; --text-md: 13px; --text-lg: 16px; --text-xl: 19px;
-  --cell-py: 2px; --thumb-h: 20px;
+  --text-md: 12px; --line-md: 16px; --text-lg: 16px; --line-lg: 24px; --text-xl: 20px; --line-xl: 24px;
+  --control-h: 24px; --control-h-sm: 24px; --control-h-xs: 16px;
+  --cell-py: 2px; --row-h: 24px; --thumb-h: 16px; --gap: 8px; --pad: 16px;
 }
-/* Dark theme: from the system setting unless the switcher forces light, or forced by the switcher.
-   The two blocks must stay identical. */
+/* Dark theme, forced by the switcher (data-theme is always set; light is the default).
+   The media block keeps a sensible fallback if the script cannot run; the two blocks must stay identical. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #161617; --surface: #1f1f21; --surface-2: #29292c; --text: #f2f2f2; --muted: #a1a1a6; --line: #333336;
+    --line-strong: #48484c;
     --accent: #6a9cf0; --accent-soft: #1e2a40; --on-accent: #0d1220;
     --band-medium: #d9a63a; --diff: #3a3220; --keeper: #4cc27e; --shadow: none;
     --edit-bg: #33213f; --edit-text: #d59cf5; --same: #4cc27e; --differ: #ff6b6b;
-    --tint: rgb(140 170 255 / 7%); --tint-cell: rgb(140 170 255 / 15%); --zebra: #262629;
-    --sel: #1c2536; --sel-active: #27406b;
+    --tint: rgb(140 170 255 / 8%); --tint-cell: rgb(140 170 255 / 16%); --zebra: #262629;
+    --sel: #1c2536; --sel-active: #27406b; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
   }
 }
 :root[data-theme="dark"] {
     --bg: #161617; --surface: #1f1f21; --surface-2: #29292c; --text: #f2f2f2; --muted: #a1a1a6; --line: #333336;
+    --line-strong: #48484c;
     --accent: #6a9cf0; --accent-soft: #1e2a40; --on-accent: #0d1220;
     --band-medium: #d9a63a; --diff: #3a3220; --keeper: #4cc27e; --shadow: none;
     --edit-bg: #33213f; --edit-text: #d59cf5; --same: #4cc27e; --differ: #ff6b6b;
-    --tint: rgb(140 170 255 / 7%); --tint-cell: rgb(140 170 255 / 15%); --zebra: #262629;
-    --sel: #1c2536; --sel-active: #27406b;
+    --tint: rgb(140 170 255 / 8%); --tint-cell: rgb(140 170 255 / 16%); --zebra: #262629;
+    --sel: #1c2536; --sel-active: #27406b; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }

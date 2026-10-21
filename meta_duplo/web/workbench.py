@@ -34,12 +34,12 @@ class Field:
 
 
 CORE = [
-    Field("thumb", "Th.", "File", "special", width=66),
-    Field("path", "Path", "File", width=260),
-    Field("filename", "Filename", "File", editable="filename", width=190),
-    Field("dup_count", "Dup.", "Duplicates", "num", width=70),
-    Field("dup_conf", "Dup. confidence", "Duplicates", "num", width=150),
-    Field("checks", "Meta checks", "Duplicates", "special", width=150),
+    Field("thumb", "Th.", "File", "special", width=64),
+    Field("path", "Path", "File", width=256),
+    Field("filename", "Filename", "File", editable="filename", width=192),
+    Field("dup_count", "Dup.", "Duplicates", "num", width=72),
+    Field("dup_conf", "Dup. confidence", "Duplicates", "num", width=152),
+    Field("checks", "Meta checks", "Duplicates", "special", width=152),
     Field("date", "Date taken", "Dates", "date", editable="date", width=160),
     Field("digitized", "Date digitized", "Dates", "date", width=160),
     Field("modify", "Date modified (EXIF)", "Dates", "date", width=160),
@@ -48,23 +48,23 @@ CORE = [
     Field("name_date", "Date in filename", "Dates", "date", width=160),
     Field("rec_date", "Recommended date", "Dates", "date", width=160),
     Field("place", "Place", "Location", editable="place", width=120),
-    Field("rec_place", "Recommended place", "Location", width=130),
-    Field("gps", "GPS", "Location", width=150),
+    Field("rec_place", "Recommended place", "Location", width=128),
+    Field("gps", "GPS", "Location", width=152),
     Field("country", "Country", "Location", width=80),
-    Field("device", "Device", "Device", editable="device", width=150),
-    Field("rec_device", "Recommended device", "Device", width=150),
-    Field("make", "Make", "Device", width=110),
-    Field("model", "Model", "Device", width=140),
+    Field("device", "Device", "Device", editable="device", width=152),
+    Field("rec_device", "Recommended device", "Device", width=152),
+    Field("make", "Make", "Device", width=112),
+    Field("model", "Model", "Device", width=144),
     Field("serial", "Serial number", "Device", width=120),
-    Field("lens", "Lens", "Device", width=140),
-    Field("software", "Software", "Device", width=130),
-    Field("author", "Author", "Author", editable="", width=130),
+    Field("lens", "Lens", "Device", width=144),
+    Field("software", "Software", "Device", width=128),
+    Field("author", "Author", "Author", editable="", width=128),
     Field("copyright", "Copyright", "Author", width=160),
-    Field("owner", "Camera owner", "Author", width=130),
-    Field("size", "Size", "File", "num", width=90),
-    Field("dims", "Dimensions", "File", width=100),
-    Field("ext", "Type", "File", width=60),
-    Field("kind", "Kind", "File", width=70),
+    Field("owner", "Camera owner", "Author", width=128),
+    Field("size", "Size", "File", "num", width=88),
+    Field("dims", "Dimensions", "File", width=96),
+    Field("ext", "Type", "File", width=64),
+    Field("kind", "Kind", "File", width=72),
 ]
 CORE_BY_KEY = {f.key: f for f in CORE}
 EDIT_LABELS = {"filename": "New filename", "date": "New date", "place": "New place", "device": "New device"}
@@ -81,13 +81,13 @@ VERDICT_TEXT = {"identical": "exact", "same_pixels": "diff meta", "same_photo": 
 VIEW_VERSION = 2
 DEFAULT_VIEW = {
     "v": VIEW_VERSION,
-    "columns": [["thumb", 52], ["path", 250], ["filename", 190], ["dup_count", 64], ["dup_conf", 140],
-                ["checks", 150], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 110],
-                ["device", 150], ["author", 130]],
+    "columns": [["thumb", 48], ["path", 248], ["filename", 192], ["dup_count", 64], ["dup_conf", 144],
+                ["checks", 152], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 112],
+                ["device", 152], ["author", 128]],
     "edits": {},              # purple edit columns appear only after "Edit…" in a header's Actions sheet
     "filters": [],
     "group": "dups",
-    "group_width": 230,       # width of the grouping (tree) column
+    "group_width": 232,       # width of the grouping (tree) column
     "sort": ["", "asc"],
     "q": "",
     "colors": True,
@@ -100,6 +100,11 @@ GROUP_COLUMN = {
 
 
 # ───────────────────────── view state ─────────────────────────
+
+def snap(width: float) -> int:
+    """Column widths stay on the 8px grid (ADR-017), between 40 and 904px."""
+    return max(40, min(904, round(float(width) / 8) * 8))
+
 
 def load_view(lib: Library) -> dict:
     try:
@@ -122,10 +127,10 @@ def field_for(key: str, exif_keys: set[str] | None = None) -> Field | None:
     if key in CORE_BY_KEY:
         return CORE_BY_KEY[key]
     if key.startswith("edit:") and key[5:] in EDIT_LABELS:
-        return Field(key, EDIT_LABELS[key[5:]], "Edit", "date" if key == "edit:date" else "text", width=170)
+        return Field(key, EDIT_LABELS[key[5:]], "Edit", "date" if key == "edit:date" else "text", width=168)
     if key.startswith("exif:"):
         group, _, name = key[5:].partition(":")
-        return Field(key, f"{name} ({group})", exif_category(key[5:]), width=150)
+        return Field(key, f"{name} ({group})", exif_category(key[5:]), width=152)
     return None
 
 

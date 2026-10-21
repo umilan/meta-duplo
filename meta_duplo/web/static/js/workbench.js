@@ -130,12 +130,12 @@
         if (this.menu && this.menu.cell && this.menu.btn === btn && this.menu.td === btn.parentElement) { this.menu = null; return; }
         const r = btn.getBoundingClientRect();
         this.menu = { cell: true, btn, td: btn.parentElement, key: "__cell", label: "Cell menu",
-                      x: Math.max(8, Math.min(r.right - 260, window.innerWidth - 270)), y: r.bottom + 4 };
+                      x: Math.max(8, Math.min(r.right - 256, window.innerWidth - 264)), y: r.bottom + 4 };
       },
       openMenu(d, btn) {
         if (this.menu && this.menu.key === d.key) { this.menu = null; return; }
         const r = btn.getBoundingClientRect();
-        this.menu = { ...d, x: Math.max(8, Math.min(r.right - 260, window.innerWidth - 270)), y: r.bottom + 4 };
+        this.menu = { ...d, x: Math.max(8, Math.min(r.right - 256, window.innerWidth - 264)), y: r.bottom + 4 };
       },
       openFilter(d, op = "contains") { this.f = { key: d.key, label: d.label, op, value: "" }; this.dialog = "filter"; },
       openEdit(d) { this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit"; },
@@ -154,7 +154,7 @@
         const x0 = ev.clientX, w0 = col.getBoundingClientRect().width || parseInt(col.style.width, 10), t0 = table.offsetWidth;
         let w = w0;
         const move = (e) => {
-          w = Math.max(40, Math.round(w0 + e.clientX - x0));
+          w = Math.max(40, Math.round((w0 + e.clientX - x0) / 8) * 8);  // 8px grid (ADR-017)
           col.style.width = `${w}px`;
           table.style.width = `${t0 + w - w0}px`;
         };

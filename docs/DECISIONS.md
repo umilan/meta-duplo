@@ -156,3 +156,19 @@ accepted ones. Supersede them with a new entry instead.
   - Column widths are inline styles because they are user data: the second exception to "no inline styles",
     after the swipe compare.
   - Not yet: column filters by value list, an undo of view changes, keyboard navigation.
+
+### ADR-017 One design system on a 2 · 4 · 8 · 16 · 24 · 32 · 40 · 48 · 64 scale
+- **Context:** controls had grown different heights, paddings and radii screen by screen (6, 10, 12, 13 px …),
+  and the user asked for one consistent style with sizes in multiples of 2 on that scale.
+- **Decision:** model the UI on the Atlassian Design System: its spacing tokens (`space.025` … `space.800`) are
+  exactly the scale above, with 32 px controls (24 px compact), 4 px control radius and a 12/14/20/24 type ramp.
+  - `tokens.css` holds every length: spacing, type with line heights, radii, control and row heights, thumbnail
+    size, gaps and page padding. Components use only tokens; larger sizes are multiples of 8; 1 px hairlines are
+    the one exception.
+  - One component per kind: button (default, primary, danger; small; icon), text field / select, checkbox and
+    radio, menu and sheet, chip, pill, small icon button. The same classes serve every screen.
+  - *Compact view* changes component tokens (control 24, row 24, ⋯ 16, body 12/16, gaps 8), not the scale.
+  - Workbench column widths snap to 8 px (`workbench.snap`, also applied to saved views and while dragging).
+  - Colours stay as they were (light and dark sets); only sizes, spacing, radius and type changed.
+- **Consequences:** a new style value is a token or a step of the scale, never an ad-hoc number. Inline styles
+  are still limited to user data (column widths, the menu position, the swipe clip).

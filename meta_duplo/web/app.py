@@ -377,7 +377,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         tree = None
         if view["group"] in wb.GROUP_COLUMN:
             label, replaces = wb.GROUP_COLUMN[view["group"]]
-            tree = {"label": label, "replaces": replaces, "width": int(view.get("group_width", 230))}
+            tree = {"label": label, "replaces": replaces, "width": wb.snap(view.get("group_width", 232))}
         cols = []
         for key, width in view["columns"]:
             if tree and key == tree["replaces"]:
@@ -385,14 +385,14 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             f = wb.field_for(key)
             if f:
                 target = key[5:] if key.startswith("edit:") else f.editable
-                cols.append({"key": key, "label": f.label, "kind": f.kind, "width": int(width),
+                cols.append({"key": key, "label": f.label, "kind": f.kind, "width": wb.snap(width),
                              "target": target, "edit": key.startswith("edit:"),
                              "groupable": {"path": "folder", "date": "day", "device": "device", "place": "place",
                                            "dup_count": "dups", "dup_conf": "dups"}.get(key, "")})
         return {"view": view, "groups": groups[offset:offset + WB_PAGE], "ngroups": len(groups), "nrows": nrows,
                 "offset": offset, "next_offset": offset + WB_PAGE, "cols": cols,
                 "tree": tree,
-                "table_width": 36 + 40 + sum(c["width"] for c in cols) + (tree["width"] if tree else 0),
+                "table_width": 40 + 40 + sum(c["width"] for c in cols) + (tree["width"] if tree else 0),
                 "catalog": wb.catalog(exif_keys), "group_names": wb.GROUPS, "ops": wb.OPS,
                 "no_value_ops": wb.NO_VALUE_OPS, "date_sources": wb.DATE_SOURCES,
                 "field_label": lambda k: (wb.field_for(k).label if wb.field_for(k) else k),
@@ -445,12 +445,12 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             at = next((i for i, c in enumerate(rest) if c[0] == f.get("before")), len(rest))
             view["columns"] = rest[:at] + [moving] + rest[at:]
         elif act == "col_width" and f.get("key") == "__group":
-            view["group_width"] = max(80, min(900, int(float(f.get("width", 230)))))
+            view["group_width"] = max(80, wb.snap(f.get("width", 232)))
             reload = False
         elif act == "col_width" and f.get("key") in keys:
             for c in cols:
                 if c[0] == f["key"]:
-                    c[1] = max(40, min(900, int(float(f.get("width", c[1])))))
+                    c[1] = wb.snap(f.get("width", c[1]))
             reload = False  # the browser already shows the new width
         elif act == "edit_set" and f.get("target") in wb.EDIT_LABELS:
             t, kind = f["target"], f.get("kind", "recommended")
