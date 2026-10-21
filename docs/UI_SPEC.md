@@ -209,6 +209,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere
   (the direction a click would give).
+- **Checkbox column** is pinned to the left edge when the table scrolls sideways (header cell pinned to the top too).
 - **Filtered columns** show a funnel icon (accent colour) next to the header text; its tooltip lists the filters.
 - **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name
   is in the tooltip.
@@ -279,7 +280,8 @@ SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for
     *Compact view* (slimmer table rows and tighter spacing and type everywhere). Theme, borders, shading and density
     are per-viewer preferences in `localStorage`, applied as `data-theme`, `data-borders`, `data-zebra` and
     `data-density` on `<html>` before the first paint (`static/js/theme.js`).
-  - Page items: on the Workbench, the *Preview panel* checkbox and *Reset view* (keeps Text colours).
+  - Page items: on the Workbench, the *Preview panel* checkbox, *Columns…* (opens the column picker) and *Reset view*
+    (keeps Text colours).
   - *All settings…*. Esc or a click outside closes the sheet.
 - Files: `base.css` (elements), `layout.css` (app shell, grids), `components.css` (cards, badges, tables, fields).
 - Semantic class names (`.card`, `.member--keeper`, `.badge--high`, `.field--accepted`), BEM-style.

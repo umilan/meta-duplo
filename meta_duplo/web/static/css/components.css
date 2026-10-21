@@ -361,6 +361,11 @@
 .wbt thead th { position: sticky; top: 0; z-index: 2; background: var(--surface-2); padding: 0; overflow: visible; }
 .wbt thead th.wbt__check, .wbt thead th.wbt__add { padding: 0 var(--space-100); text-align: center; }
 .wbt td.wbt__check { text-align: center; }
+/* the checkbox column stays put when the table scrolls sideways; it needs an opaque background of its own
+   (row colours — group, ticked, previewed, zebra — still win, they are more specific) */
+.wbt .wbt__check { position: sticky; left: 0; z-index: 1; box-shadow: inset -1px 0 0 var(--line); }
+:where(.wbt tbody td.wbt__check) { background-color: var(--surface); }
+.wbt thead th.wbt__check { z-index: 3; }
 .wbh { position: relative; display: flex; align-items: center; gap: var(--space-050); height: calc(var(--control-h) + var(--space-100)); padding: 0 var(--space-100); overflow: hidden; container-type: inline-size; }
 .wbh__label { flex: 0 1 auto; min-width: var(--space-300); overflow: hidden; font-weight: 600; color: var(--text); cursor: pointer;
   white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }  /* long names wrap to two lines */

@@ -10,6 +10,7 @@
 <div class="setsheet__section">Workbench</div>
 <label class="setsheet__item setsheet__check">
   <input type="checkbox" :checked="$store.wb.panel" @change="$dispatch('wb-panel', { on: $event.target.checked })"> Preview panel</label>
+<button type="button" class="setsheet__item" @click="$dispatch('wb-addcol'); open = false">Columns…</button>
 <button type="button" class="setsheet__item" title="Default columns, no filters" @click="$dispatch('wb-reset'); open = false">Reset view</button>
 {% endblock %}
 {% block content %}
