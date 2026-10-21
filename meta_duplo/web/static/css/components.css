@@ -291,6 +291,7 @@
 .wbh__label[draggable] { cursor: grab; }
 .wbh__label.is-sorted { color: var(--text); font-weight: 700; }
 .wbh__act { flex: none; position: relative; z-index: 1; }
+.wbh__fold .chev { color: inherit; }
 .wbh__resize { position: absolute; right: 0; top: 0; bottom: 0; width: var(--space-100); cursor: col-resize; border-right: 1px solid var(--line); }
 .wbh__resize:hover, .is-resizing .wbh__resize { border-right: 2px solid var(--accent); }
 .is-resizing { cursor: col-resize; user-select: none; }
@@ -308,7 +309,9 @@
 .wbt:not(.wbt--colors) .wbg__sum--same, .wbt:not(.wbt--colors) .wbg__sum--diff { color: var(--muted); }
 .wbr { cursor: pointer; }
 /* hover: row, column and cell tints are overlays, so they work on purple edit cells and group rows too */
-.wbt tbody tr:hover > td, .wbt .is-hcol { background-image: linear-gradient(var(--tint), var(--tint)); }
+.wbt tbody tr:hover > td, .wbt thead tr:hover > th, .wbt .is-hcol { background-image: linear-gradient(var(--tint), var(--tint)); }
+.wbt thead tr:hover > th.is-hcol { background-image: linear-gradient(var(--tint), var(--tint)), linear-gradient(var(--tint), var(--tint)); }
+.wbt thead th:hover { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent); }
 .wbt tbody tr:hover > td.is-hcol { background-image: linear-gradient(var(--tint), var(--tint)), linear-gradient(var(--tint), var(--tint)); }
 .wbt tbody td:not(.wbt__check):hover { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent); }
 .wbt tbody td { position: relative; height: var(--row-h); }

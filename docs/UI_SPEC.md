@@ -130,7 +130,8 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
 └─┴─────┴───────────────────────────┴──────────────────────┴───────────────────────────┴────┴───────────────┴────────────────┴────────────┴─────────┘
 ```
 
-- **Grouping column:** when grouped, the second column (after the checkbox) is the grouping itself: *Duplicate set*,
+- **Grouping column:** its header has a **›** button that collapses or expands all groups (groups loaded later
+  follow it; a group row still toggles on its own). When grouped, the second column (after the checkbox) is the grouping itself: *Duplicate set*,
   *Photo*, *Folder*, *Day*, *Device* or *Place*. The group row shows the value and the number of files (e.g.
   “Apple iPhone 12 (95)”), file rows show └. A regular column that the grouping already shows (Device, Place, Folder)
   is hidden while grouped. Thumbnails are an ordinary column next to it. The grouping column is resizable.
@@ -185,8 +186,9 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
 - **Preview panel:** image; the edits not yet applied; Dates, Location, Device, Author, File; the duplicate set with
   confidences; **all metadata tags** in a monospace list.
 - **Hover:** a light tint on the row and the column under the pointer, a stronger tint and outline on the cell; the
-  column header lights up too. Tints are overlays, so they also work on purple and group rows.
-- **Cell menu:** hovering a cell shows **⋯** on its right; it opens the menu sheet titled *Cell menu* (empty for now,
+  column header lights up too. The same works on the header row: hovering a header tints the header row, the
+  column and that header cell. Tints are overlays, so they also work on purple and group rows.
+- **Cell menu:** hovering a data cell shows **⋯** on its right (not in the checkbox, grouping └ or thumbnail columns); it opens the menu sheet titled *Cell menu* (empty for now,
   reserved for per-cell actions). One button is reused and moved into the hovered cell, so large tables stay light.
 - **Navigation:** the left navigation is hidden on the Workbench to give the table the full width; the sidebar icon
   left of the title shows or hides it.

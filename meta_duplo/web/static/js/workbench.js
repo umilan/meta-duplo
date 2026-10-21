@@ -17,8 +17,10 @@
       if ((r.headers.get("HX-Trigger") || "").includes("wb-reload")) htmx.trigger(document.body, "wb-reload");
     });
 
-  // Hover: tint the row (CSS), the column (classes set here) and the cell; one ⋯ button follows the pointer.
+  // Hover: tint the row (CSS), the column (classes set here) and the cell, in the body and the header;
+  // one ⋯ button follows the pointer over data cells (not the checkbox, grouping or thumbnail columns).
   const hover = { table: null, idx: -1 };
+  const headerKey = (table, idx) => table.tHead?.rows[0]?.cells[idx]?.dataset.key || "";
   const clearColumn = () => {
     document.querySelectorAll(".wbt .is-hcol").forEach((el) => el.classList.remove("is-hcol"));
     hover.table = null; hover.idx = -1;
@@ -37,7 +39,7 @@
     return btn;
   };
   document.addEventListener("mouseover", (e) => {
-    const td = e.target.closest && e.target.closest(".wbt tbody td");
+    const td = e.target.closest && e.target.closest(".wbt tbody td, .wbt thead th");
     if (!td) return;
     const table = td.closest("table"), idx = td.cellIndex;
     if (table !== hover.table || idx !== hover.idx) {
@@ -47,10 +49,13 @@
         table.querySelectorAll(`tr > :nth-child(${idx + 1})`).forEach((c) => c.classList.add("is-hcol"));
       }
     }
-    const inCanvas = idx > 0 && idx < td.parentElement.cells.length - 1 && !td.closest("tbody.more");
+    const key = headerKey(table, idx);
+    const inCanvas = td.tagName === "TD" && key && key !== "thumb" && !td.closest("tbody.more");
     if (inCanvas) {
       const btn = cellButton();
       if (btn.parentElement !== td) td.appendChild(btn);
+    } else {
+      document.getElementById("wb-cellbtn")?.remove();
     }
   });
   document.addEventListener("mouseout", (e) => {
@@ -98,6 +103,8 @@
       cols: [],              // keys of the columns shown, set by the table (drives the column picker)
       active: null,          // row shown in the preview (clicked, or just ticked)
       panel: false,          // preview panel open (mirrors wbPage.panel for the settings sheet)
+      expanded: true,        // groups open; new pages of groups follow it
+      expandAll(on) { this.expanded = on; window.dispatchEvent(new CustomEvent("wb-fold", { detail: on })); },
       preset: "none",        // selection picker: none | all | custom | dup_newer | dup_older | dup_lessmeta
       has(id) { return this.sel[id] === true; },
       add(id) { if (!this.sel[id]) { this.sel[id] = true; this.count++; } },
