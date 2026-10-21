@@ -225,7 +225,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   many metadata tags of that kind the file carries (EXIF / QuickTime tags sorted like the column picker; file-system
   dates and our recommendations do not count). Below 208 px of column width only the numbers stay; the tooltip names
   each badge.
-- **Sorted column:** its header label and its cells are bold; cells keep their red / green. Group rows are
+- **Sorted column:** its header label and its cells are bold; cells keep their red / green; it has the same 2 px
+  accent outline as a filtered column. Group rows are
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light grey (a little darker than *Shade odd rows*); the row shown in the preview is a darker blue. Clicking a row or
   ticking its checkbox shows it in the preview panel (and opens the panel).
