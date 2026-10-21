@@ -24,19 +24,14 @@
       <h1 class="wb-title">Workbench</h1>
       <span class="wbbar__label" id="datain-label">Data input</span>
       {% set n_on = sources|rejectattr("id", "in", sources_off)|list|length %}
-      <div class="pick datain" x-data="{ open: false, adding: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+      <div class="pick datain" x-data="dataInput" @click.outside="open = false" @keydown.escape.window="open = false"
+           @wb-pickpath.window="typePath($event.detail)">
         <button type="button" class="datain__field" aria-labelledby="datain-label" aria-haspopup="true" :aria-expanded="open.toString()" @click="open = !open">
           <span>{% if n_on < sources|length %}{{ n_on }} of {% endif %}{{ sources|length }} folder{{ '' if sources|length == 1 else 's' }}</span>
           <span class="muted">Found {{ nfiles }} file{{ '' if nfiles == 1 else 's' }}</span>
         </button>
         <div class="wbsheet pick__sheet datain__sheet" x-show="open" x-cloak x-transition.opacity>
-          <button type="button" class="datain__addbtn" x-show="!adding" @click="adding = true; $nextTick(() => $refs.newpath.focus())">Add new…</button>
-          <form class="datain__add" x-show="adding" hx-post="/wb/sources" hx-swap="none">
-            <input type="text" name="path" x-ref="newpath" placeholder="/Volumes/Photos/Pictures" aria-label="Folder path" required>
-            <label class="small"><input type="checkbox" name="writable"> Writable</label>
-            <button class="btn btn--primary" type="submit">Add</button>
-            <button class="btn" type="button" @click="adding = false">Cancel</button>
-          </form>
+          <button type="button" class="datain__addbtn" @click="addFolder()" title="Opens the folder dialog">Add new…</button>
           {% for s in sources %}
           <div class="datain__src" title="{{ s.root }}">
             <label><input type="checkbox" {{ 'checked' if s.id not in sources_off }} @change="post({ action: 'source_toggle', id: '{{ s.id }}' }).then(() => location.reload())">
@@ -48,6 +43,8 @@
           {% else %}<div class="datain__src muted">No folders yet.</div>{% endfor %}
           <button type="button" class="datain__demo" hx-post="/wb/sources/demo" hx-swap="none"
                   title="A small generated photo set in your home folder (~/meta-duplo-demo)">Use demo folder</button>
+          <label class="datain__writable"><input type="checkbox" x-model="writable">
+            <span>Add new folders as writable <span class="pick__hint">(approved plans may move and rename files there)</span></span></label>
         </div>
       </div>
     </div>

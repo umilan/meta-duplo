@@ -122,11 +122,14 @@ Header (three rows, as in the user's mockup):
   marks for choices and a short grey hint under items that need one.
 - **Workbench** title and **Data input**: a field with *N folders* (or *N of M folders*) and *Found N files*. Its
   sheet, as wide as the field, never leaves the page:
-  - *Add new…* opens an inline path field, a *Writable* checkbox and *Add*;
+  - *Add new…* opens the macOS folder dialog right away (the local server runs `osascript` *choose folder*;
+    in the Tauri app this becomes the native dialog). Picking a folder adds it; Cancel does nothing. Where no
+    dialog is available, the page asks for a typed path instead;
   - one row per folder: a checkbox (include it in the view; unticked folders stay in the library), the path,
     file count and access, and *Remove* (forgets the folder and what the library knows about its files; nothing on
     disk is touched; refused while a plan refers to its files, so undo keeps working);
   - *Use demo folder* adds `~/meta-duplo-demo` (created only if it does not exist yet).
+  - at the bottom, *Add new folders as writable* (off by default) applies to the next *Add new…*.
   Adding or removing starts a scan; the job bar shows progress and the page reloads when it is done.
 - **Grouping by**: None, Duplicates, Photo (all copies), Path / Folders, Day, Device, Place, Author.
 - **Duplicates grouping** starts with the chip **Dup.: ≥ 2** (switching to it adds the chip, switching away removes

@@ -179,6 +179,20 @@
       post: postView,
     }));
 
+    // Data input: "Add new…" opens the folder dialog of the Mac running the server (POST /wb/sources/pick);
+    // where there is none, the server answers with wb-pickpath and the page asks for a typed path.
+    Alpine.data("dataInput", () => ({
+      open: false,
+      writable: false,
+      addFolder() {
+        htmx.ajax("POST", "/wb/sources/pick", { source: document.body, swap: "none", values: { writable: this.writable ? "1" : "" } });
+      },
+      typePath() {
+        const path = window.prompt("Folder to add (full path):", "/Volumes/");
+        if (path) htmx.ajax("POST", "/wb/sources", { source: document.body, swap: "none", values: { path, writable: this.writable ? "1" : "" } });
+      },
+    }));
+
     Alpine.data("wbHead", (key, dir, first = "asc") => ({
       post: postView,
       // first click: `first` (numbers start high, so 100 % confidence is on top), then toggle

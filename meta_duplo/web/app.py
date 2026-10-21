@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import secrets
+import subprocess
+import sys
 from urllib.parse import urlencode
 from pathlib import Path
 
@@ -499,6 +501,32 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
 
     def _toast(msg: str) -> Response:
         return Response(status_code=204, headers={"HX-Trigger": json.dumps({"toast": msg})})
+
+    def _choose_folder() -> str | None:
+        """Open the macOS folder dialog (this server runs on the user's Mac). Returns a path, "" when the user
+        cancels, or None when no native dialog is available (another OS, no GUI session)."""
+        if sys.platform != "darwin":
+            return None
+        script = ('tell application "System Events"\n activate\n'
+                  ' set f to choose folder with prompt "Add a folder to meta-duplo"\nend tell\nPOSIX path of f')
+        try:
+            r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=600)
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+        if r.returncode != 0:
+            return "" if "-128" in r.stderr else None  # -128: the user pressed Cancel
+        return r.stdout.strip()
+
+    @app.post("/wb/sources/pick")
+    def wb_source_pick(writable: str | None = Form(None)):
+        path = _choose_folder()
+        if path is None:  # no native dialog: the page asks for a typed path instead
+            return Response(status_code=204, headers={"HX-Trigger": json.dumps({"wb-pickpath": {"writable": bool(writable)}})})
+        if not path:
+            return Response(status_code=204)
+        add_source(lib, path, writable=bool(writable))
+        _rescan()
+        return Response(headers={"HX-Refresh": "true"})
 
     @app.post("/wb/sources")
     def wb_source_add(path: str = Form(""), writable: str | None = Form(None)):

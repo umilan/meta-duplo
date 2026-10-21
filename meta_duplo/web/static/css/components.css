@@ -291,10 +291,9 @@
 .datain__path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: var(--text-sm); }
 .datain__remove { color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .datain__remove:hover { color: var(--conflict); }
-.datain__add { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); padding: var(--space-100); border-bottom: 1px solid var(--line); }
-.datain__add input[type=text] { flex: 1 1 100%; }
 .datain__addbtn { font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-.wbsheet .datain__demo { color: var(--muted); border-top: 1px solid var(--line); border-radius: 0 0 var(--radius-sm) var(--radius-sm); margin-top: var(--space-050); }
+.datain__writable { display: flex; align-items: center; gap: var(--space-100); min-height: var(--control-h); padding: var(--space-050) var(--space-100); border-top: 1px solid var(--line); cursor: pointer; }
+.wbsheet .datain__demo { color: var(--muted); border-top: 1px solid var(--line); margin-top: var(--space-050); }
 /* dropdown sheets (Data input, Grouping by, Sort by, Selection, Actions): a select-like button + a menu sheet */
 .pick { position: relative; display: inline-flex; align-items: center; gap: var(--space-100); }
 .selectbtn { display: inline-flex; align-items: center; min-width: 176px; text-align: left; white-space: nowrap; }
