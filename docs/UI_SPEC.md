@@ -227,7 +227,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   each badge.
 - **Sorted column:** its header label and its cells are bold; cells keep their red / green. Group rows are
   regular weight except the group title and the sorted column.
-- **Row colours:** ticked rows are light blue; the row shown in the preview is a darker blue. Clicking a row or
+- **Row colours:** ticked rows are light grey (a little darker than *Shade odd rows*); the row shown in the preview is a darker blue. Clicking a row or
   ticking its checkbox shows it in the preview panel (and opens the panel).
 - **Preview panel:** a sticky header *Preview* with **×** to close it (⚙ stays in the table-side header row, left of
   the panel); then the image; the edits not yet applied; Dates, Location, Device, Author, File (labels and values

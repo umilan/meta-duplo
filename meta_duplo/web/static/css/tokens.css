@@ -48,7 +48,7 @@
   --tint: rgb(47 111 222 / 6%); --tint-cell: rgb(47 111 222 / 12%);              /* hover overlays */
   --zebra: #f6f6f4;                                                                /* shaded odd rows */
   --group-bg: #f5f5dc;                                                             /* workbench group rows (beige) */
-  --sel: #e9f0fc; --sel-active: #c9dbfa;                                           /* ticked / previewed row */
+  --sel: #ececee; --sel-active: #c9dbfa;                                           /* ticked / previewed row */
   --backdrop: rgb(0 0 0 / 32%);
 }
 /* Compact view (settings sheet): one step down the same scale. */
@@ -67,7 +67,7 @@
     --band-medium: #d9a63a; --diff: #3a3220; --keeper: #4cc27e; --shadow: none;
     --edit-bg: #33213f; --edit-text: #d59cf5; --same: #4cc27e; --differ: #ff6b6b;
     --tint: rgb(140 170 255 / 8%); --tint-cell: rgb(140 170 255 / 16%); --zebra: #262629; --group-bg: #2c2a20;
-    --sel: #1c2536; --sel-active: #27406b; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
+    --sel: #2c2c30; --sel-active: #27406b; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
   }
 }
 :root[data-theme="dark"] {
@@ -77,7 +77,7 @@
     --band-medium: #d9a63a; --diff: #3a3220; --keeper: #4cc27e; --shadow: none;
     --edit-bg: #33213f; --edit-text: #d59cf5; --same: #4cc27e; --differ: #ff6b6b;
     --tint: rgb(140 170 255 / 8%); --tint-cell: rgb(140 170 255 / 16%); --zebra: #262629; --group-bg: #2c2a20;
-    --sel: #1c2536; --sel-active: #27406b; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
+    --sel: #2c2c30; --sel-active: #27406b; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
