@@ -92,7 +92,11 @@
     </div>
   </div>
 
-  <aside class="wb-panel results-panel" x-show="panel" aria-label="Preview">
+  <aside class="wb-panel results-panel" x-show="panel" aria-labelledby="pv-heading">
+    <div class="pv-head">
+      <h2 id="pv-heading">Preview</h2>
+      <button type="button" class="btn btn--icon" @click="panel = false" title="Close the preview" aria-label="Close the preview">×</button>
+    </div>
     <div id="wb-preview"><div class="empty small">Click a row to see all of its metadata.</div></div>
   </aside>
 

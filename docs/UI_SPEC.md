@@ -218,7 +218,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light blue; the row shown in the preview is a darker blue. Clicking a row or
   ticking its checkbox shows it in the preview panel (and opens the panel).
-- **Preview panel:** image; the edits not yet applied; Dates, Location, Device, Author, File (labels and values
+- **Preview panel:** a sticky header *Preview* with **×** to close it (⚙ stays in the table-side header row, left of
+  the panel); then the image; the edits not yet applied; Dates, Location, Device, Author, File (labels and values
   each take half the width); the duplicate set stacked one copy per block (name, confidence, path; ✓ = kept copy,
   accent bar = this file); **all metadata tags** in a monospace list.
 - **Hover:** a light tint on the row and the column under the pointer, a stronger tint and outline on the cell; the
