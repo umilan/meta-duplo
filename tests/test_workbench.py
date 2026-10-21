@@ -107,3 +107,16 @@ def test_duplicates_filter_chip_and_singles_group(lib):
     assert view["filters"] == [wb.DUP_FILTER]
     wb.set_group(view, "folder")
     assert view["filters"] == []  # the automatic chip goes away again
+
+
+def test_columns_follow_the_picker_order():
+    cols = [["thumb", 48], ["path", 248], ["filename", 192], ["date", 160], ["author", 128]]
+    wb.insert_column(cols, "dims", 96)          # File: right after the filename
+    wb.insert_column(cols, "dup_conf", 144)     # Duplicates: before the dates
+    wb.insert_column(cols, "exif:GPS:GPSLatitude", 152)  # Location, after the dates
+    assert [c[0] for c in cols] == ["thumb", "path", "filename", "dims", "dup_conf", "date",
+                                    "exif:GPS:GPSLatitude", "author"]
+    shuffled = [["author", 1], ["edit:date", 1], ["date", 1], ["path", 1], ["dup_count", 1]]
+    shuffled.sort(key=lambda c: wb.column_rank(c[0]))
+    assert [c[0] for c in shuffled] == ["path", "dup_count", "date", "edit:date", "author"]
+    assert list(wb.catalog([]))[:3] == ["File", "Duplicates", "Dates"]

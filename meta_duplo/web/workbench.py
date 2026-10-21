@@ -165,7 +165,9 @@ TAG_CATEGORIES = (
     ("File", ("width", "height", "dimension", "resolution", "orientation", "colorspace", "compression", "brand",
               "version", "bits", "ycbcr", "pixel", "thumbnail", "components", "duration", "codec")),
 )
-CATEGORY_ORDER = ["Dates", "Location", "Device", "Author", "Capture settings", "Duplicates", "File", "Other"]
+# The column picker lists categories in this order, and the table follows it: new columns land in their place,
+# and "Order like this list" sorts the shown ones the same way.
+CATEGORY_ORDER = ["File", "Duplicates", "Dates", "Location", "Device", "Author", "Capture settings", "Other"]
 
 
 def exif_category(tag: str) -> str:
@@ -173,6 +175,24 @@ def exif_category(tag: str) -> str:
     if name == "iso":
         return "Capture settings"
     return next((cat for cat, words in TAG_CATEGORIES if any(w in name for w in words)), "Other")
+
+
+def column_rank(key: str) -> tuple:
+    """Position of a column in catalog order; an edit column sits right after the field it edits."""
+    if key.startswith("edit:"):
+        return column_rank(EDIT_BASE.get(key[5:], key[5:]))[:3] + (1,)
+    f = field_for(key)
+    cat = CATEGORY_ORDER.index(f.group) if f and f.group in CATEGORY_ORDER else len(CATEGORY_ORDER)
+    if key in CORE_BY_KEY:
+        return (cat, 0, (CORE.index(CORE_BY_KEY[key]),), 0)
+    return (cat, 1, _exif_rank(key[5:]) if key.startswith("exif:") else (key,), 0)
+
+
+def insert_column(columns: list, key: str, width: int) -> None:
+    """Add a column at its catalog position among the shown ones (in place)."""
+    rank = column_rank(key)
+    at = next((i for i, (k, _) in enumerate(columns) if column_rank(k) > rank), len(columns))
+    columns.insert(at, [key, width])
 
 
 def catalog(exif_keys: list[str]) -> dict[str, list[Field]]:

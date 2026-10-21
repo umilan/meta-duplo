@@ -460,13 +460,17 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             if 0 <= idx < len(view["filters"]):
                 view["filters"].pop(idx)
         elif act == "col_add" and f.get("key") and f["key"] not in keys and wb.field_for(f["key"]):
-            cols.append([f["key"], wb.field_for(f["key"]).width])
+            wb.insert_column(cols, f["key"], wb.field_for(f["key"]).width)
         elif act == "cols_set":  # column picker: show or hide many fields at once (a category, or all found)
             wanted = [k for k in f.get("keys", "").split(",") if k]
             if f.get("on"):
-                cols += [[k, wb.field_for(k).width] for k in wanted if k not in keys and wb.field_for(k)]
+                for k in wanted:
+                    if k not in keys and wb.field_for(k):
+                        wb.insert_column(cols, k, wb.field_for(k).width)
             else:
                 view["columns"] = [c for c in cols if c[0] not in wanted]
+        elif act == "cols_order":  # column picker: order the shown columns like the list
+            cols.sort(key=lambda c: wb.column_rank(c[0]))
         elif act == "col_remove":
             view["columns"] = [c for c in cols if c[0] != f.get("key")]
         elif act == "col_move" and f.get("key") in keys and f.get("key") != f.get("before"):

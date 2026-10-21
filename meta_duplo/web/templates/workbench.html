@@ -204,6 +204,8 @@
         <h3>Columns</h3>
         <span class="colpick-head__tools">
           <span class="small muted" x-text="$store.wb.cols.length + ' shown'"></span>
+          <button type="button" class="linkbtn" @click="post({ action: 'cols_order' })"
+                  title="Put the shown columns in the order of this list (File, Duplicates, Dates, Location, …)">Order like this list</button>
           <button type="button" class="linkbtn" @click="colsSet(colKeys(allFields), true)"
                   x-text="colQuery ? 'Select all found' : 'Select all'">Select all</button>
           <button type="button" class="linkbtn" @click="colsSet(colKeys(allFields), false)"
