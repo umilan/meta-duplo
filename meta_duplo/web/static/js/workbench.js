@@ -69,6 +69,17 @@
     if (btn.parentElement !== td) td.appendChild(btn);
     window.dispatchEvent(new CustomEvent("wb-cellmenu", { detail: { btn } }));
   });
+  // double-click on a purple edit cell: type a new value for this file (the filename column opens the naming dialog)
+  document.addEventListener("dblclick", (e) => {
+    const td = e.target.closest && e.target.closest(".wbt tbody tr.wbr > td");
+    if (!td || e.target.closest("button, input")) return;
+    const th = td.closest("table").tHead.rows[0].cells[td.cellIndex];
+    if (!th || !th.classList.contains("wbh-cell--edit")) return;
+    window.getSelection()?.removeAllRanges();  // the double-click selected a word
+    const btn = cellButton();
+    if (btn.parentElement !== td) td.appendChild(btn);
+    window.dispatchEvent(new CustomEvent("wb-celledit", { detail: { btn } }));
+  });
   document.addEventListener("mouseout", (e) => {
     const table = e.target.closest && e.target.closest(".wbt");
     if (table && !(e.relatedTarget && table.contains(e.relatedTarget))) {
@@ -329,7 +340,9 @@
       cellEdit: { label: "", value: "", fid: "", key: "" },
       openCellEdit() {
         const m = this.menu; this.menu = null;
-        this.cellEdit = { label: m.label, value: m.value, fid: m.fid, key: m.key };
+        if (!m) return;
+        if (!m.target) { this.openEdit({ target: "filename" }); return; }  // New filename: one pattern for all files
+        this.cellEdit = { label: m.label, value: m.value.replace(/^[→=]\s*/, ""), fid: m.fid, key: m.key };  // "→ value" / "= value"
         this.dialog = "celledit"; this.$nextTick(() => this.$refs.celledit && this.$refs.celledit.select());
       },
       saveCellEdit() {

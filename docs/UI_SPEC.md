@@ -200,6 +200,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   - **Place, Device:** recommended; copy from any column; fixed value.
 
   `= value` means unchanged, `→ value` a change, `—` not enough data (e.g. no date). *Remove edit column* drops the rule.
+  **Double-click** an edit cell to type a value for that one file (the *Edit this value…* dialog, prefilled without
+  the `=` / `→` mark); in New filename it opens the naming-pattern dialog (one pattern for all files).
 - **Duplicate confidence:**
   - 100 % = byte-identical;
   - 99 % = same pixels, different metadata;
