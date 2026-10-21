@@ -176,7 +176,7 @@
 
 /* ───────── job, toast, banners, misc ───────── */
 .job { display: flex; align-items: center; gap: var(--space-200); min-height: var(--control-h); padding: var(--space-050) var(--space-200); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); margin-bottom: var(--gap); }
-.job progress { flex: 1; max-width: 360px; }
+.job progress { flex: 1; min-width: 0; }  /* the bar takes all the room in the stripe */
 .job--failed { border-color: var(--conflict); }
 .error-banner { color: var(--conflict); }
 .toast { position: fixed; right: var(--space-300); bottom: var(--space-300); z-index: 60; background: var(--text); color: var(--bg); padding: var(--space-100) var(--space-200); border-radius: var(--radius); box-shadow: var(--shadow-pop); }
@@ -294,7 +294,6 @@
 .wb-title { margin: 0 var(--space-200) 0 0; white-space: nowrap; }
 /* workbench header (user mockup): title + data input, then grouping / sort / search, then filters + selection / action */
 .wbbar { display: flex; align-items: center; gap: var(--space-200); padding-top: var(--space-200); margin-bottom: var(--space-200); container: wbbar / inline-size; position: relative; z-index: 35; }  /* containment makes a stacking context: keep its sheets above the table */
-.wbbar.wb-pad { padding-right: var(--space-800); }  /* room for the settings button */
 .wbbar .navtoggle { margin-right: calc(-1 * var(--space-100)); }
 .wbbar > .navtoggle, .setbtn, .wbbar .wb-title { flex: none; }  /* never squeezed by the row */
 /* Data input: one line; the folder count truncates, the file count goes first when the field is tight */
@@ -494,14 +493,13 @@
 
 /* Workbench page: no page padding; the table runs edge to edge, only the controls above it are inset. */
 .main--flush { padding: 0; max-width: none; position: relative; }
-.main--flush .topbar { position: absolute; top: var(--space-200); right: var(--space-200); margin: 0; z-index: 36; }  /* above the header row (35), or it would swallow ⚙ clicks */
+.wbbar .topbar { flex: none; margin: 0; }  /* ⚙ is the last item of the Workbench header row */
 .main--flush #job:has(.job) { padding: var(--space-100) var(--space-200) 0; }  /* no space when idle: keeps the header row level with ⚙ */
 .main--flush .wb { gap: 0; }
 .wb-pad { padding-inline: var(--space-200); }
 .main--flush .wb-scroll { border-inline: 0; border-radius: 0; max-height: calc(100vh - 176px); }
 .main--flush .wb-panel { top: 0; border-radius: 0; border-top: 0; border-right: 0; max-height: 100vh; padding-top: 0; }
 /* with the preview open, ⚙ stays in the header row of the table side, left of the panel */
-.main--flush:has(.wb--panel) .topbar { right: calc(336px + var(--space-200)); }
 .pv-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: var(--space-100);
   margin: 0 calc(-1 * var(--space-200)) var(--space-100); padding: var(--space-200) var(--space-200) var(--space-100); background: var(--surface); }
 .pv-head h2 { margin: 0; font-size: var(--text-lg); line-height: var(--line-lg); }

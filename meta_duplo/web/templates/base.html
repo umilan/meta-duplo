@@ -35,6 +35,8 @@
       </ul>
     </nav>
     <main class="main {% block main_class %}{% endblock %}" id="main">
+      {% if false %}{# the settings button and sheet: defined once, rendered by the placement block below, or by a
+         page that puts it in its own header row (the Workbench), via self.topbar() #}{% block topbar %}
       <div class="topbar" x-data="{ open: false, p: { ...['theme', 'borders', 'zebra', 'density'].reduce((o, k) => ({ ...o, [k]: mdPrefs.get(k) }), {}) },
                                    set(k, v) { this.p[k] = v; mdPrefs.set(k, v); } }"
            @keydown.escape.window="open = false" @click.outside="open = false">
@@ -61,6 +63,8 @@
           <a class="setsheet__item" href="/settings">All settings…</a>
         </div>
       </div>
+      {% endblock %}{% endif %}
+      {% block topbar_place %}{{ self.topbar() }}{% endblock %}
       <div id="job">{% if job and job.status == 'running' %}{% include "partials/job.html" %}{% endif %}</div>
       {% block content %}{% endblock %}
     </main>

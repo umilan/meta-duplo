@@ -2,6 +2,7 @@
 {% block title %}Workbench{% endblock %}
 {% block head %}<script src="/static/js/workbench.js" defer></script>{% endblock %}
 {% block main_class %}main--flush{% endblock %}
+{% block topbar_place %}{% endblock %}{# ⚙ sits in the Workbench header row instead #}
 {% block appearance_menu %}
 <label class="setsheet__item setsheet__check" x-data="{ on: {{ view.colors|tojson }} }"><input type="checkbox" :checked="on"
        @change="on = $event.target.checked; $dispatch('wb-colors')"> Text colours (same / different)</label>
@@ -88,6 +89,7 @@
                @input.debounce.400ms="post({ action: 'q', q })">
         <button type="button" class="searchfield__clear" x-show="q" x-cloak aria-label="Clear search" @click="q = ''; post({ action: 'q', q: '' })">×</button>
       </div>
+      {{ self.topbar() }}
     </div>
 
     <div id="wb-table" hx-get="/wb/table" hx-trigger="wb-reload from:body" hx-swap="innerHTML" hx-disinherit="*">
