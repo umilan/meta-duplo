@@ -81,6 +81,7 @@
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)"
                 title="{{ c.label }} — click to sort, drag to move">{{ c.label|wbr }}</span>
           <span class="wbh__abbr" aria-hidden="true">{{ c.abbr }}</span>
+          {% if c.links %}<span class="srclink srclink--head" data-srctip="{{ c.links|length }} source{{ '' if c.links|length == 1 else 's' }}: {% for l in c.links %}{{ l.letter }} = {{ l.label }}{{ '; ' if not loop.last }}{% endfor %}" aria-label="{{ c.links|length }} sources">{% include "partials/link_icon.svg" %}({{ c.links|length }})</span>{% endif %}
           {% if c.key in key_fields %}<span class="keybadge" title="{{ key_fields[c.key] }}">!</span>{% endif %}
           {% set col_filters = view.filters|selectattr("key", "equalto", c.key)|list %}
           {% if col_filters %}<span class="wbh__filter" role="img" aria-label="Filtered"

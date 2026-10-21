@@ -385,21 +385,60 @@ def _shift(value: str, seconds: int) -> str:
         return ""
 
 
+def _label(key: str) -> str:
+    f = field_for(key)
+    return f.label if f else key
+
+
+def _hms(seconds: int) -> str:
+    sign, s = ("−" if seconds < 0 else "+"), abs(seconds)
+    return f"{sign}{s // 3600}:{s // 60 % 60:02d}:{s % 60:02d}"
+
+
+def _rule_source(target: str, rule: dict, names: dict[int, str]) -> dict:
+    """Where a rule takes its values from: a link (id, label, the column it reads, the row it copies)."""
+    kind, base = rule.get("kind"), EDIT_BASE[target]
+    if kind == "recommended":
+        return {"id": "rec", "label": f"{_label('rec_' + target)} (best evidence)", "key": f"rec_{target}"}
+    if kind == "column":
+        col = rule.get("column", "")
+        return {"id": f"col:{col}", "label": f"Copied from {_label(col)}", "key": col}
+    if kind == "shift":
+        col = rule.get("column") or "date"
+        return {"id": "shift", "label": f"{_label(col)} shifted {_hms(int(rule.get('seconds') or 0))}", "key": col}
+    if kind == "fixed" and rule.get("from"):
+        fid, col = int(rule["from"]["fid"]), rule["from"]["key"]
+        return {"id": f"cell:{fid}:{col}", "label": f"Copied from {_label(col)} of {names.get(fid, f'file {fid}')}",
+                "key": col, "rid": fid}
+    if kind == "fixed":
+        return {"id": "fixed", "label": f"Fixed value {rule.get('value', '')}"}
+    if kind == "pattern":
+        return {"id": "pattern", "label": f"Naming pattern {rule.get('pattern') or ''}"}
+    return {"id": "keep", "label": f"Unchanged: current {_label(base)}", "key": base}
+
+
 def apply_edits(rows: list[dict], edits: dict) -> None:
-    """Compute each row's edit-column values (r['e']).
+    """Compute each row's edit-column values (r['e']) and where each one comes from (r['src'], a lettered link).
 
     A rule may be limited to some files ("ids": the others keep their value) and may carry per-file values typed
     in a cell ("overrides": file id → value); "keep" is a rule that only holds such overrides."""
+    names = {r["id"]: r["v"]["filename"] for r in rows}
+    sources = {t: _rule_source(t, rule, names) for t, rule in edits.items() if t in EDIT_BASE}
+    keep = {t: _rule_source(t, {"kind": "keep"}, names) for t in EDIT_BASE}
+    typed_src = {"id": "typed", "label": "Typed for this file", "typed": True}
+    letters: dict[str, dict[str, str]] = {t: {} for t in EDIT_BASE}  # per column: source id → A, B, C… (first seen)
     for r in rows:
-        v, e = r["v"], {}
+        v, e, src = r["v"], {}, {}
         for target in ("date", "place", "device"):
             rule = edits.get(target)
             if not rule:
                 continue
             kind = rule.get("kind")
             rec = v[f"rec_{target}"] or v[target]
+            src[target] = sources[target]
             if kind == "keep" or (rule.get("ids") is not None and r["id"] not in rule["ids"]):
                 e[target] = v[target]
+                src[target] = keep[target]
             elif kind == "recommended":
                 e[target] = rec
             elif kind == "column":
@@ -420,13 +459,19 @@ def apply_edits(rows: list[dict], edits: dict) -> None:
             }
             new = harmonize.render_name(pattern, values, r["original_name"], r["ext_raw"])
             e["filename"] = new if new is not None else ""
+            src["filename"] = sources["filename"]
             if edits["filename"].get("kind") == "keep":
                 e["filename"] = v["filename"]
         for target, rule in edits.items():  # values typed into single cells win
             typed = (rule.get("overrides") or {}).get(str(r["id"]))
             if typed is not None:
                 e[target] = typed
-        r["e"] = e
+                src[target] = typed_src
+        for target, s in src.items():
+            seen = letters[target]
+            seen.setdefault(s["id"], chr(65 + len(seen)) if len(seen) < 26 else "*")
+            src[target] = {**s, "letter": seen[s["id"]]}
+        r["e"], r["src"] = e, src
 
 
 # Cell actions: which edit column a cell's value can feed (None = not editable yet; plans write these four only)

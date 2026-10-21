@@ -204,12 +204,43 @@
     if (!el) { el = document.createElement("div"); el.id = "wb-tip"; el.className = "wbtip"; el.hidden = true; document.body.appendChild(el); }
     return el;
   };
+  // Source links ([🔗A] in edit columns) use the same tooltip and light up the column / row they point to.
+  let srcOn = null;
+  const clearSrc = () => {
+    if (!srcOn) return;
+    srcOn = null;
+    document.querySelectorAll(".wbt .is-srccol, .wbt .is-srcrow").forEach((x) => x.classList.remove("is-srccol", "is-srcrow"));
+  };
+  const showSrc = (link) => {
+    if (srcOn === link) return;
+    clearSrc(); srcOn = link;
+    const table = link.closest("table"), key = link.dataset.srckey, row = link.dataset.srcrow;
+    const th = key && table.querySelector(`thead th[data-key="${CSS.escape(key)}"]`);
+    if (th) table.querySelectorAll(`tr > :nth-child(${th.cellIndex + 1})`).forEach((c) => c.classList.add("is-srccol"));
+    if (row) table.querySelector(`tr.wbr[data-rowid="${CSS.escape(row)}"]`)?.classList.add("is-srcrow");
+  };
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest && e.target.closest(".wbt td .srclink");
+    if (!link) return;
+    e.stopPropagation();  // not the row click (preview)
+    const td = link.closest("td"), th = td.closest("table").tHead.rows[0].cells[td.cellIndex];
+    const target = (th?.dataset.key || "").replace(/^edit:/, "");
+    if (link.dataset.typed && td.closest("tr.wbr")) {  // a value typed for this file: edit it again
+      const btn = cellButton();
+      if (btn.parentElement !== td) td.appendChild(btn);
+      window.dispatchEvent(new CustomEvent("wb-celledit", { detail: { btn } }));
+    } else {
+      window.dispatchEvent(new CustomEvent("wb-edit", { detail: { target, kind: "recommended" } }));
+    }
+  }, true);
   document.addEventListener("mouseover", (e) => {
-    const th = e.target.closest && e.target.closest(".wbt th[data-tip].is-slim");
-    const el = tip();
-    if (!th) { el.hidden = true; return; }
-    el.textContent = th.dataset.tip; el.hidden = false;
-    const r = th.getBoundingClientRect(), w = el.offsetWidth;
+    const link = e.target.closest && e.target.closest(".wbt .srclink");
+    const th = !link && e.target.closest && e.target.closest(".wbt th[data-tip].is-slim");
+    const el = tip(), anchor = link || th;
+    if (link) showSrc(link); else clearSrc();
+    if (!anchor) { el.hidden = true; return; }
+    el.textContent = link ? link.dataset.srctip : th.dataset.tip; el.hidden = false;
+    const r = anchor.getBoundingClientRect(), w = el.offsetWidth;
     el.style.left = `${Math.round(Math.max(8, Math.min(r.left, window.innerWidth - w - 8)))}px`;
     el.style.top = `${Math.round(r.top - el.offsetHeight - 4)}px`;
   });
@@ -327,7 +358,7 @@
         if (this.menu && this.menu.cell && this.menu.btn === btn && this.menu.td === btn.parentElement) { this.menu = null; return; }
         const r = btn.getBoundingClientRect(), td = btn.parentElement, tr = td.parentElement;
         const th = tr.closest("table").tHead.rows[0].cells[td.cellIndex];
-        const value = [...td.childNodes].filter((n) => n !== btn).map((n) => n.textContent).join("").trim();
+        const value = [...td.childNodes].filter((n) => n !== btn && !n.classList?.contains("srclink")).map((n) => n.textContent).join("").trim();
         this.menu = { cell: true, btn, td, key: th.dataset.key, label: th.dataset.label || th.dataset.key, target: th.dataset.target,
                       fid: tr.dataset.rowid, value: value === "—" ? "" : value, isRef: tr.classList.contains("wbr--userref"),
                       x: Math.max(8, Math.min(r.right - 304, window.innerWidth - 312)), y: r.bottom + 4 };

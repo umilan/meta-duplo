@@ -603,3 +603,21 @@
 .wbsheet .namer__preset .linkbtn:hover { background: none; }
 .wbsheet .namer__del { color: var(--conflict); }
 .wbsheet .namer__save { color: var(--accent); font-weight: 600; border-top: 1px solid var(--line); border-radius: 0; margin-top: var(--space-050); }
+
+/* source links in edit columns: [🔗A] = where the new value comes from (a rule, a column, a cell, typed);
+   hover: instant tooltip + highlight of that column / row; click: edit. The header counts the distinct sources. */
+.srclink { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-025); height: var(--control-h-xs);
+  min-width: var(--space-400); padding: 0 var(--space-050); border: 0; border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--edit-text) 16%, var(--edit-bg)); color: var(--edit-text);
+  font: inherit; font-size: var(--text-sm); line-height: var(--line-sm); font-weight: 600; cursor: pointer; }
+.srclink:hover, .srclink:focus-visible { background: color-mix(in srgb, var(--edit-text) 28%, var(--edit-bg)); }
+.srclink__icon { width: var(--space-200); height: var(--space-200); flex: none; }
+.wbt td > .srclink { position: absolute; right: var(--space-050); top: 50%; transform: translateY(-50%); }
+.wbt td.wbt__edit:has(> .srclink) { padding-right: var(--space-500); }
+.wbt td.wbt__edit:has(> .srclink):has(> .cellbtn) { padding-right: var(--space-800); }
+.wbt td.wbt__edit:has(> .srclink) > .cellbtn { right: var(--space-500); }
+.srclink--head { cursor: help; margin-left: auto; }
+/* the column / row a hovered link points to */
+.wbt .is-srccol { box-shadow: inset 2px 0 0 var(--edit-text), inset -2px 0 0 var(--edit-text); background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); }
+.wbt tr.is-srcrow > td { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 2px 0 var(--edit-text), inset 0 -2px 0 var(--edit-text); }
+.wbt tr.is-srcrow > td.is-srccol { box-shadow: inset 0 0 0 2px var(--edit-text); background-color: var(--edit-bg); }

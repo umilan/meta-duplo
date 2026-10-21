@@ -205,6 +205,12 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   filename column saves its pattern; nothing changes on disk until a plan is applied); *Edit all* opens the rule
   dialog; *Clear* drops the rule and the per-file values but keeps the column (all `= current`); *Remove* drops
   the column and its rule.
+  **Source links:** each edit cell ends with a purple badge `🔗A`, `🔗B`… naming where its value comes from: the
+  rule (recommended, a copied column, a shift), a cell it was copied from (*Apply this value to …*), a value typed
+  for that file, or *unchanged*. Letters follow the order the sources first show in the table. Hovering a badge
+  shows an instant tooltip with the source and outlines the column (and row) it points to; clicking opens the
+  rule dialog, or the per-file dialog for a typed value. The header shows `🔗(n)`, the number of different
+  sources in the column, with the legend in its tooltip.
   **Double-click** an edit cell to type a value for that one file (the *Edit this value…* dialog, prefilled without
   the `=` / `→` mark); in New filename it opens the naming-pattern dialog (one pattern for all files).
 - **Duplicate confidence:**

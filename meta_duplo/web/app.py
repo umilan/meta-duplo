@@ -390,6 +390,11 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             tree = {"label": label, "name_col": name_col, "width": wb.TREE_WIDTH}
         # a column nobody has a value in is never dropped, only collapsed to a slim one (double-click toggles)
         rows = [r for g in groups for r in g.rows]
+        letters: dict[str, dict[str, str]] = {}  # source links lettered A, B, C… in the order they show
+        for r in rows:
+            for t, src in r.get("src", {}).items():
+                seen = letters.setdefault(t, {})
+                src["letter"] = seen.setdefault(src["id"], chr(65 + len(seen)) if len(seen) < 26 else "*")
         cols, prev_cat = [], None
         for key, width in view["columns"]:
             f = wb.field_for(key)
@@ -405,6 +410,9 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                              "target": target, "edit": key.startswith("edit:"),
                              "groupable": {"path": "folder", "date": "day", "device": "device", "place": "place",
                                            "dup_count": "dups", "dup_conf": "dups"}.get(key, "")})
+                if key.startswith("edit:"):  # the distinct sources (rules) its values come from, A, B, C…
+                    links = {r["src"][target]["letter"]: r["src"][target] for r in rows if target in r.get("src", {})}
+                    cols[-1]["links"] = [links[k] for k in sorted(links)]
         return {"view": view, "groups": groups[offset:offset + WB_PAGE], "ngroups": len(groups), "nrows": nrows,
                 "offset": offset, "next_offset": offset + WB_PAGE, "cols": cols,
                 "col_labels": [[c["key"], c["label"], c["kind"]] for c in cols if c["kind"] != "special"],  # Sort by choices
@@ -617,7 +625,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                         ids = sorted(_ids(f.get("ids", "")) | {fid})
                     else:
                         ids = None
-                    view["edits"][t] = {"kind": "fixed", "value": wb.cell_value(r, key), "ids": ids,
+                    view["edits"][t] = {"kind": "fixed", "value": wb.cell_value(r, key), "ids": ids, "from": {"fid": fid, "key": key},
                                         "overrides": view["edits"].get(t, {}).get("overrides", {})}
                     add_edit_column(t, key)
         elif act == "edit_clear" and f.get("target") in wb.EDIT_LABELS:  # every row back to "= current value"
