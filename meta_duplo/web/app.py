@@ -13,7 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 from .. import geo, harmonize, match, plans
 from . import rename_grid, results, workbench as wb
-from ..__main__ import add_source
+from ..__main__ import add_source, remove_source
 from ..db import Library
 from ..metadata import device_name
 from ..scan import Runner, scan_all
@@ -95,7 +95,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     def home(request: Request):
-        return RedirectResponse("/sources")
+        return RedirectResponse("/workbench")  # the Workbench is the start screen; the steps stay in the nav
 
     @app.get("/sources", response_class=HTMLResponse)
     def sources(request: Request):
@@ -406,7 +406,10 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             srcs = con.execute(
                 "SELECT s.id, s.label, s.root, s.writable, s.role, (SELECT COUNT(*) FROM files f WHERE f.source_id = s.id "
                 "AND f.present = 1 AND f.removed = 0) AS n FROM sources s ORDER BY s.id").fetchall()
-        return render(request, "workbench.html", sources=srcs, nfiles=sum(r["n"] for r in srcs), **wb_ctx())
+        ctx = wb_ctx()
+        off = set(ctx["view"].get("sources_off") or [])
+        return render(request, "workbench.html", sources=srcs, sources_off=off,
+                      nfiles=sum(r["n"] for r in srcs if r["id"] not in off), **ctx)
 
     @app.get("/wb/table", response_class=HTMLResponse)
     def wb_table(request: Request):
@@ -430,6 +433,10 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             view["sort"] = [f.get("key", ""), f.get("dir", "asc")]
         elif act == "group":
             wb.set_group(view, f.get("group", "dups") if f.get("group") in wb.GROUPS else "dups")
+        elif act == "source_toggle" and f.get("id", "").isdigit():
+            off = set(view.get("sources_off") or [])
+            off ^= {int(f["id"])}
+            view["sources_off"] = sorted(off)
         elif act == "q":
             view["q"] = f.get("q", "")
         elif act == "colors":
@@ -482,6 +489,46 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             view = {**json.loads(json.dumps(wb.DEFAULT_VIEW)), "colors": view.get("colors", True)}  # colours: appearance
         wb.save_view(lib, view)
         return Response(status_code=204, headers={"HX-Trigger": "wb-reload"} if reload else {})
+
+    # Data input: manage folders without leaving the Workbench. Each change rescans and reloads the page.
+    def _rescan() -> None:
+        def fn(job):
+            scan_all(lib, job)
+            harmonize.build_proposals(lib, job)
+        start("scan", fn)
+
+    def _toast(msg: str) -> Response:
+        return Response(status_code=204, headers={"HX-Trigger": json.dumps({"toast": msg})})
+
+    @app.post("/wb/sources")
+    def wb_source_add(path: str = Form(""), writable: str | None = Form(None)):
+        p = Path(path.strip()).expanduser()
+        if not path.strip() or not p.is_dir():
+            return _toast(f"Folder not found: {p}")
+        add_source(lib, str(p), writable=bool(writable))
+        _rescan()
+        return Response(headers={"HX-Refresh": "true"})
+
+    @app.post("/wb/sources/demo")
+    def wb_source_demo():
+        from ..demo import make_demo
+
+        root = Path.home() / "meta-duplo-demo"
+        if not root.exists():  # never recreate an existing folder: plans may have changed it
+            make_demo(root)
+        add_source(lib, str(root), writable=True)
+        _rescan()
+        return Response(headers={"HX-Refresh": "true"})
+
+    @app.post("/wb/sources/{sid}/remove")
+    def wb_source_remove(sid: int):
+        if not remove_source(lib, sid):
+            return _toast("This folder is used by a plan. Keep it so the plan can still be undone.")
+        view = wb.load_view(lib)
+        view["sources_off"] = [s for s in view.get("sources_off", []) if s != sid]
+        wb.save_view(lib, view)
+        _rescan()
+        return Response(headers={"HX-Refresh": "true"})
 
     @app.get("/wb/preview/{fid}", response_class=HTMLResponse)
     def wb_preview(request: Request, fid: int):

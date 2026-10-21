@@ -154,6 +154,11 @@
       openFilter(d, op = "contains") { this.f = { key: d.key, label: d.label, op, value: "" }; this.dialog = "filter"; },
       openEdit(d) { this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit"; },
       close() { this.dialog = null; },
+      selText() {
+        const st = Alpine.store("wb"), names = { none: "None", all: "All", custom: "Custom", dup_newer: "Duplicates – newer",
+                                                 dup_older: "Duplicates – older", dup_lessmeta: "Duplicates – less metadata" };
+        return st.preset === "none" ? "None" : `${names[st.preset] || "Custom"} (${st.count})`;
+      },
       sortText() {
         const [key, dir] = Alpine.store("wb").sort, col = Alpine.store("wb").colLabels.find((c) => c[0] === key);
         return col ? `${col[1]} ${dir === "asc" ? "↑" : "↓"}` : "Default";

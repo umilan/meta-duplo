@@ -10,28 +10,45 @@
   <button class="btn btn--icon" type="button" title="Add a filter" aria-label="Add a filter"
           @click="openFilter({ key: '{{ cols[1].key if cols|length > 1 else 'path' }}', label: '' })">+</button>
   <span class="results-toolbar__spacer"></span>
-  <label class="selpick">Selection
-    <select aria-label="Selection" x-effect="$el.value = $store.wb.preset" @change="$store.wb.applyPreset($event.target.value)"
-            :class="$store.wb.count && 'is-active'">
-      <option value="none">None</option>
-      <option value="all" x-text="'All (' + $store.wb.total + ')'">All</option>
-      <option value="custom" :hidden="$store.wb.preset !== 'custom'" x-text="'Custom (' + $store.wb.count + ')'">Custom</option>
-      <option value="dup_newer" x-text="'Duplicates – newer' + ($store.wb.preset === 'dup_newer' ? ' (' + $store.wb.count + ')' : '')"
-              title="In each duplicate set keep the copy with the oldest creation date; tick the newer ones">Duplicates – newer</option>
-      <option value="dup_older" x-text="'Duplicates – older' + ($store.wb.preset === 'dup_older' ? ' (' + $store.wb.count + ')' : '')"
-              title="In each duplicate set keep the copy with the newest creation date; tick the older ones">Duplicates – older</option>
-      <option value="dup_lessmeta" x-text="'Duplicates – less metadata' + ($store.wb.preset === 'dup_lessmeta' ? ' (' + $store.wb.count + ')' : '')"
-              title="In each duplicate set keep the copy with the most metadata; tick the others">Duplicates – less metadata</option>
-    </select>
-  </label>
-  <label>Action
-    <select aria-label="Action on the selected rows" @change="runAction($event.target.value); $event.target.value = ''">
-      <option value="">Choose…</option>
-      <option value="commit" :disabled="!$store.wb.count" title="Store the purple edit values of the selected rows as decisions">Save edits</option>
-      <option value="remove" :disabled="!$store.wb.count">Remove selected copies…</option>
-      <option value="rename" :disabled="!$store.wb.count">Review rename plan…</option>
-    </select>
-  </label>
+  <div class="pick pick--right" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+    <span class="wbbar__label" id="sel-label">Selection</span>
+    <button type="button" class="selectbtn" :class="$store.wb.count && 'is-active'" aria-labelledby="sel-label" aria-haspopup="menu"
+            :aria-expanded="open.toString()" @click="open = !open" x-text="selText()">None</button>
+    <div class="wbsheet pick__sheet pick__sheet--wide" role="menu" x-show="open" x-cloak x-transition.opacity>
+      {% for key, label, hint in [
+          ('none', 'None', 'nothing is selected'),
+          ('all', 'All', 'every row of the view, also groups not loaded yet'),
+          ('custom', 'Custom', 'your own ticks after a preset'),
+          ('dup_newer', 'Duplicates – newer', 'keep the oldest creation date in each set; select the newer copies'),
+          ('dup_older', 'Duplicates – older', 'keep the newest creation date in each set; select the older copies'),
+          ('dup_lessmeta', 'Duplicates – less metadata', 'keep the copy with the most metadata; select the others')] %}
+      <button type="button" role="menuitemradio" :aria-checked="($store.wb.preset === '{{ key }}').toString()"
+              {% if key == 'custom' %}:disabled="$store.wb.preset !== 'custom'"{% endif %}
+              @click="open = false; $store.wb.applyPreset('{{ key }}')">
+        <span>{{ label }}{% if key in ('all', 'custom') %} <span class="muted" x-text="'(' + ({{ '$store.wb.total' if key == 'all' else '$store.wb.count' }}) + ')'"></span>{% endif %}</span>
+        <span class="pick__hint">{{ hint }}</span></button>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="pick pick--right" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+    <span class="wbbar__label" id="act-label">Actions</span>
+    <button type="button" class="selectbtn" aria-labelledby="act-label" aria-haspopup="menu" :aria-expanded="open.toString()"
+            @click="open = !open">Choose…</button>
+    <div class="wbsheet pick__sheet" role="menu" x-show="open" x-cloak x-transition.opacity>
+      <div class="wbsheet__section" x-text="$store.wb.count ? $store.wb.count + ' selected' : 'Select rows first'"></div>
+      <button type="button" role="menuitem" :disabled="!$store.wb.count" @click="open = false; runAction('remove')">Delete…
+        <span class="pick__hint">move the selected copies to the holding folder (a plan you review first)</span></button>
+      <button type="button" role="menuitem" :disabled="!$store.wb.count" @click="open = false; runAction('rename')">Rename…
+        <span class="pick__hint">rename by the file name rule (a plan you review first)</span></button>
+      <div class="wbsheet__section">Change</div>
+      {% for t, label in [('date', 'Date'), ('place', 'Place'), ('device', 'Device')] %}
+      <button type="button" role="menuitem" @click="open = false; openEdit({ target: '{{ t }}', kind: 'recommended' })">{{ label }}…
+        <span class="pick__hint">a rule fills a purple “New {{ label|lower }}” column</span></button>
+      {% endfor %}
+      <button type="button" role="menuitem" :disabled="!$store.wb.count" @click="open = false; runAction('commit')">Save edits
+        <span class="pick__hint">store the purple values of the selected rows as decisions</span></button>
+    </div>
+  </div>
 </div>
 
 {% if ngroups %}

@@ -69,8 +69,8 @@ CORE = [
 CORE_BY_KEY = {f.key: f for f in CORE}
 EDIT_LABELS = {"filename": "New filename", "date": "New date", "place": "New place", "device": "New device"}
 EDIT_BASE = {"filename": "filename", "date": "date", "place": "place", "device": "device"}
-GROUPS = {"dups": "Duplicates", "capture": "Photo (all copies)", "folder": "Folder", "day": "Day",
-          "device": "Device", "place": "Place", "none": "No grouping"}
+GROUPS = {"none": "None", "dups": "Duplicates", "capture": "Photo (all copies)", "folder": "Path / Folders",
+          "day": "Day", "device": "Device", "place": "Place", "author": "Author"}
 OPS = {"contains": "contains", "equals": "is", "not_equals": "is not", "empty": "is empty",
        "not_empty": "is not empty", "gte": "≥", "lte": "≤", "diff": "differs in group", "same": "same in group"}
 NO_VALUE_OPS = {"empty", "not_empty", "diff", "same"}
@@ -91,6 +91,7 @@ DEFAULT_VIEW = {
     "edits": {},              # purple edit columns appear only after "Edit…" in a header's Actions sheet
     "filters": [DUP_FILTER],
     "group": "dups",
+    "sources_off": [],        # source ids left out of the view (Data input checkboxes)
     "group_width": 232,       # width of the grouping (tree) column
     "sort": ["", "asc"],
     "q": "",
@@ -99,7 +100,7 @@ DEFAULT_VIEW = {
 # Grouping column (right after the checkbox): its label, and the regular column it replaces (shown only once).
 GROUP_COLUMN = {
     "dups": ("Duplicate set", ""), "capture": ("Photo", ""), "folder": ("Folder", "path"),
-    "day": ("Day", ""), "device": ("Device", "device"), "place": ("Place", "place"),
+    "day": ("Day", ""), "device": ("Device", "device"), "place": ("Place", "place"), "author": ("Author", "author"),
 }
 
 
@@ -228,7 +229,7 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
     pattern = lib.setting("filename_pattern")
     with lib.connect() as con:
         files = con.execute(
-            "SELECT f.id, f.name, f.original_name, f.rel_path, f.ext, f.kind, f.size, f.mtime, s.label AS source, "
+            "SELECT f.id, f.name, f.original_name, f.rel_path, f.ext, f.kind, f.size, f.mtime, f.source_id, s.label AS source, "
             "s.writable, s.role AS source_role, c.capture_id, m.dto, m.make, m.model, m.software, m.gps_lat, m.gps_lon, "
             "m.width, m.height, m.duration, m.modify_date, m.raw_json "
             "FROM files f JOIN sources s ON s.id = f.source_id LEFT JOIN captures c ON c.file_id = f.id "
@@ -281,7 +282,7 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
         for k, val in tags.items():
             v[f"exif:{k}"] = val if isinstance(val, (int, float)) else str(val)
         rows.append({
-            "id": f["id"], "capture": f["capture_id"], "cluster": cluster.get(f["id"]), "dup": di,
+            "id": f["id"], "source_id": f["source_id"], "capture": f["capture_id"], "cluster": cluster.get(f["id"]), "dup": di,
             "keeper": bool(di and di["keeper"]), "verdict": di["verdict"] if di else None,
             "original_name": f["original_name"] or f["name"], "ext_raw": f["ext"] or "",
             "writable": bool(f["writable"]) and f["source_role"] != "reference",
@@ -356,6 +357,7 @@ def _group_key(r: dict, by: str):
         "day": v["date"][:10] or "No date",
         "device": v["device"] or "Unknown device",
         "place": v["place"] or "No place",
+        "author": v["author"] or "No author",
         "none": "all",
     }[by]
 
@@ -397,6 +399,8 @@ class Group:
 def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
     """Grouped, compared, filtered and sorted rows for the current view."""
     rows, exif_keys = build_rows(lib)
+    off = set(view.get("sources_off") or [])
+    rows = [r for r in rows if r["source_id"] not in off]
     apply_edits(rows, view["edits"])
     by = view["group"] if view["group"] in GROUPS else "dups"
     q = (view.get("q") or "").strip().lower()

@@ -117,23 +117,32 @@ All files 721 · Needs a decision 1 · Name changes 719 · Problems 0 · Exclude
 
 One table for every task; the four step screens stay as the guided path. No description text under the title.
 Header (three rows, as in the user's mockup):
-- **Workbench** title and **Data input**: a field showing how many folders are scanned and *Found N files*; it opens
-  a sheet listing each folder (name, path, file count, writable / read-only / reference) and *Add or manage folders…*.
-- **Grouping by**, **Sort by** (a dropdown sheet: *Column* — Default or any visible data column, numbers start
-  high-first — and *Order* — Ascending / Descending; the button reads e.g. *Filename ↑*; header clicks and the
-  picker stay in sync) and a **Search** field with an icon and a clear ×.
+- The Workbench is the **start screen** (`/` opens it; first item in the nav). The four steps stay in the nav.
+- Every picker in the header is a **dropdown sheet** (a select-like button and a menu sheet), with ( ) / (•) radio
+  marks for choices and a short grey hint under items that need one.
+- **Workbench** title and **Data input**: a field with *N folders* (or *N of M folders*) and *Found N files*. Its
+  sheet, as wide as the field, never leaves the page:
+  - *Add new…* opens an inline path field, a *Writable* checkbox and *Add*;
+  - one row per folder: a checkbox (include it in the view; unticked folders stay in the library), the path,
+    file count and access, and *Remove* (forgets the folder and what the library knows about its files; nothing on
+    disk is touched; refused while a plan refers to its files, so undo keeps working);
+  - *Use demo folder* adds `~/meta-duplo-demo` (created only if it does not exist yet).
+  Adding or removing starts a scan; the job bar shows progress and the page reloads when it is done.
+- **Grouping by**: None, Duplicates, Photo (all copies), Path / Folders, Day, Device, Place, Author.
 - **Duplicates grouping** starts with the chip **Dup.: ≥ 2** (switching to it adds the chip, switching away removes
   it if it was added that way). Remove the chip and files without any copy come back as one **No duplicates (n)**
   group, always last and collapsed; it shows no differences or match values.
-- **Applied filters** as grey chips (*Type: JPG ×*) and a **+** button; on the right **Selection** (presets) and
-  **Action** (*Save edits*, *Remove selected copies…*, *Review rename plan…*; disabled with nothing selected).
+- **Applied filters** as grey chips (*Type: JPG ×*) and a **+** button; on the right **Selection** (None, All (n),
+  Custom (n), Duplicates – newer / older / less metadata, each with its hint) and **Actions** (*Delete…* = removal
+  plan, *Rename…* = rename plan, *Change*: *Date… / Place… / Device…* open the edit rule dialog for a purple
+  column, *Save edits*; the ones that need a selection are disabled without one).
 The page has no padding: the table runs from the left edge of the screen to the right (or to the preview panel);
 only the title, toolbar, filters and count above it are inset slightly.
 
 ```
-[☰] Workbench   Data input [3 folders ·························· Found 32 235 files ›]                [⚙]
+[☰] Workbench   Data input [3 folders ·························· Found 32 235 files]                [⚙]
 Grouping by [Duplicates ▾]  Sort by [Dup. confidence ↓ ▾]  [🔍 Search…                                        ×]
-Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selection [None ▾]  Action [Choose… ▾]
+Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selection [None ▾]  Actions [Choose… ▾]
 ┌─┬─────┬─────────────────────────⋯┬────────────────────⋯┬──New filename───────────⋯┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
 │☐│[▣]  │ Diff                      │ Diff                 │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ –              │ Same       │ → …     │
 │☐│└ ▫  │ disk / Camera / DCIM /    │ IMG_0003.JPG (Keep)  │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │

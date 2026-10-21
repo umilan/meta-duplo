@@ -283,18 +283,35 @@
 .datain__field { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); width: 100%; height: var(--control-h);
   padding: 0 var(--space-100); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); cursor: pointer; text-align: left; }
 .datain__field:hover, .datain__field[aria-expanded="true"] { border-color: var(--accent); }
-.datain__sheet { position: absolute; left: 0; right: 0; top: calc(100% + var(--space-050)); z-index: 40; }
-.datain__src { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--space-200); padding: var(--space-050) var(--space-100); }
-.datain__name { font-weight: 600; }
-.datain__root { grid-column: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); }
-.datain__src > .small:last-child { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--muted); }
-.datain__manage { border-top: 1px solid var(--line); margin-top: var(--space-050); border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
-.sortpick { position: relative; display: inline-flex; align-items: center; gap: var(--space-100); }
+.wbsheet.datain__sheet { width: auto; right: 0; }  /* as wide as the field */
+.pick.datain { display: block; }
+.datain__src { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 0 var(--space-200); min-height: var(--control-h); padding: 0 var(--space-100); border-radius: var(--radius-sm); }
+.datain__src:hover { background: var(--surface-2); }
+.datain__src label { min-width: 0; }
+.datain__path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: var(--text-sm); }
+.datain__remove { color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.datain__remove:hover { color: var(--conflict); }
+.datain__add { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); padding: var(--space-100); border-bottom: 1px solid var(--line); }
+.datain__add input[type=text] { flex: 1 1 100%; }
+.datain__addbtn { font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.wbsheet .datain__demo { color: var(--muted); border-top: 1px solid var(--line); border-radius: 0 0 var(--radius-sm) var(--radius-sm); margin-top: var(--space-050); }
+/* dropdown sheets (Data input, Grouping by, Sort by, Selection, Actions): a select-like button + a menu sheet */
+.pick { position: relative; display: inline-flex; align-items: center; gap: var(--space-100); }
 .selectbtn { display: inline-flex; align-items: center; min-width: 176px; text-align: left; white-space: nowrap; }
-.sortpick__sheet { position: absolute; left: 0; top: calc(100% + var(--space-050)); z-index: 40; min-width: 208px; max-height: 64vh; overflow-y: auto; }
-.wbsheet [role=menuitemradio] { padding-left: var(--space-300); position: relative; }
+.selectbtn.is-active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.pick__sheet { position: absolute; left: 0; top: calc(100% + var(--space-050)); z-index: 40; min-width: 208px; max-height: 64vh; overflow-y: auto; }
+.pick--right .pick__sheet { left: auto; right: 0; }
+.pick__sheet--wide { width: 400px; }
+.pick__sheet button { white-space: normal; }
+.pick__sheet button:has(.pick__hint) { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; padding-top: var(--space-050); padding-bottom: var(--space-050); }
+.pick__hint { font-size: var(--text-sm); line-height: var(--line-sm); color: var(--muted); }
+/* radio indicator, as in the sketches: ( ) and (•) */
+.wbsheet [role=menuitemradio] { position: relative; padding-left: var(--space-400); }
+.wbsheet [role=menuitemradio]::before { content: ""; position: absolute; left: var(--space-100); top: calc(50% - var(--space-100)); width: var(--space-200); height: var(--space-200);
+  border: 1px solid var(--line-strong); border-radius: 50%; background: var(--surface); box-sizing: border-box; }
+.wbsheet [role=menuitemradio]:has(.pick__hint)::before { top: calc(var(--space-050) + var(--space-050)); }
+.wbsheet [role=menuitemradio][aria-checked="true"]::before { border: var(--space-050) solid var(--accent); }
 .wbsheet [role=menuitemradio][aria-checked="true"] { font-weight: 600; }
-.wbsheet [role=menuitemradio][aria-checked="true"]::before { content: "✓"; position: absolute; left: var(--space-100); color: var(--accent); }
 .searchfield { position: relative; flex: 1; min-width: 208px; display: flex; align-items: center; }
 .searchfield svg { position: absolute; left: var(--space-100); width: var(--icon); height: var(--icon); color: var(--muted); pointer-events: none; }
 .searchfield input { width: 100%; padding-left: var(--space-400); padding-right: var(--space-400); }
@@ -307,7 +324,6 @@
 .fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h); padding: 0 var(--space-050) 0 var(--space-100); border: 0; background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 600; color: var(--muted); }
 .fchip button { display: inline-grid; place-items: center; width: var(--control-h-sm); height: var(--control-h-sm); border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; color: var(--muted); font-size: var(--text-md); line-height: 1; padding: 0; }
 .fchip button:hover { background: var(--line); color: var(--text); }
-.selpick select.is-active { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .wb-scroll { overflow: auto; max-height: calc(100vh - 304px); min-height: 256px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .wbt { table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: var(--text-sm); line-height: var(--line-sm); }
 .wbt__c-check { width: 40px; } .wbt__c-add { width: 40px; }
@@ -413,7 +429,7 @@
 /* Workbench page: no page padding; the table runs edge to edge, only the controls above it are inset. */
 .main--flush { padding: 0; max-width: none; position: relative; }
 .main--flush .topbar { position: absolute; top: var(--space-200); right: var(--space-200); margin: 0; z-index: 30; }
-.main--flush #job { padding: var(--space-100) var(--space-200) 0; }
+.main--flush #job:has(.job) { padding: var(--space-100) var(--space-200) 0; }  /* no space when idle: keeps the header row level with ⚙ */
 .main--flush .wb { gap: 0; }
 .wb-pad { padding-inline: var(--space-200); }
 .main--flush .wb-scroll { border-inline: 0; border-radius: 0; max-height: calc(100vh - 176px); }

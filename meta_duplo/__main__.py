@@ -6,7 +6,7 @@ import os
 import secrets
 from pathlib import Path
 
-from .db import Library, now
+from .db import Library, now, tx
 
 DEFAULT_LIBRARY = os.environ.get("META_DUPLO_LIBRARY", str(Path.home() / "MetaDuploLibraries" / "default"))
 
@@ -20,6 +20,21 @@ def add_source(lib: Library, root: str, writable: bool = False, role: str = "sca
             (Path(root).name, root, int(writable), role, now()),
         )
         return con.execute("SELECT id FROM sources WHERE root = ?", (root,)).fetchone()["id"]
+
+
+def remove_source(lib: Library, sid: int) -> bool:
+    """Forget a source and everything the library knows about its files. Nothing on disk is touched.
+    Refused (False) while any plan refers to its files, so every applied plan can still be undone."""
+    with lib.connect() as con, tx(con):
+        ids = [r["id"] for r in con.execute("SELECT id FROM files WHERE source_id = ?", (sid,))]
+        marks = ",".join("?" * len(ids)) or "NULL"
+        if con.execute(f"SELECT 1 FROM actions WHERE file_id IN ({marks}) LIMIT 1", ids).fetchone():
+            return False
+        for table in ("selection", "rename_exclude", "captures", "group_members", "meta", "hashes", "fingerprints"):
+            con.execute(f"DELETE FROM {table} WHERE file_id IN ({marks})", ids)
+        con.execute("DELETE FROM files WHERE source_id = ?", (sid,))
+        con.execute("DELETE FROM sources WHERE id = ?", (sid,))
+    return True
 
 
 def main(argv: list[str] | None = None) -> None:
