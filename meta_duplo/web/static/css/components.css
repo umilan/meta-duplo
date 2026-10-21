@@ -184,9 +184,24 @@
 .swipe-range { width: 100%; margin-top: var(--space-100); }
 
 /* ───────── job, toast, banners, misc ───────── */
-.job { display: flex; align-items: center; gap: var(--space-200); min-height: var(--control-h); padding: var(--space-050) var(--space-200); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); margin-bottom: var(--gap); }
-.job progress { flex: 1; min-width: 0; }  /* the bar takes all the room in the stripe */
-.job--failed { border-color: var(--conflict); }
+/* Job stripe: fixed to the top of the window, edge to edge, inverted colours (dark blue in light theme, light in dark);
+   the body makes room for it (--job-h) so nothing hides under it. */
+body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top: var(--job-h); }
+.job { position: fixed; top: 0; left: 0; right: 0; z-index: 60; display: flex; align-items: center; gap: var(--space-200);
+  height: var(--space-500); padding: 0 var(--space-200); background: var(--job-bg); color: var(--job-text); box-shadow: var(--shadow-pop); }
+.job__stage, .job__count { color: var(--job-muted); font-size: var(--text-sm); }
+.job__count { font-variant-numeric: tabular-nums; }
+.job progress { flex: 1; min-width: 0; height: var(--space-100); appearance: none; -webkit-appearance: none; border: 0;
+  border-radius: var(--radius-full); background: var(--job-track); overflow: hidden; }  /* the bar takes all the room */
+.job progress::-webkit-progress-bar { background: var(--job-track); border-radius: var(--radius-full); }
+.job progress::-webkit-progress-value { background: var(--job-bar); border-radius: var(--radius-full); }
+.job progress::-moz-progress-bar { background: var(--job-bar); border-radius: var(--radius-full); }
+.job__cancel { height: var(--control-h-sm); padding: 0 var(--space-100); border: 1px solid var(--job-muted); border-radius: var(--radius-sm);
+  background: none; color: var(--job-text); font: inherit; font-size: var(--text-sm); cursor: pointer; }
+.job__cancel:hover { background: var(--job-track); }
+.job__cancel.is-busy { border-color: transparent; color: var(--job-muted); cursor: default; }
+.job--failed { position: static; height: auto; min-height: var(--control-h); padding: var(--space-050) var(--space-200);
+  margin-bottom: var(--gap); border: 1px solid var(--conflict); border-radius: var(--radius); background: var(--surface); color: var(--text); box-shadow: none; }
 .error-banner { color: var(--conflict); }
 .toast { position: fixed; right: var(--space-300); bottom: var(--space-300); z-index: 60; background: var(--text); color: var(--bg); padding: var(--space-100) var(--space-200); border-radius: var(--radius); box-shadow: var(--shadow-pop); }
 .empty { padding: var(--space-400); text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: var(--radius); }
@@ -523,11 +538,11 @@
 /* Workbench page: no page padding; the table runs edge to edge, only the controls above it are inset. */
 .main--flush { padding: 0; max-width: none; position: relative; }
 .wbbar .topbar { flex: none; margin: 0; }  /* ⚙ is the last item of the Workbench header row */
-.main--flush #job:has(.job) { padding: var(--space-100) var(--space-200) 0; }  /* no space when idle: keeps the header row level with ⚙ */
+.main--flush #job:has(.job--failed) { padding: var(--space-100) var(--space-200) 0; }  /* no space when idle: keeps the header row level with ⚙ */
 .main--flush .wb { gap: 0; }
 .wb-pad { padding-inline: var(--space-200); }
 .main--flush .wb-scroll { border-inline: 0; border-radius: 0; max-height: calc(100vh - 176px); }
-.main--flush .wb-panel { top: 0; border-radius: 0; border-top: 0; border-right: 0; max-height: 100vh; padding-top: 0; }
+.main--flush .wb-panel { top: var(--job-h, 0px); border-radius: 0; border-top: 0; border-right: 0; max-height: calc(100vh - var(--job-h, 0px)); padding-top: 0; }
 /* with the preview open, ⚙ stays in the header row of the table side, left of the panel */
 .pv-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: var(--space-100);
   margin: 0 calc(-1 * var(--space-200)) var(--space-100); padding: var(--space-200) var(--space-200) var(--space-100); background: var(--surface); }

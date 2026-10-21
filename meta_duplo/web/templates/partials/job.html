@@ -2,9 +2,12 @@
 {% if job.status == 'running' %}
 <div class="job" hx-get="/job?watch=1" hx-trigger="every 1s" hx-swap="outerHTML" role="status">
   <strong>{{ job.name|capitalize }}</strong>
-  <span class="muted">{{ job.stage }}</span>
+  <span class="job__stage">{{ job.stage }}</span>
   <progress {% if job.total %}value="{{ job.done }}" max="{{ job.total }}"{% endif %}></progress>
-  <span class="small muted">{% if job.total %}{{ job.done }} / {{ job.total }}{% endif %}</span>
+  <span class="job__count">{% if job.total %}{{ job.done }} / {{ job.total }}{% endif %}</span>
+  {% if cancelling %}<span class="job__cancel is-busy">Cancelling…</span>
+  {% else %}<button type="button" class="job__cancel" hx-post="/job/cancel" hx-target="closest .job" hx-swap="outerHTML"
+          title="Stop after the current file; what is done is kept and the next scan continues from there">Cancel</button>{% endif %}
 </div>
 {% elif job.status == 'failed' %}
 <div class="job job--failed" role="alert"><strong>{{ job.name|capitalize }} failed.</strong> <span class="small mono">{{ (job.message or '')[:300] }}</span></div>

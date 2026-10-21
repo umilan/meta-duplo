@@ -144,9 +144,14 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
     @app.get("/job", response_class=HTMLResponse)
     def job(request: Request, watch: int = 0):
         j = last_job()
-        if watch and j and j["status"] == "done":
-            return Response(headers={"HX-Refresh": "true"})  # reload the page to show the new results
-        return templates.TemplateResponse(request, "partials/job.html", {"job": j})
+        if watch and j and j["status"] in ("done", "cancelled"):
+            return Response(headers={"HX-Refresh": "true"})  # reload the page to show the new (or partial) results
+        return templates.TemplateResponse(request, "partials/job.html", {"job": j, "cancelling": runner._cancel.is_set()})
+
+    @app.post("/job/cancel", response_class=HTMLResponse)
+    def job_cancel(request: Request):
+        runner.cancel()
+        return templates.TemplateResponse(request, "partials/job.html", {"job": last_job(), "cancelling": True})
 
     # ───────────────────────── steps 1 and 2: duplicate groups ─────────────────────────
 

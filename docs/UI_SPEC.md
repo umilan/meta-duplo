@@ -119,8 +119,13 @@ On screen it is called **Filomena** (title, nav item, page title, settings secti
 and docs keep the name Workbench.
 
 One table for every task; the four step screens stay as the guided path. No description text under the title.
+**Job stripe** (every page, while a scan or other job runs): fixed to the top of the window, edge to edge, 40 px,
+in inverted colours (dark blue with light text in the light theme, light blue with dark text in the dark theme):
+job name, stage, a bar using all the free width, `done / total`, and **Cancel**. Cancel stops the job at its next
+progress step (*Cancelling…* meanwhile); what is done is kept (stages are idempotent) and the page reloads with the
+partial results; the job is recorded as `cancelled`. The page gets 40 px of top padding while the stripe shows.
 Header: two rows. Row 1 holds the title, Data input, Grouping by, Sort by, Search and ⚙ (⚙ is part of the row, so a
-job progress stripe above it pushes the whole row down; the stripe's bar uses all the free width); row 2 the filters
+job progress stripe pushes the whole row down); row 2 the filters
 with Selection and Actions. When row 1 gets tight (under 1240 px) Search becomes a 32 px magnifier button that opens
 the field in place (it stays open while it has text); the Data input field stays on one line (folder count truncates with …, *Found N files* hides below 208 px); under 1040 px the labels hide visually (still read by screen
 readers) and the pickers narrow to 128 px.

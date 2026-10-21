@@ -56,3 +56,24 @@ def test_selecting_every_copy_is_blocked(lib):
     pid = plans.build_cleanup_plan(lib, [g["id"]], remove_file_ids={m["id"] for m in g["members"]})
     with lib.connect() as con:
         assert con.execute("SELECT COUNT(*) FROM actions WHERE plan_id = ?", (pid,)).fetchone()[0] == 0
+
+
+def test_cancel_stops_a_running_job(tmp_path):
+    import threading
+
+    lib = Library(tmp_path / "lib")
+    runner, started = Runner(lib), threading.Event()
+
+    def slow(job):
+        for i in range(10_000):
+            job.update("work", i, 10_000)
+            started.set()
+            threading.Event().wait(0.001)
+
+    runner.start("scan", slow)
+    assert started.wait(5) and runner.cancel()
+    runner._thread.join(5)
+    with lib.connect() as con:
+        row = con.execute("SELECT status, done FROM jobs ORDER BY id DESC LIMIT 1").fetchone()
+    assert row["status"] == "cancelled" and row["done"] < 9_999
+    assert not runner.cancel()  # nothing running any more

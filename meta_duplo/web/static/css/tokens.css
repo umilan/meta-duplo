@@ -51,6 +51,7 @@
   --sel: #ececee; --sel-active: #c9dbfa;                                           /* ticked / previewed row */
   --filter-c: #e07a10; --sort-c: #0a9fbd;                                          /* filtered / sorted column */
   --backdrop: rgb(0 0 0 / 32%);
+  --job-bg: #14233f; --job-text: #f2f2f2; --job-muted: #a9b6cf; --job-bar: #6a9cf0; --job-track: rgb(255 255 255 / 16%);  /* progress stripe: inverted */
 }
 /* Compact view (settings sheet): one step down the same scale. */
 :root[data-density="compact"] {
@@ -69,6 +70,7 @@
     --edit-bg: #33213f; --edit-text: #d59cf5; --same: #4cc27e; --differ: #ff6b6b;
     --tint: rgb(140 170 255 / 8%); --tint-cell: rgb(140 170 255 / 16%); --zebra: #262629; --group-bg: #2c2a20;
     --sel: #2c2c30; --sel-active: #27406b; --filter-c: #f0a050; --sort-c: #3cc8e0; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
+    --job-bg: #dbe6fb; --job-text: #1d1d1f; --job-muted: #4a5670; --job-bar: #2f6fde; --job-track: rgb(0 0 0 / 12%);
   }
 }
 :root[data-theme="dark"] {
@@ -79,6 +81,7 @@
     --edit-bg: #33213f; --edit-text: #d59cf5; --same: #4cc27e; --differ: #ff6b6b;
     --tint: rgb(140 170 255 / 8%); --tint-cell: rgb(140 170 255 / 16%); --zebra: #262629; --group-bg: #2c2a20;
     --sel: #2c2c30; --sel-active: #27406b; --filter-c: #f0a050; --sort-c: #3cc8e0; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
+    --job-bg: #dbe6fb; --job-text: #1d1d1f; --job-muted: #4a5670; --job-bar: #2f6fde; --job-track: rgb(0 0 0 / 12%);
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }

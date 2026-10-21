@@ -28,11 +28,20 @@ PARTIAL_BYTES = 1024 * 1024  # first + last 1 MB
 
 # ───────────────────────── job runner ─────────────────────────
 
+class Cancelled(BaseException):
+    """Raised inside a job when the user cancels it; a BaseException so per-file `except Exception` never swallows it."""
+
+
 class Job:
-    def __init__(self, lib: Library, job_id: int):
+    def __init__(self, lib: Library, job_id: int, cancel: threading.Event | None = None):
         self.lib, self.id = lib, job_id
+        self.cancel = cancel or threading.Event()
 
     def update(self, stage: str, done: int = 0, total: int = 0, message: str = "") -> None:
+        """Report progress; also the point where a cancel takes effect (stages are idempotent, so stopping
+        between two updates loses nothing that a later scan won't redo)."""
+        if self.cancel.is_set():
+            raise Cancelled()
         with self.lib.connect() as con:
             con.execute(
                 "UPDATE jobs SET stage = ?, done = ?, total = ?, message = ? WHERE id = ?",
@@ -47,9 +56,17 @@ class Runner:
         self.lib = lib
         self._thread: threading.Thread | None = None
         self._lock = threading.Lock()
+        self._cancel = threading.Event()
 
     def busy(self) -> bool:
         return self._thread is not None and self._thread.is_alive()
+
+    def cancel(self) -> bool:
+        """Ask the running job to stop at its next progress update."""
+        if not self.busy():
+            return False
+        self._cancel.set()
+        return True
 
     def start(self, name: str, fn: Callable[[Job], None]) -> int | None:
         with self._lock:
@@ -60,12 +77,15 @@ class Runner:
                     "INSERT INTO jobs(name, stage, status, started_at) VALUES (?, 'starting', 'running', ?)",
                     (name, now()),
                 ).lastrowid
-            job = Job(self.lib, job_id)
+            self._cancel = threading.Event()
+            job = Job(self.lib, job_id, self._cancel)
 
             def run() -> None:
                 status, msg = "done", ""
                 try:
                     fn(job)
+                except Cancelled:
+                    status, msg = "cancelled", "Cancelled"
                 except Exception as exc:  # recorded for the UI; per-file errors never get here
                     status, msg = "failed", f"{exc}\n{traceback.format_exc(limit=3)}"
                 with self.lib.connect() as con:
