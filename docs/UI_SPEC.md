@@ -176,7 +176,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Columns:** the catalog has the core fields first (Dates, Location, Device, Author, Duplicates, File) and
   then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), sorted into the same
   categories by what they describe (date/time tags under Dates, GPS under Location, make/model/lens under Device,
-  artist/copyright under Author, exposure/ISO/focal length under Capture settings, size/orientation under File, the rest under Other). *+* opens the searchable picker: one plain checkbox per field, grouped by category; tick to show, untick to hide (applies at once, the picker stays open), with a count of shown columns. Categories are listed File, Duplicates, Dates, Location, Device, Author, Capture settings, Other, and the table follows that order: a newly shown column lands in its place (an edit column right after the field it edits), and *Order like this list* sorts the shown columns the same way (dragging can still reorder them). Each category title has a checkbox (all / some / none) that shows or hides the whole category, and the header has *Select all*, *None* and a × to close; while searching, all of these act only on the fields found. Width (drag the right edge of a header), order
+  artist/copyright under Author, exposure/ISO/focal length under Capture settings, size/orientation under File, the rest under Other). *+* opens the searchable picker (up to 1040 px wide): one plain checkbox per field, grouped by category; tick to show, untick to hide (applies at once, the picker stays open), with a count of shown columns. Categories are listed File, Duplicates, Dates, Location, Device, Author, Capture settings, Other, and the table follows that order: a newly shown column lands in its place (an edit column right after the field it edits), and *Order like this list* sorts the shown columns the same way (dragging can still reorder them). Each category title has a checkbox (all / some / none) that shows or hides the whole category, and the header has *Select all*, *None* and a × to close; while searching, all of these act only on the fields found. Width (drag the right edge of a header), order
   (drag a header label: a strong 4 px accent line with round ends, running the full table height, shows where it lands and the target header is tinted; the left half of a header drops before it, the right half after it, including at the end) and visibility are saved per library (`workbench_view` setting).
 - **Header ⋯ button** (same look as the cell ⋯ button; shown only while hovering the header, while its menu is open or when focused) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
@@ -214,7 +214,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   Nothing touches the disk before a plan is applied.
 - **Keyboard:** a cell cursor (2 px accent frame, row tinted). ↑ ↓ move between visible rows (group and file rows),
   ← → between columns; the first arrow starts at the top. *Enter* ticks or unticks the row (a group row: the whole
-  group); *Space* shows the file in the preview panel (a group row: folds or unfolds it); *⌥/Ctrl/⌘ + Enter* opens
+  group); *Space* toggles the preview panel for the file (a group row: folds or unfolds it); while the panel is open it
+  follows the cursor as you move; *⌥/Ctrl/⌘ + Enter* opens
   the cell's ⋯ menu; *Shift + ↑ / ↓* ticks file rows while moving (group rows are passed, not ticked); *X* ticks or
   unticks the row and moves down; *⌘ / Ctrl + A* ticks every row of the view (Selection → All); *Esc* closes an open
   menu first, then leaves the cursor. Clicking a cell moves the cursor there;
@@ -223,6 +224,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere
   (the direction a click would give).
+- **Dup. confidence:** the score, then in grey what differs from the kept copy of the set: *100 % · identical*,
+  *99 % · date differs, place missing, renamed*, *98 % · date added*, *kept copy* on the kept one (date, place,
+  device, author, pixel size and name are compared; three at most, then “+n”). Group rows show the score only.
 - **Key capture dates:** two built-in columns, *DateTimeOriginal (EXIF)* and *DateCreated (IPTC/XMP)* (XMP
   photoshop:DateCreated, else IPTC 2:55 + 2:60), always available and shown by default. They stay with the other
   dates: the first two items of the *Dates* category in the column picker and the first two date columns in the
@@ -232,8 +236,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Slim columns:** a shown column is never dropped, not even when no file has a value in it: an empty column is
   collapsed to 40 px (as wide as the checkbox column). Double-clicking any header collapses or expands it (the
   choice is kept per column in the view, `slim`); a single click still sorts (it waits a moment, so a double-click
-  does not sort). A slim header shows its full name in a tooltip at once on hover, with “(empty)” when it has no
-  values.
+  does not sort). A slim header shows an acronym (e.g. *OTD* for OffsetTimeDigitized, at most 3 letters) and keeps
+  the red **!** when the column has one; hovering shows the full name at once, above the header, with “(empty)”
+  when it has no values.
 - **Filtered columns** show a funnel icon (accent colour) next to the header text (its tooltip lists the filters)
   and a 2 px **orange** outline down the whole column, header included; the filter chips above the table have an
   orange border too.

@@ -410,11 +410,14 @@
 .wbh-cell--tree .wbh__label { cursor: default; }
 .wbh-cell.is-dragging { opacity: .48; }
 /* slim (collapsed) column: 40px, the header keeps only its tooltip; the name shows at once on hover */
-.wbh-cell.is-slim .wbh > :not(.wbh__resize) { display: none; }
+.wbh-cell.is-slim .wbh > :not(.wbh__abbr, .keybadge) { display: none; }
 .wbh-cell.is-slim .wbh__resize { display: none; }
-.wbh-cell.is-slim:hover::after { content: attr(data-tip); position: absolute; top: calc(100% + var(--space-050)); left: 0; z-index: 50;
-  padding: var(--space-050) var(--space-100); border-radius: var(--radius-sm); background: var(--text); color: var(--bg);
-  font-size: var(--text-sm); line-height: var(--line-sm); font-weight: 400; white-space: nowrap; pointer-events: none; }
+.wbtip { position: fixed; z-index: 70; padding: var(--space-050) var(--space-100); border-radius: var(--radius-sm); background: var(--text);
+  color: var(--bg); font-size: var(--text-sm); line-height: var(--line-sm); white-space: nowrap; pointer-events: none; }
+/* slim header: an acronym, and the red ! when the column has one */
+.wbh-cell.is-slim .wbh > .wbh__abbr, .wbh-cell.is-slim .wbh > .keybadge { display: inline-grid; }
+.wbh-cell.is-slim .wbh { flex-direction: column; justify-content: center; gap: var(--space-025); padding: 0; }
+.wbh__abbr { display: none; font-size: var(--text-sm); line-height: var(--line-sm); font-weight: 700; color: var(--muted); letter-spacing: .02em; }
 .wbh-cell.is-slim .wbh { cursor: pointer; }
 .wbt td[data-sorted] { font-weight: 600; }
 /* filtered and sorted columns: an accent outline down the whole column (header included) */
@@ -475,7 +478,7 @@
 .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; }
 .modal__backdrop { position: absolute; inset: 0; background: var(--backdrop); }
 .modal__box { position: relative; display: grid; gap: var(--space-200); width: min(440px, 92vw); max-height: 88vh; overflow: auto; padding: var(--space-300); background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-modal); }
-.modal__box--wide { width: min(720px, 94vw); }
+.modal__box--wide { width: min(1040px, 94vw); }
 .modal__box h3 { margin: 0; font-size: var(--text-lg); line-height: var(--line-lg); }
 .modal__box label { display: grid; gap: var(--space-050); font-size: var(--text-sm); line-height: var(--line-sm); }
 .modal__box label.radio, .modal__box label:has(> input[type=checkbox]) { display: flex; align-items: center; gap: var(--space-100); font-size: var(--text-md); line-height: var(--line-md); }
@@ -527,3 +530,5 @@
 /* preview panel: drag its left edge to resize (the width is kept per browser) */
 .wb-panel__resize { position: absolute; left: 0; top: 0; bottom: 0; width: var(--space-100); cursor: col-resize; z-index: 3; border-left: 2px solid transparent; }
 .wb-panel__resize:hover, .is-resizing .wb-panel__resize { border-left-color: var(--accent); }
+
+.conf-why { color: var(--muted); font-weight: 400; }  /* Dup. confidence: what differs, in grey */

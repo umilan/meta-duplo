@@ -511,6 +511,8 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
         for r in rs:  # differences against the group's reference row
             r["diff"] = {k: not unrelated and len(rs) > 1 and r is not ref and str(value(r, k)) != str(value(ref, k)) for k in keys}
             r["is_ref"] = r is ref
+            if by == "dups" and not unrelated and r["dup"]:
+                r["dup_explain"] = explain_diff(r, ref)
             r["path_parts"] = _path_diff(r["v"]["path"], ref["v"]["path"], r is ref or len(rs) == 1)
             # per field: True same as the reference row, False differs, None when neither has a value
             r["checks"] = {t: None if not r["v"][t] and not ref["v"][t] else str(r["v"][t]) == str(ref["v"][t])
@@ -553,13 +555,55 @@ def _path_diff(path: str, ref: str, same: bool) -> list[tuple[str, bool]]:
     return [(seg, same or (i < len(b) and b[i] == seg)) for i, seg in enumerate(a)]
 
 
-def conf_label(r: dict) -> str:
-    """100 % = byte-identical, 99 % = same pixels with different metadata, lower = the matcher's score."""
+def acronym(label: str) -> str:
+    """'OffsetTimeDigitized (ExifIFD)' → 'OTD', 'Date taken' → 'DT': the name of a slim column (3 letters at most)."""
+    name = label.split(" (")[0]
+    words = re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+", name)
+    letters = "".join(w[0].upper() for w in words) or name[:2].upper()
+    return letters[:3] if len(letters) > 1 else name[:3].upper()
+
+
+def conf_parts(r: dict) -> tuple[str, str]:
+    """('98 %', 'date added, renamed'): the score (100 % = byte-identical, 99 % = same pixels with other metadata,
+    lower = the matcher's score) and, in grey, what differs from the kept copy of the duplicate set."""
     if not r["dup"]:
-        return ""
+        return "", ""
     pct = round(r["dup"]["score"] * 100)
-    text = VERDICT_TEXT.get(r["verdict"], "")
-    return f"{pct} %" + (f" · {text}" if text and r["verdict"] != "identical" else "")
+    if r["verdict"] == "identical":
+        return f"{pct} %", "identical"
+    return f"{pct} %", r.get("dup_explain") or VERDICT_TEXT.get(r["verdict"], "")
+
+
+def conf_label(r: dict) -> str:
+    pct, why = conf_parts(r)
+    return f"{pct} · {why}" if why else pct
+
+
+# what the duplicate explanation names when a copy differs from the kept one
+EXPLAIN_FIELDS = (("date", "date"), ("place", "place"), ("device", "device"), ("author", "author"),
+                  ("dims", "pixel size"), ("filename", "name"))
+
+
+def explain_diff(r: dict, ref: dict) -> str:
+    """'date added, renamed, place differs' — a short summary of how a copy differs from the kept copy."""
+    if r is ref:
+        return "kept copy"
+    out = []
+    for key, name in EXPLAIN_FIELDS:
+        a, b = r["v"].get(key) or "", ref["v"].get(key) or ""
+        if a == b:
+            continue
+        if key == "filename":
+            out.append("renamed")
+        elif not b:
+            out.append(f"{name} added")
+        elif not a:
+            out.append(f"{name} missing")
+        else:
+            out.append(f"{name} differs")
+    if not out:
+        return "same metadata" if r["verdict"] != "same_pixels" else "same pixels"
+    return ", ".join(out[:3]) + (f" +{len(out) - 3}" if len(out) > 3 else "")
 
 
 # ───────────────────────── actions ─────────────────────────

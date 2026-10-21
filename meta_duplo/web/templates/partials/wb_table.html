@@ -79,6 +79,7 @@
         <div class="wbh {{ 'wbh--sortable' if c.key != 'thumb' }}"{% if c.key != 'thumb' %} @click="clickSort()"{% endif %} @dblclick="toggleSlim()">
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)"
                 title="{{ c.label }} — click to sort, drag to move">{{ c.label|wbr }}</span>
+          <span class="wbh__abbr" aria-hidden="true">{{ c.abbr }}</span>
           {% if c.key in key_fields %}<span class="keybadge" title="{{ key_fields[c.key] }}">!</span>{% endif %}
           {% set col_filters = view.filters|selectattr("key", "equalto", c.key)|list %}
           {% if col_filters %}<span class="wbh__filter" role="img" aria-label="Filtered"

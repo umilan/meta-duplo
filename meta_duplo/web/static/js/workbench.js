@@ -81,11 +81,20 @@
     td.classList.add("is-cursor");
     td.scrollIntoView({ block: "nearest", inline: "nearest" });
   };
+  const showPreview = (tr) => {
+    Alpine.store("wb").active = Number(tr.dataset.rowid);
+    htmx.trigger(tr, "wb-show");
+  };
   const setCursor = (tr, col) => {
     if (!tr) return;
+    const moved = tr !== kb.row;
     kb.row = tr; kb.rowid = tr.dataset.rowid || null;
     kb.col = Math.max(0, Math.min(col, tr.cells.length - 2));  // the last cell is the empty "+" column
     paint();
+    // with the preview open, it follows the cursor (debounced, so holding an arrow key stays smooth)
+    if (moved && tr.classList.contains("wbr") && Alpine.store("wb").panel) {
+      clearTimeout(kb.pv); kb.pv = setTimeout(() => showPreview(tr), 120);
+    }
   };
   const typing = (el) => el && (el.closest("input, select, textarea, [contenteditable], .modal") !== null);
   document.addEventListener("keydown", (e) => {
@@ -138,7 +147,8 @@
     } else if (e.key === " ") {
       e.preventDefault();
       if (tr.classList.contains("wbg__head")) tr.click();  // fold / unfold the group
-      else { Alpine.store("wb").active = Number(tr.dataset.rowid); htmx.trigger(tr, "wb-show"); window.dispatchEvent(new CustomEvent("wb-preview")); }
+      else if (Alpine.store("wb").panel) window.dispatchEvent(new CustomEvent("wb-panel", { detail: { on: false } }));  // Space toggles
+      else { showPreview(tr); window.dispatchEvent(new CustomEvent("wb-preview")); }
     }
   });
   // a click puts the cursor on that cell; after a reload the cursor finds its row again
@@ -150,6 +160,22 @@
     if (!e.detail.target || e.detail.target.id !== "wb-table" || !kb.rowid) return;
     const tr = document.querySelector(`#wb-table tr[data-rowid="${kb.rowid}"]`);
     if (tr) setCursor(tr, kb.col); else kb.row = null;
+  });
+
+  // Header tooltips (slim columns): shown at once, above the header, outside the scrolling box so nothing clips them.
+  const tip = () => {
+    let el = document.getElementById("wb-tip");
+    if (!el) { el = document.createElement("div"); el.id = "wb-tip"; el.className = "wbtip"; el.hidden = true; document.body.appendChild(el); }
+    return el;
+  };
+  document.addEventListener("mouseover", (e) => {
+    const th = e.target.closest && e.target.closest(".wbt th[data-tip].is-slim");
+    const el = tip();
+    if (!th) { el.hidden = true; return; }
+    el.textContent = th.dataset.tip; el.hidden = false;
+    const r = th.getBoundingClientRect(), w = el.offsetWidth;
+    el.style.left = `${Math.round(Math.max(8, Math.min(r.left, window.innerWidth - w - 8)))}px`;
+    el.style.top = `${Math.round(r.top - el.offsetHeight - 4)}px`;
   });
 
   // Column drag: a vertical line shows where the dragged header will land.

@@ -14,7 +14,7 @@
     {% elif tree and c.key == tree.name_col %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="wbg__label" title="{{ g.label }}">{{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>
     {% elif singles and c.key in ('dup_count', 'dup_conf', 'checks') %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="nil">–</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{{ g.ref.v.dup_count }} pcs</td>
-    {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{{ conf_label(g.ref) }}</td>
+    {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{% set cp = conf_parts(g.ref) %}{{ cp[0] }}</td>
     {% elif c.edit %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="wbt__edit">{% set ev = value(g.ref, c.key) %}{% if ev %}→ {{ ev }}{% else %}<span class="nil">—</span>{% endif %}</td>
     {% else %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="wbg__sum wbg__sum--{{ g.summary[c.key]|lower|replace("/", "") }}">{{ g.summary[c.key] }}</td>
     {% endif %}
@@ -38,7 +38,7 @@
     {% elif c.key == 'filename' %}
       <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 and not singles else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{{ r.v.dup_count }} pcs</td>
-    {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{{ conf_label(r) }}</td>
+    {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}>{% set cp = conf_parts(r) %}{{ cp[0] }}{% if cp[1] %} <span class="conf-why">· {{ cp[1] }}</span>{% endif %}</td>
     {% elif c.key == 'checks' and singles %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }} class="nil">–</td>
     {% elif c.key == 'checks' %}
       <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}><div class="checks">{% for t, ok in r.checks.items() %}{% set n = r.meta_counts[t] %}<span class="check {{ 'check--na' if ok is none else ('check--ok' if ok else 'check--no') }}" title="{{ checks_meta[t][1] }}: {{ n }} tag{{ '' if n == 1 else 's' }} in this file; {{ 'no value here or in the reference row' if ok is none else ('same as' if ok else 'differs from') ~ ' the reference row' }}"><span class="check__name">{{ checks_meta[t][0] }}</span> <span class="check__n">{{ n }}</span></span>{% endfor %}</div></td>

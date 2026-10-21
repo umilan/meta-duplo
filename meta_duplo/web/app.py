@@ -398,6 +398,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 empty = f.kind != "special" and not any(wb.value(r, key) not in ("", None) for r in rows)
                 slim = view.get("slim", {}).get(key, empty)
                 cols.append({"key": key, "label": f.label, "kind": f.kind, "slim": slim, "empty": empty,
+                             "abbr": wb.acronym(f.label),
                              "width": wb.SLIM_WIDTH if slim else wb.snap(width),
                              "target": target, "edit": key.startswith("edit:"),
                              "groupable": {"path": "folder", "date": "day", "device": "device", "place": "place",
@@ -412,7 +413,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 "group_names": wb.GROUPS, "ops": wb.OPS,
                 "no_value_ops": wb.NO_VALUE_OPS, "date_sources": wb.DATE_SOURCES,
                 "field_label": lambda k: (wb.field_for(k).label if wb.field_for(k) else k),
-                "conf_label": wb.conf_label, "value": wb.value, "checks_meta": wb.CHECKS, "key_fields": wb.KEY_FIELDS,
+                "conf_label": wb.conf_label, "conf_parts": wb.conf_parts, "value": wb.value, "checks_meta": wb.CHECKS, "key_fields": wb.KEY_FIELDS,
                 "tokens": harmonize.TOKENS_HELP, "pattern": lib.setting("filename_pattern")}
 
     @app.get("/workbench", response_class=HTMLResponse)

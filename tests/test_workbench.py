@@ -32,10 +32,12 @@ def test_duplicates_grouping_and_differences(lib):
     assert len(g.rows) == 3 and g.ref["v"]["path"].endswith("Camera/DCIM")
     copy = next(r for r in g.rows if r["v"]["filename"] == "Copy of IMG_0003.JPG")
     assert copy["diff"]["filename"] and not copy["diff"]["date"]
-    assert wb.conf_label(copy) == "100 %"
+    assert wb.conf_label(copy) == "100 % · identical"
     pc = _group_with(groups, "prague castle.jpg")  # same pixels, edited date
     castle = next(r for r in pc.rows if r["v"]["filename"] == "prague castle.jpg")
     assert wb.conf_label(castle).startswith("99 %") and castle["diff"]["date"]
+    assert wb.conf_parts(castle) == ("99 %", "date differs, place missing, renamed")  # what differs from the kept copy, in grey
+    assert wb.acronym("OffsetTimeDigitized (ExifIFD)") == "OTD" and wb.acronym("Date taken") == "DT"
     assert "IFD0:Artist" in exif_keys and "GPS:GPSDateStamp" in exif_keys
 
 
