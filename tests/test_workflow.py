@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from medorg import harmonize, match, plans
-from medorg.__main__ import add_source
-from medorg.db import Library
-from medorg.demo import make_demo
-from medorg.scan import Runner, scan_all
+from meta_duplo import harmonize, match, plans
+from meta_duplo.__main__ import add_source
+from meta_duplo.db import Library
+from meta_duplo.demo import make_demo
+from meta_duplo.scan import Runner, scan_all
 
 
 def _tree(root: Path) -> dict[str, str]:

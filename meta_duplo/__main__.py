@@ -1,4 +1,4 @@
-"""CLI: medorg demo | add-source | scan | serve."""
+"""CLI: meta-duplo demo | add-source | scan | serve."""
 from __future__ import annotations
 
 import argparse
@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .db import Library, now
 
-DEFAULT_LIBRARY = os.environ.get("MEDORG_LIBRARY", str(Path.home() / "MedorgLibraries" / "default"))
+DEFAULT_LIBRARY = os.environ.get("META_DUPLO_LIBRARY", str(Path.home() / "MetaDuploLibraries" / "default"))
 
 
 def add_source(lib: Library, root: str, writable: bool = False, role: str = "scan") -> int:
@@ -23,18 +23,18 @@ def add_source(lib: Library, root: str, writable: bool = False, role: str = "sca
 
 
 def main(argv: list[str] | None = None) -> None:
-    ap = argparse.ArgumentParser(prog="medorg")
+    ap = argparse.ArgumentParser(prog="meta-duplo")
     ap.add_argument("--library", default=DEFAULT_LIBRARY, help="library folder (default: %(default)s)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("demo", help="create a demo disk and add it as a writable source")
-    d.add_argument("path", nargs="?", default=str(Path.home() / "medorg-demo"))
+    d.add_argument("path", nargs="?", default=str(Path.home() / "meta-duplo-demo"))
     a = sub.add_parser("add-source", help="add a folder to scan")
     a.add_argument("path")
     a.add_argument("--writable", action="store_true", help="allow approved plans to move and rename files here")
     sub.add_parser("scan", help="run steps 1-2 (inventory, metadata, hashes, duplicates)")
     s = sub.add_parser("serve", help="start the web UI on localhost")
-    s.add_argument("--host", default=os.environ.get("MEDORG_HOST", "127.0.0.1"))
-    s.add_argument("--port", type=int, default=int(os.environ.get("MEDORG_PORT", "8765")))
+    s.add_argument("--host", default=os.environ.get("META_DUPLO_HOST", "127.0.0.1"))
+    s.add_argument("--port", type=int, default=int(os.environ.get("META_DUPLO_PORT", "8765")))
     s.add_argument("--no-token", action="store_true", help="disable the session token (development only)")
     args = ap.parse_args(argv)
 
@@ -60,10 +60,10 @@ def main(argv: list[str] | None = None) -> None:
 
         from .web.app import create_app
 
-        token = None if args.no_token else os.environ.get("MEDORG_TOKEN") or secrets.token_urlsafe(16)
+        token = None if args.no_token else os.environ.get("META_DUPLO_TOKEN") or secrets.token_urlsafe(16)
         app = create_app(lib, token)
         url = f"http://{args.host}:{args.port}/" + (f"?token={token}" if token else "")
-        print(f"medorg is running: {url}")
+        print(f"meta-duplo is running: {url}")
         uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
 
 

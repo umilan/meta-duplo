@@ -1,10 +1,10 @@
-# UI specification (merged: medorg + duplicate finder)
+# UI specification (merged: meta-duplo + duplicate finder)
 
 Server-rendered HTML (Jinja2), progressively enhanced with **htmx** and **Alpine.js**, styled
 with **plain CSS** you own (ADR-002, ADR-010). There is no build step: edit a template or stylesheet, then refresh.
 The navigation follows the four-step workflow in `WORKFLOW.md`.
 
-Previous versions: `research/medorg-UI_SPEC-v1.md` (12 screens) and
+Previous versions: `research/meta-duplo-UI_SPEC-v1.md` (12 screens) and
 `research/duplicate-finder-UI-DESIGN.md` (setup, results views, ignore model, basket).
 
 ## Principles
@@ -33,7 +33,7 @@ Previous versions: `research/medorg-UI_SPEC-v1.md` (12 screens) and
 | ↺ | **Plans & undo** | Approve, apply, undo | Plan list; plan detail = dry-run diff (action, before → after, status, error); Apply / Discard / Undo | ✓ |
 | ⚙ | **Settings** | Config | Home time zone, near-duplicate threshold, re-check minimum | ✓ |
 | – | Folders overlap | Whole-folder decisions | `A ≡ B`, `A ⊂ B`, `A ∩ B %` tree and heatmap | later |
-| – | Timeline, Map, Devices | Sanity views from medorg v1 | Histogram, clustered map, device units | later |
+| – | Timeline, Map, Devices | Sanity views from meta_duplo v1 | Histogram, clustered map, device units | later |
 
 ### Step 1 and 2: group card (`partials/group_card.html`)
 
@@ -89,7 +89,7 @@ From metadata of IMG_0004.JPG. Copies disagree by 81870 s; the earliest is used.
 | Pattern | How |
 |---|---|
 | Boosted navigation | `<body hx-boost="true">` turns links and forms into AJAX page swaps |
-| Token on every POST | `<body hx-headers='{"X-Medorg-Token": "…"}'>`; the server rejects POSTs without it |
+| Token on every POST | `<body hx-headers='{"X-Meta-Duplo-Token": "…"}'>`; the server rejects POSTs without it |
 | Job progress | `#job` polls `GET /job?watch=1` every second (`hx-trigger="every 1s"`); when the job ends, `HX-Refresh` reloads the page with fresh results |
 | Live preview | Pattern input: `hx-post="/settings/pattern" hx-trigger="input changed delay:300ms"` |
 | In-place update | Card / row actions return the re-rendered card or row (`hx-swap="outerHTML"`) |
@@ -99,7 +99,7 @@ From metadata of IMG_0004.JPG. Copies disagree by 81870 s; the earliest is used.
 | Confirm | `hx-confirm` on Apply and Undo |
 | Toasts | `HX-Trigger: {"toast": "…"}` → Alpine listener on `window` |
 
-SSE (medorg ARCHITECTURE §6) replaces polling once jobs are long enough for it to matter.
+SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for it to matter.
 
 ## Styling contract
 

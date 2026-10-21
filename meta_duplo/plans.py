@@ -120,7 +120,7 @@ def _xmp(values: dict) -> str:
         props.append(f"<tiff:Model>{values['device_name']}</tiff:Model>")
     body = "\n      ".join(props)
     return f"""<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="medorg 0.1">
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="meta-duplo 0.1">
   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <rdf:Description rdf:about=""
       xmlns:exif="http://ns.adobe.com/exif/1.0/" xmlns:xmp="http://ns.adobe.com/xap/1.0/"

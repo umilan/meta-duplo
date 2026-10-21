@@ -1,4 +1,4 @@
--- medorg initial schema (migration 0001). SQLite, WAL mode.
+-- meta-duplo initial schema (migration 0001). SQLite, WAL mode.
 PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
 

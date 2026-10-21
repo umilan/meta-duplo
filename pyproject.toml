@@ -1,5 +1,5 @@
 [project]
-name = "medorg"
+name = "meta-duplo"
 version = "0.1.0"
 description = "Local media organizer: duplicates, metadata harmonization and safe renaming (POC)"
 requires-python = ">=3.12"
@@ -19,7 +19,7 @@ dependencies = [
 geo = ["reverse-geocoder>=1.5"]
 
 [project.scripts]
-medorg = "medorg.__main__:main"
+meta-duplo = "meta_duplo.__main__:main"
 
 [dependency-groups]
 dev = ["pytest>=8", "httpx>=0.27"]

@@ -1,6 +1,6 @@
 # Workflow: four steps from a messy disk to named, de-duplicated files
 
-This is the user-facing flow of the merged app (medorg + duplicate finder, Proposal A, htmx UI;
+This is the user-facing flow of the merged app (meta-duplo + duplicate finder, Proposal A, htmx UI;
 see ADR-010 and ADR-011). It sits on top of the 16-stage pipeline in `ARCHITECTURE.md`:
 the steps are what the user does, the stages are what the engine runs.
 
@@ -194,16 +194,16 @@ Ordered by expected value for this workflow:
    in its recommendations. In the POC a confirmed match can only be removed, not merged.
 1. **Camera clock correction** (step 3). Learn a camera's clock offset from pairs taken at
    the same moment as phone photos (or one photo of a clock), then shift every photo of that
-   camera unit in one decision. This is the biggest bulk fix in real archives (medorg device + time skills).
+   camera unit in one decision. This is the biggest bulk fix in real archives (meta-duplo device + time skills).
 2. **Session fill for place** (step 3). A photo with no GPS, taken minutes before or after geotagged photos
    from the same session or device, gets their place as a medium-confidence recommendation.
 3. **Folder overlap view** (step 1): `A ≡ B`, `A ⊂ B`, `A ∩ B 63 %` from the duplicate-finder
    research. Whole backup folders get resolved in one decision instead of 4 000.
 4. **Bulk edit by folder or event** (step 3): "everything in `2019 Chorvátsko/` is in Split".
 5. **Folder layout rule** next to the file name rule: `{date:%Y}/{date:%Y-%m-%d} {location_name}/`.
-   This is the reorganize mode of medorg's plan engine.
+   This is the reorganize mode of meta-duplo's plan engine.
 6. **Impact preview** for every decision: "Accepting this lifts 312 files to high confidence"
-   (medorg UI_SPEC principle 3).
+   (meta-duplo UI_SPEC principle 3).
 7. **Keyboard review** for steps 2–4: `j/k` or `←/→` to move, `a` accept, `Enter` keep, `x` mark,
    `n` not duplicates, `i` ignore, `Space` compare, `?` help.
 8. **CSV export** of the step-4 list and of every plan (before → after) for an audit trail.

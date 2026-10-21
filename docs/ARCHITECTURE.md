@@ -1,4 +1,4 @@
-# Architecture: Media Organizer (working codename `medorg`)
+# Architecture: Media Organizer (working codename `meta-duplo`)
 
 > The duplicate finder is part of this app (ADR-010). The user-facing flow is four steps (ADR-011, `WORKFLOW.md`); the stages below are the engine underneath. The v0.1 proof of concept implements a subset (ADR-013).
 
@@ -95,7 +95,7 @@ This document defines how those pieces run as software.
 
 | Concept | Meaning |
 |---|---|
-| **Library** | One working database + caches (a folder `~/MedorgLibraries/<name>/`). It can hold several sources. |
+| **Library** | One working database + caches (a folder `~/MetaDuploLibraries/<name>/`). It can hold several sources. |
 | **Source** | A root folder on a volume. It is identified by the volume UUID + relative root, so it survives remounts and changed mount paths. |
 | **File** | One physical file in a source (path, size, inode, timestamps). |
 | **Cluster** | Files that are the same capture (exact/pixel/near duplicates). Resolution happens per cluster. |
@@ -318,7 +318,7 @@ When the tool is stable, wrap it as a native macOS app **without rewriting the U
 **Preparing for it now (cheap):**
 - Never hard-code the host or port; read them from the environment.
 - Keep all UI assets under `web/` with relative URLs.
-- Keep the engine startable as `medorg serve --port X --token Y`.
+- Keep the engine startable as `meta-duplo serve --port X --token Y`.
 - No browser-only APIs the Tauri webview (WKWebView) lacks. Test the UI in Safari as the
   primary browser.
 
@@ -327,13 +327,13 @@ When the tool is stable, wrap it as a native macOS app **without rewriting the U
 ## 14. Repository layout (planned)
 
 ```
-medorg/
+meta_duplo/
   pyproject.toml            # uv-managed
   CLAUDE.md                 # guidance for AI coding agents
   README.md
   docs/                     # this spec kit
   skills/                   # domain skills (source of truth for logic)
-  medorg/
+  meta_duplo/
     __main__.py             # CLI: init, add-source, run, serve
     config.py
     db/

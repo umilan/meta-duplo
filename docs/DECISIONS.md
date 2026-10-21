@@ -57,7 +57,7 @@ accepted ones. Supersede them with a new entry instead.
   references skill sections; changes to logic update the skill first.
 - **Consequences:** a single source of truth for humans and AI coding agents.
 
-### ADR-010 One app: the duplicate finder becomes part of medorg (Proposal A, htmx)
+### ADR-010 One app: the duplicate finder becomes part of meta-duplo (Proposal A, htmx)
 - **Context:** two design packs (metadata organizer, duplicate finder) shared the stack, the first
   pipeline stages and the safety model. Run separately, they would read every disk twice, keep two
   groupings of the same files and two undo logs. The options were A (one engine), B (shared core
@@ -102,5 +102,5 @@ accepted ones. Supersede them with a new entry instead.
   - XMP sidecars and file dates, but no in-file writes;
   - no context/propagation stage.
 - **Consequences:**
-  - The schema is a working subset of `schema.sql`, created in `medorg/db.py`.
+  - The schema is a working subset of `schema.sql`, created in `meta_duplo/db.py`.
   - Moving to the full spec replaces adapters and resolvers module by module; the plan engine, decisions and UI carry over.

@@ -1,4 +1,4 @@
-# medorg: media organizer + duplicate finder (v0.1 proof of concept)
+# meta-duplo: media organizer + duplicate finder (v0.1 proof of concept)
 
 A local tool for big photo/video disks. It works in four steps:
 
@@ -16,15 +16,15 @@ Nothing on disk changes outside a **plan** you review and apply. Every plan is j
 ```bash
 brew install ffmpeg uv          # ffprobe for videos; uv for Python
 uv sync --extra geo             # dependencies + offline place names
-uv run medorg demo              # creates ~/medorg-demo (21 files with every duplicate case) and adds it as a writable source
-uv run medorg serve             # prints http://127.0.0.1:8765/?token=…  — open it
+uv run meta-duplo demo              # creates ~/meta-duplo-demo (21 files with every duplicate case) and adds it as a writable source
+uv run meta-duplo serve             # prints http://127.0.0.1:8765/?token=…  — open it
 ```
 
 In the browser: **Scan all sources** → step 1 *Review plan…* → *Apply plan* → step 2 → step 3 *Build recommendations*,
 edit the name rule, accept → step 4 *Run re-check* → step 3 *Review rename plan…* → apply → undo from *Plans & undo*.
 
-Your own folder: `uv run medorg add-source "/Volumes/Photos/Pictures"`. It is read-only until you add
-`--writable` or flip it on the Sources page. Libraries live in `~/MedorgLibraries/default`
+Your own folder: `uv run meta-duplo add-source "/Volumes/Photos/Pictures"`. It is read-only until you add
+`--writable` or flip it on the Sources page. Libraries live in `~/MetaDuploLibraries/default`
 (change it with `--library`).
 
 Tests: `uv run pytest` runs the whole workflow on a generated disk and checks that apply + undo restore every byte.
@@ -32,7 +32,7 @@ Tests: `uv run pytest` runs the whole workflow on a generated disk and checks th
 ## Layout
 
 ```
-medorg/
+meta_duplo/
   db.py          schema (subset of docs/schema.sql) and settings
   metadata.py    EXIF/QuickTime reading, file-name dates, device names
   scan.py        inventory → extract → hash → fingerprint/thumbnails; job runner

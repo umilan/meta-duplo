@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}medorg{% endblock %} · medorg</title>
+  <title>{% block title %}meta-duplo{% endblock %} · meta-duplo</title>
   <link rel="stylesheet" href="/static/css/tokens.css">
   <link rel="stylesheet" href="/static/css/base.css">
   <link rel="stylesheet" href="/static/css/layout.css">
@@ -11,12 +11,12 @@
   <script src="/static/js/htmx.min.js" defer></script>
   <script src="/static/js/alpine.min.js" defer></script>
 </head>
-<body hx-boost="true" hx-headers='{"X-Medorg-Token": "{{ token }}"}'
+<body hx-boost="true" hx-headers='{"X-Meta-Duplo-Token": "{{ token }}"}'
       x-data="{ toast: '' }" @toast.window="toast = $event.detail.value; setTimeout(() => toast = '', 3500)">
   {% set path = request.url.path %}
   <div class="app">
     <nav class="nav" aria-label="Workflow">
-      <div class="nav__brand">medorg</div>
+      <div class="nav__brand">meta-duplo</div>
       <ul class="nav__list">
         <li><a class="nav__link {{ 'nav__link--active' if path.startswith('/sources') }}" href="/sources"><span class="nav__step">◎</span>Sources<span class="nav__count">{{ counts.files }}</span></a></li>
         <li><div class="nav__sep"></div></li>

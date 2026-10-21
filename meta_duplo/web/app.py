@@ -40,7 +40,7 @@ def band(p: float | None) -> str:
 
 
 def create_app(lib: Library, token: str | None = None) -> FastAPI:
-    app = FastAPI(title="medorg", docs_url=None, redoc_url=None)
+    app = FastAPI(title="meta-duplo", docs_url=None, redoc_url=None)
     runner = Runner(lib)
     templates = Jinja2Templates(directory=str(HERE / "templates"))
     templates.env.filters.update(size=human_size, band=band, pct=lambda p: "–" if p is None else f"{p * 100:.0f} %")
@@ -54,11 +54,11 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             return await call_next(request)
         if request.query_params.get("token") == token:
             resp = RedirectResponse(request.url.path)
-            resp.set_cookie("medorg", token, httponly=True, samesite="strict")
+            resp.set_cookie("meta-duplo", token, httponly=True, samesite="strict")
             return resp
-        if not secrets.compare_digest(request.cookies.get("medorg", ""), token):
-            return HTMLResponse("Open medorg with the link printed in the terminal.", status_code=403)
-        if request.method == "POST" and not secrets.compare_digest(request.headers.get("x-medorg-token", ""), token):
+        if not secrets.compare_digest(request.cookies.get("meta-duplo", ""), token):
+            return HTMLResponse("Open meta-duplo with the link printed in the terminal.", status_code=403)
+        if request.method == "POST" and not secrets.compare_digest(request.headers.get("x-meta-duplo-token", ""), token):
             return HTMLResponse("Missing request token.", status_code=403)
         return await call_next(request)
 
