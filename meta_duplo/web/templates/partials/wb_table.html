@@ -30,7 +30,7 @@
       {% endif %}
       {% for c in cols %}
       {% set sorted = view.sort[0] == c.key %}
-      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }}" data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}')"
+      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }}" data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}')"
           @dragover.prevent="over($event)" @drop.prevent="drop($event)">
         <div class="wbh">
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)" @click="sort()"

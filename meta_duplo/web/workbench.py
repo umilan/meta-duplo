@@ -38,7 +38,7 @@ CORE = [
     Field("path", "Path", "File", width=260),
     Field("filename", "Filename", "File", editable="filename", width=190),
     Field("dup_count", "Dup.", "Duplicates", "num", width=70),
-    Field("dup_conf", "Dup. confidence", "Duplicates", width=150),
+    Field("dup_conf", "Dup. confidence", "Duplicates", "num", width=150),
     Field("checks", "Meta checks", "Duplicates", "special", width=150),
     Field("date", "Date taken", "Dates", "date", editable="date", width=160),
     Field("digitized", "Date digitized", "Dates", "date", width=160),
@@ -391,12 +391,18 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
 
     def sk(r):
         val = value(r, sort_key)
-        return (val in ("", None), val.lower() if isinstance(val, str) else (val if val is not None else 0))
+        return val.lower() if isinstance(val, str) else val
+
+    def ordered(items: list, row) -> list:
+        """Sort by the column in either direction; empty values always last."""
+        filled = [i for i in items if sk(row(i)) not in ("", None)]
+        filled.sort(key=lambda i: sk(row(i)), reverse=sort_dir == "desc")
+        return filled + [i for i in items if sk(row(i)) in ("", None)]
 
     groups = []
     for gk, rs in buckets.items():
         if sort_key:
-            rs.sort(key=sk, reverse=sort_dir == "desc")
+            rs[:] = ordered(rs, lambda r: r)
         else:
             rs.sort(key=lambda r: (not r["keeper"], r["v"]["path"].lower(), r["v"]["filename"].lower()))
         ref = next((r for r in rs if r["keeper"]), rs[0]) if by == "dups" else rs[0]
@@ -421,7 +427,7 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
             groups = [g for g in groups if any(_match(value(r, k), op, arg, r["diff"].get(k, False)) for r in g.rows)]
 
     if sort_key:
-        groups.sort(key=lambda g: sk(g.rows[0]), reverse=sort_dir == "desc")
+        groups = ordered(groups, lambda g: g.rows[0])
     elif by == "dups":
         groups.sort(key=lambda g: -sum(r["v"]["size"] for r in g.rows))
     else:

@@ -134,9 +134,10 @@
       post: postView,
     }));
 
-    Alpine.data("wbHead", (key, dir) => ({
+    Alpine.data("wbHead", (key, dir, first = "asc") => ({
       post: postView,
-      sort(d) { postView({ action: "sort", key, dir: d || (dir === "asc" ? "desc" : "asc") }); },
+      // first click: `first` (numbers start high, so 100 % confidence is on top), then toggle
+      sort(d) { postView({ action: "sort", key, dir: d || (dir ? (dir === "asc" ? "desc" : "asc") : first) }); },
       resize(ev) {
         const col = document.querySelector(`col[data-key="${CSS.escape(key)}"]`);
         const table = ev.target.closest("table");
