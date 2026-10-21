@@ -58,6 +58,17 @@
       document.getElementById("wb-cellbtn")?.remove();
     }
   });
+  // right-click on a data cell opens the same cell menu as its ⋯
+  document.addEventListener("contextmenu", (e) => {
+    const td = e.target.closest && e.target.closest(".wbt tbody tr.wbr > td");
+    if (!td) return;
+    const key = headerKey(td.closest("table"), td.cellIndex);
+    if (!key || key === "thumb") return;
+    e.preventDefault();
+    const btn = cellButton();
+    if (btn.parentElement !== td) td.appendChild(btn);
+    window.dispatchEvent(new CustomEvent("wb-cellmenu", { detail: { btn } }));
+  });
   document.addEventListener("mouseout", (e) => {
     const table = e.target.closest && e.target.closest(".wbt");
     if (table && !(e.relatedTarget && table.contains(e.relatedTarget))) {
@@ -299,14 +310,43 @@
       menu: null,            // the open column menu: { key, label, target, groupable, x, y }
       openCellMenu(btn) {
         if (this.menu && this.menu.cell && this.menu.btn === btn && this.menu.td === btn.parentElement) { this.menu = null; return; }
-        const r = btn.getBoundingClientRect();
-        this.menu = { cell: true, btn, td: btn.parentElement, key: "__cell", label: "Cell menu",
-                      x: Math.max(8, Math.min(r.right - 256, window.innerWidth - 264)), y: r.bottom + 4 };
+        const r = btn.getBoundingClientRect(), td = btn.parentElement, tr = td.parentElement;
+        const th = tr.closest("table").tHead.rows[0].cells[td.cellIndex];
+        const value = [...td.childNodes].filter((n) => n !== btn).map((n) => n.textContent).join("").trim();
+        this.menu = { cell: true, btn, td, key: th.dataset.key, label: th.dataset.label || th.dataset.key, target: th.dataset.target,
+                      fid: tr.dataset.rowid, value: value === "—" ? "" : value, isRef: tr.classList.contains("wbr--userref"),
+                      x: Math.max(8, Math.min(r.right - 304, window.innerWidth - 312)), y: r.bottom + 4 };
+      },
+      // cell actions (⋯ or right-click): filter by the value, apply it to group / selection / all, reference row
+      cellAct(action, extra = {}) {
+        const m = this.menu; this.menu = null;
+        postView({ action, fid: m.fid, key: m.key, ...extra });
+      },
+      cellEdit: { label: "", value: "", fid: "", key: "" },
+      openCellEdit() {
+        const m = this.menu; this.menu = null;
+        this.cellEdit = { label: m.label, value: m.value, fid: m.fid, key: m.key };
+        this.dialog = "celledit"; this.$nextTick(() => this.$refs.celledit && this.$refs.celledit.select());
+      },
+      saveCellEdit() {
+        postView({ action: "cell_set", fid: this.cellEdit.fid, key: this.cellEdit.key, value: this.cellEdit.value });
+        this.close();
+      },
+      // header: Filter by value — the column's distinct values, most frequent first
+      vals: { key: "", label: "", q: "", items: [] },
+      openValues(m) {
+        this.vals = { key: m.key, label: m.label, q: "", items: [] };
+        this.dialog = "values";
+        fetch(`/wb/values?key=${encodeURIComponent(m.key)}`).then((r) => r.json()).then((d) => { this.vals.items = d.values; });
+      },
+      pickValue(v) {
+        postView(v === "" ? { action: "filter_add", key: this.vals.key, op: "empty" } : { action: "filter_add", key: this.vals.key, op: "equals", value: v });
+        this.close();
       },
       openMenu(d, btn) {
         if (this.menu && this.menu.key === d.key) { this.menu = null; return; }
         const r = btn.getBoundingClientRect();
-        this.menu = { ...d, x: Math.max(8, Math.min(r.right - 256, window.innerWidth - 264)), y: r.bottom + 4 };
+        this.menu = { ...d, x: Math.max(8, Math.min(r.right - 304, window.innerWidth - 312)), y: r.bottom + 4 };
       },
       openFilter(d, op = "contains") { this.f = { key: d.key, label: d.label, op, value: "" }; this.dialog = "filter"; },
       openEdit(d) { this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit"; },

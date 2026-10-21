@@ -149,3 +149,27 @@ def test_key_date_fields_first_and_xmp_date_read(tmp_path):
     assert [c[0] for c in cols] == ["thumb", "path", "key_created", "date"]
     view = wb.load_view_from({"v": 4, "columns": [["thumb", 48], ["key_dto", 200], ["key_created", 168], ["path", 248], ["date", 160]]})
     assert view["columns"] == [["thumb", 48], ["path", 248], ["key_dto", 200], ["key_created", 168], ["date", 160]]
+
+
+def test_cell_actions_scope_overrides_and_reference(lib):
+    view = wb.load_view(lib)
+    groups, _, _ = wb.table(lib, view)
+    g = _group_with(groups, "prague castle.jpg")
+    castle = next(r for r in g.rows if r["v"]["filename"] == "prague castle.jpg")
+    other = next(r for r in g.rows if r is not castle)
+    assert wb.edit_target("key_dto") == "date" and wb.edit_target("place") == "place" and wb.edit_target("lens") is None
+    # "apply this value to its group": only the group's files change, the others keep theirs
+    view["edits"]["date"] = {"kind": "fixed", "value": "2019-06-02 10:15:30", "ids": [r["id"] for r in g.rows],
+                             "overrides": {str(castle["id"]): "2001-01-01 00:00:00"}}
+    rows, _ = wb.build_rows(lib)
+    wb.apply_edits(rows, view["edits"])
+    by_id = {r["id"]: r for r in rows}
+    assert by_id[other["id"]]["e"]["date"] == "2019-06-02 10:15:30"
+    assert by_id[castle["id"]]["e"]["date"] == "2001-01-01 00:00:00"  # a typed cell value wins
+    outside = next(r for r in rows if r["id"] not in {x["id"] for x in g.rows})
+    assert outside["e"]["date"] == outside["v"]["date"]
+    # "use this row as the reference": differences are measured against it
+    view["ref_ids"] = [castle["id"]]
+    groups, _, _ = wb.table(lib, view)
+    g = _group_with(groups, "prague castle.jpg")
+    assert g.ref["id"] == castle["id"] and next(r for r in g.rows if r["id"] == castle["id"])["user_ref"]

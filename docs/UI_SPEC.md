@@ -179,8 +179,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   artist/copyright under Author, exposure/ISO/focal length under Capture settings, size/orientation under File, the rest under Other). *+* opens the searchable picker (up to 1040 px wide): one plain checkbox per field, grouped by category; tick to show, untick to hide (applies at once, the picker stays open), with a count of shown columns. Categories are listed File, Duplicates, Dates, Location, Device, Author, Capture settings, Other, and the table follows that order: a newly shown column lands in its place (an edit column right after the field it edits), and *Order like this list* sorts the shown columns the same way (dragging can still reorder them). Each category title has a checkbox (all / some / none) that shows or hides the whole category, and the header has *Select all*, *None* and a × to close; while searching, all of these act only on the fields found. Width (drag the right edge of a header), order
   (drag a header label: a strong 4 px accent line with round ends, running the full table height, shows where it lands and the target header is tinted; the left half of a header drops before it, the right half after it, including at the end) and visibility are saved per library (`workbench_view` setting).
 - **Header ⋯ button** (same look as the cell ⋯ button; shown only while hovering the header, while its menu is open or when focused) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
-  clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
-  (*contains*), Show groups where it differs; *Change*: Edit… (new purple column), Group by this (Path, Date, Device,
+  clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter by value… (the column's
+  values with counts, most frequent first, searchable; picking one adds an *is* filter), Filter…, Search in this
+  column… (*contains*), Show groups where it differs; *Change*: Edit these values… (new purple column), Group by this (Path, Date, Device,
   Place, Dup.). *Remove* (top right, next to the column name) takes the column out of the table; section labels are a lighter grey than the items. Clicking the label toggles the sort; drag the label to move the column.
 - **Filters** (bar above the table, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
   differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
@@ -273,8 +274,17 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Hover:** a light tint on the row and the column under the pointer, a stronger tint and outline on the cell; the
   column header lights up too. The same works on the header row: hovering a header tints the header row, the
   column and that header cell. Tints are overlays, so they also work on purple and group rows.
-- **Cell menu:** hovering a data cell shows **⋯** on its right (not in the checkbox, grouping └ or thumbnail columns); it opens the menu sheet titled *Cell menu* (empty for now,
-  reserved for per-cell actions). One button is reused and moved into the hovered cell, so large tables stay light.
+- **Cell menu:** hovering a data cell shows **⋯** on its right (not in the checkbox, grouping └ or thumbnail
+  columns); it, or a right-click on the cell, opens a sheet titled with the column and the value:
+  - *Filter this column by this value* (an empty cell filters on “is empty”);
+  - *Change* — only date, place and device values can be changed, because plans write only those (other columns
+    show these items disabled): *Edit this value…* (a dialog; the value applies to this file only),
+    *Remove this value* (disabled: plans cannot clear a metadata value yet), *Apply this value to its group /
+    the selection (n) / all rows*. Each fills the purple edit column of that field, inserted right of the clicked
+    column, as a preview; nothing changes until *Save edits* and a plan. A value typed for one file wins over a
+    rule; a rule limited to a group or a selection leaves the other files at their current value.
+  - *Compare*: *Use this row as the reference of its group* (★ in the expander column; red / green and the
+    confidence notes compare against it) or *Stop using this row as the reference*.
 - **Navigation:** the left navigation is hidden on the Workbench to give the table the full width; the sidebar icon
   left of the title shows or hides it.
 - 60 groups load at a time as you scroll. The table scrolls in its own box with a sticky header.

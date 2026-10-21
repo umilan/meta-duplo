@@ -97,7 +97,8 @@ DEFAULT_VIEW = {
     "sources_off": [],        # source ids left out of the view (Data input checkboxes)
     "group_width": 232,       # width of the grouping (tree) column
     "sort": ["", "asc"],
-    "slim": {},               # column key → True (collapsed to 40px) / False (kept wide); unset: slim when empty
+    "slim": {},
+    "ref_ids": [],            # files chosen as the reference row of their group (red / green compare against them)               # column key → True (collapsed to 40px) / False (kept wide); unset: slim when empty
     "q": "",
     "colors": True,
 }
@@ -385,7 +386,10 @@ def _shift(value: str, seconds: int) -> str:
 
 
 def apply_edits(rows: list[dict], edits: dict) -> None:
-    """Compute each row's edit-column values (r['e'])."""
+    """Compute each row's edit-column values (r['e']).
+
+    A rule may be limited to some files ("ids": the others keep their value) and may carry per-file values typed
+    in a cell ("overrides": file id → value); "keep" is a rule that only holds such overrides."""
     for r in rows:
         v, e = r["v"], {}
         for target in ("date", "place", "device"):
@@ -394,7 +398,9 @@ def apply_edits(rows: list[dict], edits: dict) -> None:
                 continue
             kind = rule.get("kind")
             rec = v[f"rec_{target}"] or v[target]
-            if kind == "recommended":
+            if kind == "keep" or (rule.get("ids") is not None and r["id"] not in rule["ids"]):
+                e[target] = v[target]
+            elif kind == "recommended":
                 e[target] = rec
             elif kind == "column":
                 e[target] = str(v.get(rule.get("column", ""), "") or "")
@@ -414,7 +420,34 @@ def apply_edits(rows: list[dict], edits: dict) -> None:
             }
             new = harmonize.render_name(pattern, values, r["original_name"], r["ext_raw"])
             e["filename"] = new if new is not None else ""
+            if edits["filename"].get("kind") == "keep":
+                e["filename"] = v["filename"]
+        for target, rule in edits.items():  # values typed into single cells win
+            typed = (rule.get("overrides") or {}).get(str(r["id"]))
+            if typed is not None:
+                e[target] = typed
         r["e"] = e
+
+
+# Cell actions: which edit column a cell's value can feed (None = not editable yet; plans write these four only)
+def edit_target(key: str) -> str | None:
+    if key.startswith("edit:"):
+        return key[5:]
+    if key in ("place", "rec_place"):
+        return "place"
+    if key in ("device", "rec_device"):
+        return "device"
+    f = field_for(key)
+    if f and (f.kind == "date" or (key.startswith("exif:") and f.group == "Dates" and "Offset" not in key and "Subsec" not in key)):
+        return "date"
+    return None
+
+
+def cell_value(r: dict, key: str) -> str:
+    """A cell's value as an edit value: dates in 'YYYY-MM-DD HH:MM:SS'."""
+    val = value(r, key)
+    val = "" if val is None else str(val)
+    return _readable_date(val)[:19] if edit_target(key) == "date" else val
 
 
 def value(r: dict, key: str):
@@ -476,6 +509,7 @@ class Group:
 def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
     """Grouped, compared, filtered and sorted rows for the current view."""
     rows, exif_keys = build_rows(lib)
+    ref_ids = set(view.get("ref_ids") or [])
     off = set(view.get("sources_off") or [])
     rows = [r for r in rows if r["source_id"] not in off]
     apply_edits(rows, view["edits"])
@@ -506,11 +540,13 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
             rs[:] = ordered(rs, lambda r: r)
         else:
             rs.sort(key=lambda r: (not r["keeper"], r["v"]["path"].lower(), r["v"]["filename"].lower()))
-        ref = next((r for r in rs if r["keeper"]), rs[0]) if by == "dups" else rs[0]
+        chosen = next((r for r in rs if r["id"] in ref_ids), None)  # "use this cell as reference"
+        ref = chosen or (next((r for r in rs if r["keeper"]), rs[0]) if by == "dups" else rs[0])
         unrelated = gk == SINGLES  # files without copies: nothing to compare
         for r in rs:  # differences against the group's reference row
             r["diff"] = {k: not unrelated and len(rs) > 1 and r is not ref and str(value(r, k)) != str(value(ref, k)) for k in keys}
             r["is_ref"] = r is ref
+            r["user_ref"] = r is chosen
             if by == "dups" and not unrelated and r["dup"]:
                 r["dup_explain"] = explain_diff(r, ref)
             r["path_parts"] = _path_diff(r["v"]["path"], ref["v"]["path"], r is ref or len(rs) == 1)

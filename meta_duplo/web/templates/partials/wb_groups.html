@@ -23,12 +23,12 @@
   </tr>
   {% endif %}
   {% for r in g.rows %}
-  <tr class="wbr" data-rowid="{{ r.id }}" x-show="open"
+  <tr class="wbr {{ 'wbr--userref' if r.user_ref }}" data-rowid="{{ r.id }}" x-show="open"
       :class="{ 'wbr--selected': $store.wb.has({{ r.id }}), 'wbr--active': $store.wb.active === {{ r.id }} }"
       hx-get="/wb/preview/{{ r.id }}" hx-target="#wb-preview" hx-trigger="click, wb-show" @click="$store.wb.active = {{ r.id }}; $dispatch('wb-preview')">
     <td class="wbt__check" @click.stop><input type="checkbox" aria-label="Select {{ r.v.filename }}" :checked="$store.wb.has({{ r.id }})"
         @change="$store.wb.toggle({{ r.id }}); if ($event.target.checked) { $store.wb.active = {{ r.id }}; htmx.trigger($el.closest('tr'), 'wb-show'); $dispatch('wb-preview') }"></td>
-    {% if tree %}<td class="wbt__tree" aria-hidden="true">└</td>{% endif %}
+    {% if tree %}<td class="wbt__tree {{ 'is-userref' if r.user_ref }}"{% if r.user_ref %} title="Reference of this group (red / green compare against it)"{% endif %}>{{ '★' if r.user_ref else '└' }}</td>{% endif %}
     {% for c in cols %}
     {% set d = r.diff.get(c.key) %}
     {% if c.key == 'thumb' %}

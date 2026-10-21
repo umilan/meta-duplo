@@ -400,7 +400,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 cat = (wb.field_for(wb.EDIT_BASE.get(key[5:], "")) or f).group if key.startswith("edit:") else f.group
                 cat_start, prev_cat = bool(cols) and cat != prev_cat, cat  # a divider where the category changes
                 cols.append({"key": key, "label": f.label, "kind": f.kind, "slim": slim, "empty": empty, "cat_start": cat_start,
-                             "abbr": wb.acronym(f.label),
+                             "abbr": wb.acronym(f.label), "apply_target": wb.edit_target(key) or "",
                              "width": wb.SLIM_WIDTH if slim else wb.snap(width),
                              "target": target, "edit": key.startswith("edit:"),
                              "groupable": {"path": "folder", "date": "day", "device": "device", "place": "place",
@@ -437,6 +437,21 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
     def wb_more(request: Request, offset: int = 0):
         return templates.TemplateResponse(request, "partials/wb_groups.html", wb_ctx(offset))
 
+    @app.get("/wb/values")
+    def wb_values(key: str = ""):
+        """Distinct values of a column in the current view, most frequent first (Filter by value)."""
+        if not wb.field_for(key):
+            return {"values": []}
+        groups, _, _ = wb.table(lib, wb.load_view(lib))
+        count: dict[str, int] = {}
+        for g in groups:
+            for r in g.rows:
+                v = wb.value(r, key)
+                s = "" if v in (None, "") else str(v)
+                count[s] = count.get(s, 0) + 1
+        top = sorted(count.items(), key=lambda kv: (-kv[1], kv[0]))[:300]
+        return {"values": [{"value": v, "count": n} for v, n in top]}
+
     @app.post("/wb/view")
     async def wb_view(request: Request):
         """Every change to the view (sort, group, filters, columns, edit rules) goes through here."""
@@ -447,6 +462,16 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         cols = view["columns"]
         keys = [c[0] for c in cols]
         reload = True
+
+        def add_edit_column(t: str, after: str = "") -> None:
+            """The purple column of an edit rule: right after the column it came from (or its source field)."""
+            ekey, ks = f"edit:{t}", [c[0] for c in cols]
+            if ekey in ks:
+                return
+            base = after if after in ks else wb.EDIT_BASE[t]
+            at = ks.index(base) + 1 if base in ks else len(cols)
+            cols.insert(at, [ekey, 304 if t == "filename" else 176])
+
         if act == "sort":
             view["sort"] = [f.get("key", ""), f.get("dir", "asc")]
         elif act == "group":
@@ -506,12 +531,40 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             elif kind == "shift":
                 secs = int(f.get("hh") or 0) * 3600 + int(f.get("mm") or 0) * 60 + int(f.get("ss") or 0)
                 rule.update(column=f.get("shift_column") or "date", seconds=-secs if f.get("sign") == "-" else secs)
-            view["edits"][t] = rule
-            ekey = f"edit:{t}"
-            if ekey not in keys:  # the edit column goes right after its source column
-                base = wb.EDIT_BASE[t]
-                at = keys.index(base) + 1 if base in keys else len(cols)
-                cols.insert(at, [ekey, 300 if t == "filename" else 170])
+            view["edits"][t] = {**rule, "overrides": view["edits"].get(t, {}).get("overrides", {})}
+            add_edit_column(t)
+        elif act in ("cell_filter", "cell_ref", "cell_apply", "cell_set") and f.get("fid", "").isdigit():
+            fid, key = int(f["fid"]), f.get("key", "")
+            if act == "cell_ref":  # use this row as the reference of its group (or stop)
+                refs = set(view.get("ref_ids") or [])
+                view["ref_ids"] = sorted(refs ^ {fid})
+            elif wb.field_for(key):
+                rows, _ = wb.build_rows(lib)
+                wb.apply_edits(rows, view["edits"])
+                r = next((x for x in rows if x["id"] == fid), None)
+                t = wb.edit_target(key)
+                if r is None:
+                    pass
+                elif act == "cell_filter":  # only rows with this value in this column
+                    val = wb.value(r, key)
+                    empty = val in ("", None)
+                    view["filters"].append({"key": key, "op": "empty" if empty else "equals", "value": "" if empty else str(val)})
+                elif act == "cell_set" and t and t != "filename":  # a value typed for this one file
+                    rule = view["edits"].setdefault(t, {"kind": "keep"} if t != "filename" else {"kind": "keep", "pattern": ""})
+                    rule.setdefault("overrides", {})[str(fid)] = f.get("value", "").strip()
+                    add_edit_column(t, key)
+                elif act == "cell_apply" and t and t != "filename":  # this value for the group / selection / all
+                    scope = f.get("scope")
+                    if scope == "group":
+                        groups, _, _ = wb.table(lib, view)
+                        ids = next(([x["id"] for x in g.rows] for g in groups if any(x["id"] == fid for x in g.rows)), [fid])
+                    elif scope == "selection":
+                        ids = sorted(_ids(f.get("ids", "")) | {fid})
+                    else:
+                        ids = None
+                    view["edits"][t] = {"kind": "fixed", "value": wb.cell_value(r, key), "ids": ids,
+                                        "overrides": view["edits"].get(t, {}).get("overrides", {})}
+                    add_edit_column(t, key)
         elif act == "edit_remove" and f.get("target") in wb.EDIT_LABELS:
             view["edits"].pop(f["target"], None)
             view["columns"] = [c for c in cols if c[0] != f"edit:{f['target']}"]

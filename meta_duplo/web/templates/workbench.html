@@ -142,7 +142,22 @@
        :style="menu ? `left: ${menu.x}px; top: ${menu.y}px` : ''"
        @mousedown.outside="menu = null" @keydown.escape.window="menu = null" @resize.window="menu = null">
     <template x-if="menu && menu.cell">
-      <div><div class="wbsheet__title">Cell menu</div></div>
+      <div>
+        <div class="wbsheet__title" :title="menu.value"><span x-text="menu.label"></span>: <span class="muted" x-text="menu.value || '—'"></span></div>
+        <button type="button" role="menuitem" @click="cellAct('cell_filter')">Filter this column by this value</button>
+        <div class="wbsheet__section">Change</div>
+        <button type="button" role="menuitem" :disabled="!menu.target" :title="menu.target ? '' : 'Only date, place and device values can be changed (plans write those)'"
+                @click="openCellEdit()">Edit this value…</button>
+        <button type="button" role="menuitem" disabled title="Not yet: plans cannot clear a metadata value">Remove this value</button>
+        <button type="button" role="menuitem" :disabled="!menu.target" @click="cellAct('cell_apply', { scope: 'group' })">Apply this value to its group
+          <span class="pick__hint">a purple column next to this one previews the new values</span></button>
+        <button type="button" role="menuitem" :disabled="!menu.target || !$store.wb.count" @click="cellAct('cell_apply', { scope: 'selection', ids: $store.wb.csv() })"
+                x-text="'Apply this value to the selection (' + $store.wb.count + ')'">Apply this value to the selection</button>
+        <button type="button" role="menuitem" :disabled="!menu.target" @click="cellAct('cell_apply', { scope: 'all' })">Apply this value to all rows</button>
+        <div class="wbsheet__section">Compare</div>
+        <button type="button" role="menuitem" @click="cellAct('cell_ref')"
+                x-text="menu.isRef ? 'Stop using this row as the reference' : 'Use this row as the reference of its group'"></button>
+      </div>
     </template>
     <template x-if="menu && !menu.cell">
       <div>
@@ -153,12 +168,14 @@
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'asc' }); menu = null">↑ Ascending (A → Z, old → new)</button>
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'desc' }); menu = null">↓ Descending (Z → A, new → old)</button>
         <div class="wbsheet__section">Find</div>
+        <button type="button" role="menuitem" @click="openValues(menu); menu = null">Filter by value…
+          <span class="pick__hint">choose from the values in this column</span></button>
         <button type="button" role="menuitem" @click="openFilter(menu); menu = null">Filter…</button>
-        <button type="button" role="menuitem" @click="openFilter(menu, 'contains'); menu = null">Search…</button>
+        <button type="button" role="menuitem" @click="openFilter(menu, 'contains'); menu = null">Search in this column…</button>
         <button type="button" role="menuitem" @click="openFilter(menu, 'diff'); menu = null">Show groups where it differs</button>
         <div class="wbsheet__section">Change</div>
         <button type="button" role="menuitem" :disabled="!menu.target" :title="menu.target ? '' : 'Editing this field is not supported yet'"
-                @click="openEdit({ target: menu.target, kind: 'recommended' }); menu = null">Edit… <span class="muted small">(new purple column)</span></button>
+                @click="openEdit({ target: menu.target, kind: 'recommended' }); menu = null">Edit these values… <span class="muted small">(new purple column)</span></button>
         <template x-if="menu.groupable">
           <button type="button" role="menuitem" @click="post({ action: 'group', group: menu.groupable }); menu = null">Group by this</button>
         </template>
@@ -169,6 +186,26 @@
   {# ── dialogs ── #}
   <div class="modal" x-show="dialog" x-cloak @keydown.escape.window="close()">
     <div class="modal__backdrop" @click="close()"></div>
+    <div class="modal__box" x-show="dialog === 'values'">
+      <div class="colpick-head"><h3 x-text="'Filter by value: ' + vals.label"></h3>
+        <button type="button" class="btn btn--icon btn--small modal__close" @click="close()" aria-label="Close">×</button></div>
+      <input type="search" placeholder="Search values" x-model="vals.q" aria-label="Search values">
+      <div class="valuelist">
+        <template x-for="it in vals.items.filter(i => !vals.q || i.value.toLowerCase().includes(vals.q.toLowerCase()))" :key="it.value">
+          <button type="button" class="valuelist__item" @click="pickValue(it.value)">
+            <span x-text="it.value === '' ? '(empty)' : it.value" :class="it.value === '' && 'muted'"></span><span class="muted" x-text="it.count"></span>
+          </button>
+        </template>
+        <p class="muted small" x-show="!vals.items.length">Loading…</p>
+      </div>
+    </div>
+    <div class="modal__box" x-show="dialog === 'celledit'">
+      <h3 x-text="'Edit ' + cellEdit.label"></h3>
+      <p class="small muted">Only for this file. The new value shows in a purple column next to this one; nothing changes on disk until you save the edits and apply a plan.</p>
+      <input type="text" x-model="cellEdit.value" x-ref="celledit" @keydown.enter.prevent="saveCellEdit()" aria-label="New value">
+      <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button>
+        <button type="button" class="btn btn--primary" @click="saveCellEdit()">Preview the change</button></div>
+    </div>
 
     <form class="modal__box" x-show="dialog === 'filter'" hx-post="/wb/view" hx-swap="none" @submit="close()">
       <h3>Add filter</h3>
