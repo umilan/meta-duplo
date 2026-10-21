@@ -47,9 +47,6 @@
             <span>Add new folders as writable <span class="pick__hint">(approved plans may move and rename files there)</span></span></label>
         </div>
       </div>
-    </div>
-
-    <div class="results-toolbar wb-pad">
       <div class="pick" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
         <span class="wbbar__label" id="group-label">Grouping by</span>
         <button type="button" class="selectbtn" aria-labelledby="group-label" aria-haspopup="menu" :aria-expanded="open.toString()"
@@ -79,9 +76,14 @@
                   @click="sortBy($store.wb.sort[0], 'desc'); open = false">Descending ↓</button>
         </div>
       </div>
-      <div class="searchfield" x-data='{ q: {{ view.q|tojson }} }'>
-        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <input type="search" placeholder="Search…" title="Search path, filename and new filename" aria-label="Search" x-model="q"
+      <div class="searchfield" x-data='{ q: {{ view.q|tojson }}, open: false }' :class="(open || q) && 'is-open'"
+           @click.outside="if (!q) open = false">
+        <button type="button" class="searchfield__btn" aria-label="Search" title="Search path, filename and new filename"
+                @click="open = true; $nextTick(() => $refs.q.focus())">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <input type="search" x-ref="q" placeholder="Search…" title="Search path, filename and new filename" aria-label="Search" x-model="q"
+               @keydown.escape="if (!q) open = false"
                @input.debounce.400ms="post({ action: 'q', q })">
         <button type="button" class="searchfield__clear" x-show="q" x-cloak aria-label="Clear search" @click="q = ''; post({ action: 'q', q: '' })">×</button>
       </div>

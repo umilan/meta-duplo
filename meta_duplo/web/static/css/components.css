@@ -285,11 +285,11 @@
 .wb-main { min-width: 0; }
 .wb-title { margin: 0 var(--space-200) 0 0; white-space: nowrap; }
 /* workbench header (user mockup): title + data input, then grouping / sort / search, then filters + selection / action */
-.wbbar { display: flex; align-items: center; gap: var(--space-200); padding-top: var(--space-200); margin-bottom: var(--space-200); }
+.wbbar { display: flex; align-items: center; gap: var(--space-200); padding-top: var(--space-200); margin-bottom: var(--space-200); container: wbbar / inline-size; position: relative; z-index: 35; }  /* containment makes a stacking context: keep its sheets above the table */
 .wbbar.wb-pad { padding-right: var(--space-800); }  /* room for the settings button */
 .wbbar .navtoggle { margin-right: calc(-1 * var(--space-100)); }
 .wbbar__label, .results-toolbar label, .filters label, .filters__label { color: var(--muted); font-weight: 600; white-space: nowrap; }
-.datain { position: relative; flex: 1; min-width: 0; }
+.datain { position: relative; flex: 1 1 240px; min-width: 128px; }
 .datain__field { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); width: 100%; height: var(--control-h);
   padding: 0 var(--space-100); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); cursor: pointer; text-align: left; }
 .datain__field:hover, .datain__field[aria-expanded="true"] { border-color: var(--accent); }
@@ -321,13 +321,28 @@
 .wbsheet [role=menuitemradio]:has(.pick__hint)::before { top: calc(var(--space-050) + var(--space-050)); }
 .wbsheet [role=menuitemradio][aria-checked="true"]::before { border: var(--space-050) solid var(--accent); }
 .wbsheet [role=menuitemradio][aria-checked="true"] { font-weight: 600; }
-.searchfield { position: relative; flex: 1; min-width: 208px; display: flex; align-items: center; }
-.searchfield svg { position: absolute; left: var(--space-100); width: var(--icon); height: var(--icon); color: var(--muted); pointer-events: none; }
+.searchfield { position: relative; flex: 0 1 240px; min-width: 176px; display: flex; align-items: center; }
+/* the magnifier: an icon inside the field when there is room, the whole search (a 32px button) when there is not */
+.searchfield__btn { position: absolute; left: 0; display: grid; place-items: center; width: var(--control-h); height: var(--control-h);
+  padding: 0; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--muted); pointer-events: none; }
+.searchfield__btn svg { width: var(--icon); height: var(--icon); }
 .searchfield input { width: 100%; padding-left: var(--space-400); padding-right: var(--space-400); }
 .searchfield input::-webkit-search-cancel-button { appearance: none; -webkit-appearance: none; }
 .searchfield__clear { position: absolute; right: var(--space-050); display: grid; place-items: center; width: var(--control-h-sm); height: var(--control-h-sm);
   border: 0; border-radius: var(--radius-sm); background: none; color: var(--muted); font-size: var(--text-lg); line-height: 1; cursor: pointer; }
 .searchfield__clear:hover { background: var(--surface-2); color: var(--text); }
+/* one header row: when it gets tight, search becomes a button (it opens in place) and then the labels go */
+@container wbbar (max-width: 1240px) {
+  .searchfield { flex: none; min-width: 0; }
+  .searchfield:not(.is-open) input, .searchfield:not(.is-open) .searchfield__clear { display: none; }
+  .searchfield:not(.is-open) .searchfield__btn { position: static; pointer-events: auto; cursor: pointer; border-color: var(--line-strong); background: var(--surface); }
+  .searchfield:not(.is-open) .searchfield__btn:hover { color: var(--accent); border-color: var(--accent); }
+  .searchfield.is-open { width: 240px; }
+  .selectbtn { min-width: 128px; }
+}
+@container wbbar (max-width: 1040px) {
+  .wbbar .wbbar__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }  /* still named for screen readers */
+}
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); margin: 0 0 var(--space-200); }
 .filters label { display: inline-flex; align-items: center; gap: var(--space-100); }
 .fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h); padding: 0 var(--space-050) 0 var(--space-100); border: 0; background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 600; color: var(--muted); }
