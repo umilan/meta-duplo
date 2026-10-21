@@ -20,7 +20,7 @@
   </tr>
   {% endif %}
   {% for r in g.rows %}
-  <tr class="wbr {{ 'wbr--ref' if r.is_ref and g.rows|length > 1 }}" data-rowid="{{ r.id }}" x-show="open"
+  <tr class="wbr" data-rowid="{{ r.id }}" x-show="open"
       :class="{ 'wbr--selected': $store.wb.has({{ r.id }}), 'wbr--active': $store.wb.active === {{ r.id }} }"
       hx-get="/wb/preview/{{ r.id }}" hx-target="#wb-preview" hx-trigger="click, wb-show" @click="$store.wb.active = {{ r.id }}; $dispatch('wb-preview')">
     <td class="wbt__check" @click.stop><input type="checkbox" aria-label="Select {{ r.v.filename }}" :checked="$store.wb.has({{ r.id }})"

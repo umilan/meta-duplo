@@ -267,7 +267,6 @@
 .navtoggle:hover { color: var(--accent); border-color: var(--accent); }
 .wbt tbody .wbr--selected > td { background-color: var(--sel); }
 .wbt tbody .wbr--active > td { background-color: var(--sel-active); }
-.wbr--ref td:nth-child(2) { box-shadow: inset 3px 0 0 var(--keeper); }
 .wbg__label .chev { margin-right: 4px; }
 .wbt--colors .is-diff { color: var(--differ); }
 .wbt--colors .is-same { color: var(--same); }
