@@ -68,6 +68,7 @@
 
   // Keyboard: a cell cursor in the table. ↑ ↓ rows, ← → columns; Enter ticks the row, Space shows it in the
   // preview (on a group row: folds it), ⌥/Ctrl/⌘+Enter opens the cell's ⋯ menu, Esc leaves the cursor.
+  // Shift+↑/↓ ticks while moving, X ticks or unticks and moves down, ⌘/Ctrl+A ticks every row of the view.
   const kb = { rowid: null, row: null, col: -1 };
   const visibleRows = () => [...document.querySelectorAll("#wb-table .wbt tbody tr")]
     .filter((tr) => tr.offsetParent !== null && (tr.classList.contains("wbr") || tr.classList.contains("wbg__head")));
@@ -96,6 +97,24 @@
     let i = rows.indexOf(kb.row);
     const has = i >= 0 && cursorCell();
     const first = () => setCursor(rows[0], 3);
+    const store = Alpine.store("wb");
+    const tick = (tr) => { if (tr && tr.classList.contains("wbr")) store.setMany([Number(tr.dataset.rowid)], true); };
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "a") {  // ⌘/Ctrl+A: every row of the view
+      e.preventDefault(); store.selectAll(true); return;
+    }
+    if (e.shiftKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {  // extend the ticks while moving
+      e.preventDefault();
+      if (!has) { first(); tick(rows[0]); return; }
+      tick(kb.row);
+      const next = rows[e.key === "ArrowDown" ? Math.min(i + 1, rows.length - 1) : Math.max(i - 1, 0)];
+      setCursor(next, kb.col); tick(next); return;
+    }
+    if (e.key.toLowerCase() === "x" && !e.metaKey && !e.ctrlKey && !e.altKey) {  // tick / untick, then next row
+      e.preventDefault();
+      if (!has) { first(); return; }
+      kb.row.querySelector("td.wbt__check input")?.click();
+      setCursor(rows[Math.min(i + 1, rows.length - 1)], kb.col); return;
+    }
     switch (e.key) {
       case "ArrowDown": e.preventDefault(); has ? setCursor(rows[Math.min(i + 1, rows.length - 1)], kb.col) : first(); return;
       case "ArrowUp": e.preventDefault(); has ? setCursor(rows[Math.max(i - 1, 0)], kb.col) : first(); return;

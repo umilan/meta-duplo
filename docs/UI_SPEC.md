@@ -212,7 +212,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Keyboard:** a cell cursor (2 px accent frame, row tinted). ↑ ↓ move between visible rows (group and file rows),
   ← → between columns; the first arrow starts at the top. *Enter* ticks or unticks the row (a group row: the whole
   group); *Space* shows the file in the preview panel (a group row: folds or unfolds it); *⌥/Ctrl/⌘ + Enter* opens
-  the cell's ⋯ menu; *Esc* closes an open menu first, then leaves the cursor. Clicking a cell moves the cursor there;
+  the cell's ⋯ menu; *Shift + ↑ / ↓* ticks file rows while moving (group rows are passed, not ticked); *X* ticks or
+  unticks the row and moves down; *⌘ / Ctrl + A* ticks every row of the view (Selection → All); *Esc* closes an open
+  menu first, then leaves the cursor. Clicking a cell moves the cursor there;
   after a reload it returns to the same file. Keys typed in fields, menus and dialogs are left alone.
 - **Scroll position:** reloading the table (sort, filter, column changes) keeps its sideways scroll position.
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
