@@ -409,6 +409,13 @@
 .wbh-cell--edit .wbh__label { color: var(--edit-text); }
 .wbh-cell--tree .wbh__label { cursor: default; }
 .wbh-cell.is-dragging { opacity: .48; }
+/* slim (collapsed) column: 40px, the header keeps only its tooltip; the name shows at once on hover */
+.wbh-cell.is-slim .wbh > :not(.wbh__resize) { display: none; }
+.wbh-cell.is-slim .wbh__resize { display: none; }
+.wbh-cell.is-slim:hover::after { content: attr(data-tip); position: absolute; top: calc(100% + var(--space-050)); left: 0; z-index: 50;
+  padding: var(--space-050) var(--space-100); border-radius: var(--radius-sm); background: var(--text); color: var(--bg);
+  font-size: var(--text-sm); line-height: var(--line-sm); font-weight: 400; white-space: nowrap; pointer-events: none; }
+.wbh-cell.is-slim .wbh { cursor: pointer; }
 .wbt td[data-sorted] { font-weight: 600; }
 /* filtered and sorted columns: an accent outline down the whole column (header included) */
 .wbt :is([data-filtered], td[data-sorted], th[aria-sort]) { box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent); }

@@ -388,12 +388,17 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         if view["group"] in wb.GROUP_COLUMN:
             label, name_col = wb.GROUP_COLUMN[view["group"]]
             tree = {"label": label, "name_col": name_col, "width": wb.TREE_WIDTH}
+        # a column nobody has a value in is never dropped, only collapsed to a slim one (double-click toggles)
+        rows = [r for g in groups for r in g.rows]
         cols = []
         for key, width in view["columns"]:
             f = wb.field_for(key)
             if f:
                 target = key[5:] if key.startswith("edit:") else f.editable
-                cols.append({"key": key, "label": f.label, "kind": f.kind, "width": wb.snap(width),
+                empty = f.kind != "special" and not any(wb.value(r, key) not in ("", None) for r in rows)
+                slim = view.get("slim", {}).get(key, empty)
+                cols.append({"key": key, "label": f.label, "kind": f.kind, "slim": slim, "empty": empty,
+                             "width": wb.SLIM_WIDTH if slim else wb.snap(width),
                              "target": target, "edit": key.startswith("edit:"),
                              "groupable": {"path": "folder", "date": "day", "device": "device", "place": "place",
                                            "dup_count": "dups", "dup_conf": "dups"}.get(key, "")})
@@ -476,6 +481,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             rest = [c for c in cols if c[0] != f["key"]]
             at = next((i for i, c in enumerate(rest) if c[0] == f.get("before")), len(rest))
             view["columns"] = rest[:at] + [moving] + rest[at:]
+        elif act == "col_slim" and f.get("key") in keys:  # header double-click: collapse / expand
+            view.setdefault("slim", {})[f["key"]] = f.get("on") == "1"
         elif act == "col_width" and f.get("key") == "__group":
             view["group_width"] = max(80, wb.snap(f.get("width", 232)))
             reload = False

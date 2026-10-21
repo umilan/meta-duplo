@@ -97,6 +97,7 @@ DEFAULT_VIEW = {
     "sources_off": [],        # source ids left out of the view (Data input checkboxes)
     "group_width": 232,       # width of the grouping (tree) column
     "sort": ["", "asc"],
+    "slim": {},               # column key → True (collapsed to 40px) / False (kept wide); unset: slim when empty
     "q": "",
     "colors": True,
 }
@@ -105,6 +106,7 @@ GROUP_COLUMN = {  # grouping → (its name, the data column whose group-row cell
     "dups": ("Duplicate set", "filename"), "capture": ("Photo", "filename"), "folder": ("Folder", "path"),
     "day": ("Day", "date"), "device": ("Device", "device"), "place": ("Place", "place"), "author": ("Author", "author"),
 }
+SLIM_WIDTH = 40  # a collapsed column: as narrow as the checkbox column
 TREE_WIDTH = 40  # the expander column (› on group rows, └ on file rows) is as narrow as the checkbox column
 
 

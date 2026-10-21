@@ -74,9 +74,9 @@
       {% endif %}
       {% for c in cols %}
       {% set sorted = view.sort[0] == c.key %}
-      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }} {{ 'wbt__pin' if loop.first and c.key == 'thumb' }}"{{ " data-filtered" if c.key in view.filters|map(attribute="key")|list }} data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}')"
+      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }} {{ 'wbt__pin' if loop.first and c.key == 'thumb' }} {{ 'is-slim' if c.slim }}" data-tip="{{ c.label }}{{ ' (empty)' if c.empty }} — double-click to {{ 'expand' if c.slim else 'collapse' }}"{{ " data-filtered" if c.key in view.filters|map(attribute="key")|list }} data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}', {{ 'true' if c.slim else 'false' }})"
           @dragover.prevent="over($event)" @drop.prevent="drop($event)"{% if sorted %} aria-sort="{{ 'ascending' if view.sort[1] == 'asc' else 'descending' }}"{% endif %}>
-        <div class="wbh {{ 'wbh--sortable' if c.key != 'thumb' }}"{% if c.key != 'thumb' %} @click="sort()"{% endif %}>
+        <div class="wbh {{ 'wbh--sortable' if c.key != 'thumb' }}"{% if c.key != 'thumb' %} @click="clickSort()"{% endif %} @dblclick="toggleSlim()">
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)"
                 title="{{ c.label }} — click to sort, drag to move">{{ c.label|wbr }}</span>
           {% if c.key in key_fields %}<span class="keybadge" title="{{ key_fields[c.key] }}">!</span>{% endif %}

@@ -226,6 +226,11 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   thumbnail. Both carry a red **!** badge. The raw tags they come from are not listed again. Extraction reads
   DateCreated since `RAW_VERSION = 3`; saved views gain the two columns once (`VIEW_VERSION = 4`). They are shown
   only, not yet weighed as capture-time candidates.
+- **Slim columns:** a shown column is never dropped, not even when no file has a value in it: an empty column is
+  collapsed to 40 px (as wide as the checkbox column). Double-clicking any header collapses or expands it (the
+  choice is kept per column in the view, `slim`); a single click still sorts (it waits a moment, so a double-click
+  does not sort). A slim header shows its full name in a tooltip at once on hover, with “(empty)” when it has no
+  values.
 - **Filtered columns** show a funnel icon (accent colour) next to the header text (its tooltip lists the filters)
   and a 2 px accent outline down the whole column, header included.
 - **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name

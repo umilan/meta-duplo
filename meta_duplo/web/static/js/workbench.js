@@ -301,8 +301,12 @@
       },
     }));
 
-    Alpine.data("wbHead", (key, dir, first = "asc") => ({
+    Alpine.data("wbHead", (key, dir, first = "asc", slim = false) => ({
       post: postView,
+      // a click sorts, a double-click collapses / expands: the click waits a moment so a double-click can cancel it
+      clickTimer: null,
+      clickSort() { clearTimeout(this.clickTimer); this.clickTimer = setTimeout(() => this.sort(), 240); },
+      toggleSlim() { clearTimeout(this.clickTimer); postView({ action: "col_slim", key, on: slim ? "" : "1" }); },
       // first click: `first` (numbers start high, so 100 % confidence is on top), then toggle
       sort(d) { postView({ action: "sort", key, dir: d || (dir ? (dir === "asc" ? "desc" : "asc") : first) }); },
       resize(ev) {
