@@ -283,7 +283,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Column groups:** a 2 px divider where a column-picker category begins (File, Duplicates, Dates, Location,
   Device, Author, …), header included.
 - **Table height:** the table reaches down to the bottom edge of the window (no empty band below it).
-- **Large viewer:** clicking the preview image opens it full screen (16 px margin all round). The table
+- **Large viewer:** clicking the preview image (hover: zoom-in cursor, slight dim, “⤢ Open large” badge) opens it full screen (16 px margin all round). The table
   behind keeps the keyboard: ↑ ↓ move the cursor and the viewer follows. A switch at the bottom centre chooses
   *One* (the file alone) or *Duplicate set (n)* (every copy of its set side by side, up to four per row, each with
   its name, confidence and path; ✓ = kept copy, accent frame = the current file). Esc, × or a click outside closes it.

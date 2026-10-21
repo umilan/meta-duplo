@@ -546,7 +546,15 @@
 :root[data-borders] .wbt :is(td, th)[data-catstart] { border-left: 2px solid var(--line-strong); }
 
 /* large viewer: almost the whole window; the table behind keeps the keyboard */
-.preview__img--zoom { cursor: zoom-in; }
+/* preview image: opens the large viewer; the cursor, a dim and a badge show it on hover */
+.preview__zoom { position: relative; display: block; width: 100%; padding: 0; border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; cursor: zoom-in; }
+.preview__zoom .preview__img { display: block; transition: filter .15s; }
+.preview__zoom:hover .preview__img, .preview__zoom:focus-visible .preview__img { filter: brightness(.88); }
+.preview__zoom:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.preview__zoomhint { position: absolute; right: var(--space-100); bottom: var(--space-100); padding: var(--space-025) var(--space-100);
+  border-radius: var(--radius-full); background: color-mix(in srgb, var(--text) 80%, transparent); color: var(--surface); font-size: var(--text-sm); line-height: var(--line-sm);
+  opacity: 0; transition: opacity .15s; pointer-events: none; }
+.preview__zoom:hover .preview__zoomhint, .preview__zoom:focus-visible .preview__zoomhint { opacity: 1; }
 .lightbox { position: fixed; inset: 0; z-index: 55; display: grid; place-items: center; }
 .lightbox__backdrop { position: absolute; inset: 0; background: var(--backdrop); }
 .lightbox__box { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-100);
