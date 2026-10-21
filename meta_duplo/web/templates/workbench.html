@@ -52,6 +52,31 @@
     <div id="wb-preview"><div class="empty small">Click a row to see all of its metadata.</div></div>
   </aside>
 
+  {# ── column menu sheet: page level, so the scrolling table can never clip it ── #}
+  <div class="wbsheet" role="menu" x-show="menu" x-cloak x-transition.opacity.duration.100ms
+       :style="menu ? `left: ${menu.x}px; top: ${menu.y}px` : ''"
+       @mousedown.outside="menu = null" @keydown.escape.window="menu = null" @resize.window="menu = null">
+    <template x-if="menu">
+      <div>
+        <div class="wbsheet__title" x-text="menu.label"></div>
+        <div class="wbsheet__section">Sort by</div>
+        <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'asc' }); menu = null">↑ Ascending (A → Z, old → new)</button>
+        <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'desc' }); menu = null">↓ Descending (Z → A, new → old)</button>
+        <div class="wbsheet__section">Find</div>
+        <button type="button" role="menuitem" @click="openFilter(menu); menu = null">Filter…</button>
+        <button type="button" role="menuitem" @click="openFilter(menu, 'contains'); menu = null">Search…</button>
+        <button type="button" role="menuitem" @click="openFilter(menu, 'diff'); menu = null">Show groups where it differs</button>
+        <div class="wbsheet__section">Change</div>
+        <button type="button" role="menuitem" :disabled="!menu.target" :title="menu.target ? '' : 'Editing this field is not supported yet'"
+                @click="openEdit({ target: menu.target, kind: 'recommended' }); menu = null">Edit… <span class="muted small">(new purple column)</span></button>
+        <template x-if="menu.groupable">
+          <button type="button" role="menuitem" @click="post({ action: 'group', group: menu.groupable }); menu = null">Group by this</button>
+        </template>
+        <button type="button" role="menuitem" @click="post({ action: 'col_remove', key: menu.key }); menu = null">Hide column</button>
+      </div>
+    </template>
+  </div>
+
   {# ── dialogs ── #}
   <div class="modal" x-show="dialog" x-cloak @keydown.escape.window="close()">
     <div class="modal__backdrop" @click="close()"></div>

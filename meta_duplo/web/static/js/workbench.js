@@ -43,6 +43,12 @@
       f: { key: "", op: "contains", value: "", label: "" },
       e: { target: "", kind: "recommended" },
       colQuery: "",
+      menu: null,            // the open column menu: { key, label, target, groupable, x, y }
+      openMenu(d, btn) {
+        if (this.menu && this.menu.key === d.key) { this.menu = null; return; }
+        const r = btn.getBoundingClientRect();
+        this.menu = { ...d, x: Math.max(8, Math.min(r.right - 260, window.innerWidth - 270)), y: r.bottom + 4 };
+      },
       openFilter(d, op = "contains") { this.f = { key: d.key, label: d.label, op, value: "" }; this.dialog = "filter"; },
       openEdit(d) { this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit"; },
       close() { this.dialog = null; },
@@ -50,7 +56,6 @@
     }));
 
     Alpine.data("wbHead", (key, dir) => ({
-      menu: false,
       post: postView,
       sort(d) { postView({ action: "sort", key, dir: d || (dir === "asc" ? "desc" : "asc") }); },
       resize(ev) {

@@ -223,16 +223,24 @@
 .wbt th, .wbt td { padding: 5px var(--space-2); border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
 .wbt thead th { position: sticky; top: 0; z-index: 2; background: var(--surface-2); padding: 0; overflow: visible; }
 .wbt thead th.wbt__check, .wbt thead th.wbt__add { padding: 5px var(--space-2); }
-.wbh { position: relative; display: flex; align-items: center; gap: 4px; height: 34px; padding: 0 10px 0 var(--space-2); overflow: hidden; cursor: grab; }
+.wbh { position: relative; display: flex; align-items: center; gap: 4px; height: 34px; padding: 0 10px 0 var(--space-2); overflow: hidden; }
+.wbh__label[draggable] { cursor: grab; }
 .wbh__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--text); cursor: pointer; }
 .wbh__label.is-sorted { color: var(--accent); }
-.wbh__act { flex: none; border: 0; background: none; color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; cursor: pointer; padding: 2px; }
+.wbh__act { flex: none; position: relative; z-index: 1; border: 0; background: none; color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; cursor: pointer; padding: 2px; }
 .wbh__act:hover { color: var(--accent); }
 .wbh__resize { position: absolute; right: 0; top: 0; bottom: 0; width: 7px; cursor: col-resize; border-right: 1px solid var(--line); }
 .wbh__resize:hover, .is-resizing .wbh__resize { border-right: 2px solid var(--accent); }
 .is-resizing { cursor: col-resize; user-select: none; }
 .wbh-cell--edit, .wbh-cell--edit .wbh { background: var(--edit-bg); }
 .wbh-cell--edit .wbh__label { color: var(--edit-text); }
+.wbsheet { position: fixed; z-index: 40; width: 260px; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 12px 32px rgb(0 0 0 / 22%); }
+.wbsheet > div { display: grid; }
+.wbsheet__title { font-weight: 600; padding: 4px 10px 6px; border-bottom: 1px solid var(--line); margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wbsheet__section { font-size: 11px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); padding: 6px 10px 2px; }
+.wbsheet button { text-align: left; border: 0; background: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: var(--text-sm); color: var(--text); }
+.wbsheet button:hover:not([disabled]), .wbsheet button:focus-visible { background: var(--accent-soft); }
+.wbsheet button[disabled] { color: var(--muted); cursor: not-allowed; }
 .wbmenu { position: absolute; top: 100%; right: 0; z-index: 10; display: grid; min-width: 210px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 8px 24px rgb(0 0 0 / 14%); text-transform: none; }
 .wbmenu button { text-align: left; border: 0; background: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: var(--text-sm); font-weight: 400; color: var(--text); }
 .wbmenu button:hover:not([disabled]) { background: var(--accent-soft); }

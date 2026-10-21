@@ -9,7 +9,7 @@
 
 <p class="small muted results-count">{{ ngroups }} group{{ '' if ngroups == 1 else 's' }} · {{ nrows }} file{{ '' if nrows == 1 else 's' }}{% if view.group == 'dups' %} with duplicates{% endif %}</p>
 {% if ngroups %}
-<div class="wb-scroll">
+<div class="wb-scroll" @scroll.passive="menu = null">
   <table class="wbt {{ 'wbt--colors' if view.colors }}" style="width: {{ table_width }}px">{# widths are user data; the only inline styles besides the swipe clip #}
     <colgroup>
       <col class="wbt__c-check">
@@ -21,23 +21,14 @@
           :checked="$store.wb.all" x-effect="$el.indeterminate = $store.wb.count > 0 && !$store.wb.all" @change="$store.wb.selectAll($event.target.checked)"></th>
       {% for c in cols %}
       {% set sorted = view.sort[0] == c.key %}
-      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }}" draggable="true" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}')"
-          @dragstart="dragStart($event)" @dragover.prevent @drop.prevent="drop($event)">
+      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}')"
+          @dragover.prevent @drop.prevent="drop($event)">
         <div class="wbh">
-          <span class="wbh__label {{ 'is-sorted' if sorted }}" @click="sort()" title="{{ c.label }}">{{ c.label }}{% if sorted %} {{ '↑' if view.sort[1] == 'asc' else '↓' }}{% endif %}</span>
-          {% if c.key != 'thumb' %}<button type="button" class="wbh__act" @click.stop="menu = !menu" :aria-expanded="menu.toString()">Actions ▾</button>{% endif %}
+          <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)" @click="sort()"
+                title="{{ c.label }} — click to sort, drag to move">{{ c.label }}{% if sorted %} {{ '↑' if view.sort[1] == 'asc' else '↓' }}{% endif %}</span>
+          {% if c.key != 'thumb' %}<button type="button" class="wbh__act" aria-haspopup="menu"
+              @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}' }, $el)">Actions ▾</button>{% endif %}
           <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" title="Drag to resize"></span>
-        </div>
-        <div class="wbmenu" x-show="menu" x-cloak @click.outside="menu = false">
-          <button type="button" @click="sort('asc'); menu = false">Sort ascending</button>
-          <button type="button" @click="sort('desc'); menu = false">Sort descending</button>
-          <button type="button" @click="$dispatch('wb-filter', { key: '{{ c.key }}', label: '{{ c.label }}' }); menu = false">Filter…</button>
-          <button type="button" @click="$dispatch('wb-filter', { key: '{{ c.key }}', label: '{{ c.label }}', op: 'contains' }); menu = false">Search…</button>
-          <button type="button" @click="$dispatch('wb-filter', { key: '{{ c.key }}', label: '{{ c.label }}', op: 'diff' }); menu = false">Show groups where it differs</button>
-          {% if c.target %}<button type="button" @click="$dispatch('wb-edit', { target: '{{ c.target }}', kind: 'recommended' }); menu = false">Edit…</button>
-          {% else %}<button type="button" disabled title="Editing this field is not supported yet">Edit…</button>{% endif %}
-          {% if c.groupable %}<button type="button" @click="post({ action: 'group', group: '{{ c.groupable }}' }); menu = false">Group by this</button>{% endif %}
-          <button type="button" @click="post({ action: 'col_remove', key: '{{ c.key }}' }); menu = false">Hide column</button>
         </div>
       </th>
       {% endfor %}

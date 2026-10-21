@@ -139,8 +139,10 @@ Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ �
   then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), dates, GPS,
   device and author tags first. *+* opens the searchable picker. Width (drag the right edge of a header), order
   (drag a header onto another) and visibility are saved per library (`workbench_view` setting).
-- **Header actions ▾:** Sort ascending/descending, Filter…, Search… (*contains*), *Show groups where it differs*,
-  Edit…, Group by this (Path, Date, Device, Place, Dup.), Hide column. Clicking the label toggles the sort.
+- **Header actions ▾** open a **menu sheet** (page-level, positioned under the button, so the scrolling table never
+  clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
+  (*contains*), Show groups where it differs; *Change*: Edit… (new purple column), Group by this (Path, Date, Device,
+  Place, Dup.), Hide column. Clicking the label toggles the sort; drag the label to move the column.
 - **Filters** (bar above the table, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
   differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
   its context); *No grouping* filters rows.
