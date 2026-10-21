@@ -69,7 +69,7 @@ def _touch(path: Path, when: str) -> None:
     os.utime(path, (ts, ts))
 
 
-def make_demo(root: str | Path) -> Path:
+def make_demo(root: str | Path, extra: int = 0) -> Path:
     root = Path(root).expanduser().resolve()
     if root.exists():
         shutil.rmtree(root)
@@ -144,4 +144,30 @@ def make_demo(root: str | Path) -> Path:
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(vid), "-map_metadata", "0",
                         "-movflags", "use_metadata_tags", "-c:v", "libx264", "-crf", "35", str(wa / "VID-20190721-WA0001.mp4")],
                        check=True)
+    if extra:
+        _make_extra(root, extra)
     return root
+
+
+def _make_extra(root: Path, n: int) -> None:
+    """n more photos, each with a backup copy; every third also as a messenger copy.
+    Gives n identical groups and about n/3 near-duplicate groups, to try the UI at scale."""
+    places = list(PLACES)
+    for i in range(n):
+        when = f"2020-{1 + i % 12:02d}-{1 + i % 28:02d} {8 + i % 12:02d}:{i % 60:02d}:{(i * 7) % 60:02d}"
+        year_dir = root / "Camera" / "2020" / f"{1 + i % 12:02d}"
+        year_dir.mkdir(parents=True, exist_ok=True)
+        p = year_dir / f"IMG_{2000 + i}.JPG"
+        _scene(1000 + i, size=(800, 600)).save(p, "JPEG", quality=88,
+                                               exif=_exif("Apple", "iPhone 12", when, places[i % len(places)]))
+        _touch(p, when)
+        backup = root / f"Backup {2020 + i % 3}" / f"{1 + i % 12:02d}"
+        backup.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(p, backup / p.name)
+        if i % 3 == 0:
+            wa = root / "WhatsApp Images"
+            wa.mkdir(exist_ok=True)
+            with Image.open(p) as im:
+                small = im.copy()
+            small.thumbnail((480, 480))
+            small.save(wa / f"IMG-{when[:10].replace('-', '')}-WA{i:04d}.jpg", "JPEG", quality=70)

@@ -1,0 +1,13 @@
+<div class="selbar {{ 'selbar--active' if sel.files }}" role="region" aria-label="Selection">
+  {% if sel.files %}
+    <strong>{{ sel.files }} file{{ '' if sel.files == 1 else 's' }} selected</strong>
+    <span>{{ sel.bytes|size }}</span>
+    <span class="muted">in {{ sel.groups }} group{{ '' if sel.groups == 1 else 's' }}</span>
+    {% if sel.whole_groups %}<span class="selbar__warn">{{ sel.whole_groups }} group{{ '' if sel.whole_groups == 1 else 's' }} would lose every copy and will be skipped</span>{% endif %}
+    <span class="results-toolbar__spacer"></span>
+    <button class="btn" hx-post="/select/smart" hx-vals='{"step": {{ step }}, "mode": "none"}' hx-swap="none">Clear</button>
+    <button class="btn btn--primary" hx-post="/plans/cleanup-selection" hx-vals='{"step": {{ step }}}'>Review removal plan…</button>
+  {% else %}
+    <span class="muted small">Tick the copies to remove, or use Smart select. Nothing moves until you apply a plan, and every plan can be undone.</span>
+  {% endif %}
+</div>

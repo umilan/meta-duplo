@@ -33,8 +33,9 @@ Hardlinks (same volume + inode, APFS/HFS+) are one file on disk and are never of
 4. Not in a backup / copy / export / download / messenger folder, and not named "Copy of …".
 5. Older file date, shorter path.
 
-**Actions:** per group: keep another copy, *Not duplicates*, *Ignore*, or *Move others to the
-holding folder*. In bulk: *Review plan for all groups*. Removed copies go to
+**Actions** (results table, see UI_SPEC): tick the copies to remove, or use *Smart select* (all except the
+kept copy / keep oldest / keep largest / keep the copy in a chosen folder); per group: *Keep this one*,
+*Not duplicates*, *Ignore*. *Review removal plan…* turns the selection into a plan. Removed copies go to
 `<source>/_duplicates/group-<id>/<original relative path>` with their sidecars. Right before each
 move, the file's size and date are re-checked and identical copies are compared byte by byte
 with the kept file.
@@ -65,7 +66,7 @@ Hard rules come before the score:
 Groups are built around an anchor: the best keeper, with members that match the anchor itself,
 so A≈B≈C chains are never formed. Files from step-1 groups take part through their kept copy only.
 
-**UI:** the card highlights values that differ between copies (date, device, place, size).
+**UI:** the same results table as step 1; values that differ from the kept copy (date, device, place, size, name) are highlighted.
 *Compare* shows a swipe view and a metadata table. *Not duplicates* records every pair as a labelled
 non-duplicate: it is never proposed again and later feeds calibration.
 

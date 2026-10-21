@@ -28,6 +28,7 @@ def main(argv: list[str] | None = None) -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("demo", help="create a demo disk and add it as a writable source")
     d.add_argument("path", nargs="?", default=str(Path.home() / "meta-duplo-demo"))
+    d.add_argument("--extra", type=int, default=0, help="add N more photos with copies, to try the UI at scale")
     a = sub.add_parser("add-source", help="add a folder to scan")
     a.add_argument("path")
     a.add_argument("--writable", action="store_true", help="allow approved plans to move and rename files here")
@@ -42,7 +43,7 @@ def main(argv: list[str] | None = None) -> None:
     if args.cmd == "demo":
         from .demo import make_demo
 
-        root = make_demo(args.path)
+        root = make_demo(args.path, extra=args.extra)
         add_source(lib, str(root), writable=True)
         print(f"Demo disk created at {root} and added as a writable source to {lib.path}")
     elif args.cmd == "add-source":

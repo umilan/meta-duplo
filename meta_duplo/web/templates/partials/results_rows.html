@@ -1,0 +1,6 @@
+{% for g in groups %}{% set open = true %}{% include "partials/results_group.html" %}{% endfor %}
+{% if next_offset < total %}
+<tbody class="more" hx-get="/step/{{ step }}/rows?offset={{ next_offset }}&{{ query }}" hx-trigger="revealed" hx-swap="outerHTML">
+  <tr><td colspan="{{ 6 if step == 1 else 7 }}" class="muted small">Loading more groups…</td></tr>
+</tbody>
+{% endif %}

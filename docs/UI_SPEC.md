@@ -14,7 +14,7 @@ Previous versions: `research/meta-duplo-UI_SPEC-v1.md` (12 screens) and
 2. **Review, don't browse.** Every screen helps you decide, fix or approve something.
 3. **Explain everything.** Every recommendation and match shows its evidence: where a value came from,
    why, its confidence, and which copies disagree.
-4. **Bulk first.** Bulk actions (*Review plan for all groups*, *Accept all ≥ 90 %*) sit beside per-item ones.
+4. **Bulk first.** Bulk actions (*Smart select*, *Accept all ≥ 90 %*) sit beside per-item ones. Lists must stay usable with thousands of groups.
 5. **Safe by design.** Nothing touches the disk outside the Plan page, behind a dry-run list and a confirm.
    Every plan can be undone.
 6. **Fast at scale.** Keyset pagination (`id > ? LIMIT 100`), infinite scroll with `hx-trigger="revealed"`,
@@ -25,37 +25,55 @@ Previous versions: `research/meta-duplo-UI_SPEC-v1.md` (12 screens) and
 | Nav | Screen | Purpose | Key elements | POC |
 |---|---|---|---|---|
 | ◎ | **Sources** | Add folders, scan, overview | Source table (files, size, role Scan/Reference, Read-only/Writable toggles); add-folder form; *Scan all sources*; four step tiles with counts and reclaimable bytes | ✓ |
-| 1 | **Identical files** | Remove 100 % copies | Group cards; status tabs Open / Resolved / Not duplicates / Ignored; *Review plan for all groups* | ✓ |
-| 2 | **Near duplicates** | Resolve almost-identical files | Tabs *Duplicates* / *Similar shots, review only*; cards with the **differing values highlighted**; evidence line (picture %, Δt, device, pixel ratio) | ✓ |
+| 1 | **Identical files** | Remove 100 % copies | Results table (below) | ✓ |
+| 2 | **Near duplicates** | Resolve almost-identical files | Results table with tabs *Duplicates* / *Similar shots, review only*; verdict per group; values that differ from the kept copy highlighted | ✓ |
 | – | **Compare** | Look before deciding | Swipe compare (Alpine range slider over two images); metadata table per member | ✓ |
 | 3 | **Harmonize & rename** | One date/place/device per capture; new names | File name rule editor with **live preview**; recommendation table (current → recommended, confidence badge, explanation, Accept / Keep current / Confirm / Edit / Undo); bulk accept; *Needs a decision* / *All*; rename plan options | ✓ |
-| 4 | **Re-check** | New candidates after harmonizing | Sortable, filterable table: thumbnail, name, folder, size, date, place, device, confidence, **bindings**, group; per-group actions | ✓ |
+| 4 | **Re-check** | New candidates after harmonizing | Results table on harmonized date/place/device, with a minimum-confidence filter | ✓ |
 | ↺ | **Plans & undo** | Approve, apply, undo | Plan list; plan detail = dry-run diff (action, before → after, status, error); Apply / Discard / Undo | ✓ |
 | ⚙ | **Settings** | Config | Home time zone, near-duplicate threshold, re-check minimum | ✓ |
 | – | Folders overlap | Whole-folder decisions | `A ≡ B`, `A ⊂ B`, `A ∩ B %` tree and heatmap | later |
 | – | Timeline, Map, Devices | Sanity views from meta_duplo v1 | Histogram, clustered map, device units | later |
 
-### Step 1 and 2: group card (`partials/group_card.html`)
+### Steps 1, 2 and 4: results table (`results.html`, `partials/results_group.html`)
+
+Modelled on the Disk Drill duplicate finder: one compact table, built for hundreds or thousands of groups.
 
 ```
-┌ Same photo, different file      [100 %] [2 files] [21 KB to reclaim] [#6] ┐
-│ ┌─────────────┐  ┌─────────────┐                                            │
-│ │ thumbnail   │  │ thumbnail   │   kept copy has a green outline            │
-│ │ IMG_0002.JPG│  │ IMG-…WA0003 │                                            │
-│ │ Camera/DCIM │  │ WhatsApp    │                                            │
-│ │ Date  …     │  │ Date  —     │   values that differ are highlighted       │
-│ │ Device …    │  │ Device —    │                                            │
-│ │ ✓ Keep      │  │ visual 100 % · 41 % pixels                               │
-│ └─────────────┘  │ [Keep this one instead]                                  │
-│                  └─────────────┘                                            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ [Move others to holding folder…] [Compare] [Not duplicates] [Ignore]        │
-└─────────────────────────────────────────────────────────────────────────────┘
+ Open ▾  [Search names and folders]  Sort [Size ▾] [↓ High to low ▾]            [◧ Preview]
+ Smart select [Choose… ▾]                                         [Expand all] [Collapse all]
+ 305 groups
+     Name                                               Size     Qty / Date           Device        Place     Match
+ ⌄ [▣] IMG_0003.JPG   Same photo   2 selected        188.8 KB    3                    Apple iPhone  Vienna    100 %
+ ☐  disk › Camera › DCIM › IMG_0003.JPG (Keep)         62.9 KB   2019-05-18 11:47:10  Apple iPhone  Vienna
+ ☑  disk › Backup 2019 › C̶o̶p̶y̶ ̶o̶f̶ ̶I̶M̶G̶_̶0̶0̶0̶3̶.̶J̶P̶G̶        62.9 KB   2019-05-18 11:47:10  Apple iPhone  Vienna    100 %
+ ⌄ [▣] IMG_4101.JPG …
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ 306 files selected  6.5 MB  in 305 groups                     [Clear] [Review removal plan…] │
+└──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-- *Keep this one instead* swaps the card in place (`hx-post`, `hx-swap="outerHTML"`).
-- *Not duplicates* records labelled pairs; *Ignore* hides the group by its signature; both survive rescans.
-- *Move others…* builds a cleanup plan and opens it; nothing moves until *Apply plan*.
+- **Group row:** chevron, thumbnail of the kept copy, its name, the verdict (steps 2/4), *n selected*, total size,
+  number of files, the kept copy's device and place, the group confidence (steps 2/4). Clicking it expands or collapses the group.
+  On hover: *Compare*, *Not duplicates*, *Ignore* (or *Reopen*).
+- **File row:** checkbox = **remove this copy**; a breadcrumb `source › folder › folder › name` (long paths shorten to
+  `source › … › last two folders`, full path on hover); a *Keep* pill on the kept copy, or *Keep this one* on hover; size, date,
+  device, place; the match score against the kept copy. Values that differ from the kept copy are highlighted.
+  Selected rows are tinted and struck through.
+- **Click a file row** to open it in the **preview panel** (right, toggled by *◧ Preview*): image, path, role, date,
+  device, place with coordinates, size and dimensions, software, the evidence vector, *Compare the group*.
+- **Smart select:** *All copies except the kept one*, *Keep the oldest file*, *Keep the largest file*,
+  *Keep the copy in folder…* (folders listed by number of copies), *Clear selection*. Rules that pick another copy
+  also move the *Keep* marker. Similar shots are never selected automatically.
+- **Selection is server-side** (`selection` table). It survives paging, searching and reloads, and is cleared when
+  the step's groups are rebuilt by a rescan.
+- **Selection bar** (sticky at the bottom): files, bytes, groups, and a warning when a group would lose every copy
+  (those groups are skipped by the plan). *Review removal plan…* turns the selection into a cleanup plan and clears it.
+- **Toolbar:** status (Open / Resolved / Not duplicates / Ignored), search across names and folders (300 ms debounce),
+  sort by Size, Qty / bindings, Name, Date, Device, Place or Confidence, direction; minimum confidence in step 4.
+  All of it lives in the URL (`hx-push-url`).
+- **Paging:** 100 groups per page, the next page loads when the end of the table scrolls into view.
+- The **row height** stays one line: cells truncate with an ellipsis instead of wrapping.
 
 ### Step 3: recommendation row (`partials/capture_rows.html`)
 
@@ -76,14 +94,6 @@ From metadata of IMG_0004.JPG. Copies disagree by 81870 s; the earliest is used.
 - *Edit* opens an inline form (Alpine `x-show`); a date must match `YYYY-MM-DD HH:MM:SS`.
 - Every action swaps only that row (`hx-target="#cap-<id>"`).
 
-### Step 4: sortable list (`partials/step4_table.html`)
-
-- Header links carry `?sort=<col>&dir=<asc|desc>&min_conf=<x>`; htmx swaps only `#recheck-table`
-  and pushes the URL (`hx-push-url`), so views are bookmarkable and the back button works.
-- Columns: thumbnail, Name (✓ = kept), Folder, Size, Date, Place, Device, Confidence (badge; the
-  tooltip lists the evidence vector), Bindings, Group (link to Compare).
-- Rows of one group share a background shade. Group actions sit on the kept row.
-
 ## Interaction patterns (htmx)
 
 | Pattern | How |
@@ -94,8 +104,9 @@ From metadata of IMG_0004.JPG. Copies disagree by 81870 s; the earliest is used.
 | Live preview | Pattern input: `hx-post="/settings/pattern" hx-trigger="input changed delay:300ms"` |
 | In-place update | Card / row actions return the re-rendered card or row (`hx-swap="outerHTML"`) |
 | Server-driven redirect | Plan builders answer with `HX-Redirect: /plans/<id>` |
-| Infinite scroll | Last row: `hx-get="/step/3/more?after=<id>" hx-trigger="revealed"` |
-| Sorting | Header links `hx-get` + `hx-target="#recheck-table"` + `hx-push-url="true"` |
+| Infinite scroll | Last `<tbody class="more">`: `hx-get="/step/<n>/rows?offset=…" hx-trigger="revealed"` (step 3: `/step/3/more`) |
+| Sorting, search | Toolbar form `hx-get` → `hx-target="#results" hx-select="#results"` + `hx-push-url="true"`. `#results` sets `hx-disinherit="*"` so rows do not inherit its select/swap |
+| Selection | Checkbox `hx-post="/select" hx-swap="none"` → `HX-Trigger: selection-changed` → the bar re-fetches itself |
 | Confirm | `hx-confirm` on Apply and Undo |
 | Toasts | `HX-Trigger: {"toast": "…"}` → Alpine listener on `window` |
 

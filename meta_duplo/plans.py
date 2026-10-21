@@ -64,13 +64,16 @@ def build_cleanup_plan(lib: Library, group_ids: list[int], remove_file_ids: list
                 "SELECT f.*, gm.role FROM group_members gm JOIN files f ON f.id = gm.file_id WHERE gm.group_id = ?",
                 (gid,),
             ).fetchall()
-            keep = [m for m in members if m["role"] == "keeper"]
-            to_remove = [m for m in members if m["role"] != "keeper" and
-                         (remove_file_ids is None or m["id"] in remove_file_ids)]
-            if not keep or len(to_remove) >= len(members):
+            if remove_file_ids is None:  # default: everything except the keeper
+                to_remove = [m for m in members if m["role"] != "keeper"]
+            else:  # explicit selection: any copy may go, as long as one stays
+                to_remove = [m for m in members if m["id"] in remove_file_ids]
+            removing = {m["id"] for m in to_remove}
+            kept = [m for m in members if m["id"] not in removing]
+            if not kept:
                 blocked.append((gid, "would leave no copy"))
                 continue
-            keeper = keep[0]
+            keeper = next((m for m in kept if m["role"] == "keeper"), kept[0])
             for m in to_remove:
                 src = sources[m["source_id"]]
                 if not src["writable"] or src["role"] == "reference":

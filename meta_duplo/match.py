@@ -251,6 +251,7 @@ def _save_groups(con, step: int, groups: list[dict]) -> None:
         for r in con.execute("SELECT signature, status FROM groups WHERE step = ? AND status != 'open'", (step,))
     }
     con.execute("DELETE FROM groups WHERE step = ?", (step,))
+    con.execute("DELETE FROM selection WHERE step = ?", (step,))  # group ids change on a rebuild
     for g in groups:
         sig = ",".join(str(i) for i in sorted(m["file"].id for m in g["members"]))
         status = old.get(sig, "open")

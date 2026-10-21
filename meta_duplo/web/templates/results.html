@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% set info = {
+  1: ('1 · Identical files', 'Byte-for-byte copies (100 %). Tick the copies to remove, or use Smart select; nothing moves until you apply a plan.'),
+  2: ('2 · Near duplicates', 'The same photo or video stored differently: other name, edited metadata, re-saved, resized, messenger copies. Highlighted values differ between copies.'),
+  4: ('4 · Re-check', 'Matches found with the harmonized date, place and device from step 3.'),
+}[step] %}
+{% set p = params %}
+{% block title %}{{ info[0] }}{% endblock %}
+{% block content %}
+<div class="results-page" x-data="{ panel: false }" :class="panel && 'results-page--panel'" @panel-open.window="panel = true">
+  <div class="results-main">
+    <div class="results-head">
+      <div>
+        <h1>{{ info[0] }}</h1>
+        <p class="muted">{{ info[1] }}</p>
+      </div>
+      <div class="toolbar">
+        {% if step == 4 %}<button class="btn btn--primary" hx-post="/recheck" hx-target="#job">Run re-check</button>{% endif %}
+        <button class="btn" type="button" @click="panel = !panel" :aria-pressed="panel.toString()" title="Show or hide the preview panel">◧ Preview</button>
+      </div>
+    </div>
+
+    {% if step == 2 %}
+    <nav class="tabs" aria-label="Kind">
+      <a class="tabs__tab {{ 'tabs__tab--active' if p.kind == 'dups' }}" href="/step/2?kind=dups">Duplicates <span class="chip">{{ counts.step2 }}</span></a>
+      <a class="tabs__tab {{ 'tabs__tab--active' if p.kind == 'bursts' }}" href="/step/2?kind=bursts">Similar shots, review only <span class="chip">{{ counts.bursts }}</span></a>
+    </nav>
+    {% endif %}
+
+    <form class="results-toolbar" hx-get="/step/{{ step }}" hx-target="#results" hx-select="#results" hx-swap="outerHTML"
+          hx-push-url="true" hx-trigger="input changed delay:300ms from:find input[type=search], change">
+      {% if p.kind %}<input type="hidden" name="kind" value="{{ p.kind }}">{% endif %}
+      <select name="status" aria-label="Status">
+        {% for s, label in [('open', 'Open'), ('resolved', 'Resolved'), ('not_duplicate', 'Not duplicates'), ('ignored', 'Ignored')] %}
+        <option value="{{ s }}" {{ 'selected' if p.status == s }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <input type="search" name="q" value="{{ p.q }}" placeholder="Search names and folders" aria-label="Search">
+      <label class="small">Sort
+        <select name="sort">
+          {% for key, label in [('size', 'Size'), ('qty', 'Qty / bindings'), ('name', 'Name'), ('date', 'Date'), ('device', 'Device'), ('place', 'Place'), ('confidence', 'Confidence')] %}
+          {% if key != 'confidence' or step != 1 %}<option value="{{ key }}" {{ 'selected' if p.sort == key }}>{{ label }}</option>{% endif %}
+          {% endfor %}
+        </select>
+      </label>
+      <select name="dir" aria-label="Direction">
+        <option value="desc" {{ 'selected' if p.dir != 'asc' }}>↓ High to low</option>
+        <option value="asc" {{ 'selected' if p.dir == 'asc' }}>↑ Low to high</option>
+      </select>
+      {% if step == 4 %}
+      <label class="small" x-data="{ v: {{ p.min_conf }} }">Min. confidence
+        <input type="range" name="min_conf" min="0.5" max="1" step="0.05" x-model="v"> <span x-text="Math.round(v * 100) + ' %'"></span>
+      </label>
+      {% endif %}
+    </form>
+
+    <div class="results-toolbar">
+      {% if p.status == 'open' and p.kind != 'bursts' %}
+      <form hx-post="/select/smart" hx-trigger="change" hx-swap="none" class="smart" x-data @htmx:after-request="$el.reset()">
+        <input type="hidden" name="step" value="{{ step }}"><input type="hidden" name="kind" value="{{ p.kind }}">
+        <label class="small">Smart select
+          <select name="mode">
+            <option value="" selected disabled>Choose…</option>
+            <option value="keeper">Select all copies except the kept one</option>
+            <option value="oldest">Keep the oldest file, select the rest</option>
+            <option value="largest">Keep the largest file, select the rest</option>
+            {% if folders %}
+            <optgroup label="Keep the copy in folder…">
+              {% for f, n in folders %}<option value="folder:{{ f }}">{{ f }} ({{ n }})</option>{% endfor %}
+            </optgroup>
+            {% endif %}
+            <option value="none">Clear selection</option>
+          </select>
+        </label>
+      </form>
+      {% elif p.kind == 'bursts' %}
+      <span class="small muted">Similar shots are never selected automatically. Tick a frame only if you really want it gone.</span>
+      {% endif %}
+      <span class="results-toolbar__spacer"></span>
+      <button class="btn btn--small" type="button" @click="$dispatch('expand-all', true)">Expand all</button>
+      <button class="btn btn--small" type="button" @click="$dispatch('expand-all', false)">Collapse all</button>
+    </div>
+
+    <div id="results" hx-get="/step/{{ step }}?{{ query }}" hx-trigger="results-reload from:body" hx-select="#results" hx-swap="outerHTML"
+         hx-disinherit="*">{# rows make their own requests: they must not inherit this reload's select/swap #}
+      <p class="small muted results-count">{{ total }} group{{ '' if total == 1 else 's' }}{% if p.q %} matching “{{ p.q }}”{% endif %}</p>
+      {% if groups %}
+      <table class="results results--step{{ step }}">
+        <colgroup>
+          <col class="w-check"><col><col class="w-size"><col class="w-date"><col class="w-device"><col class="w-place">
+          {% if step != 1 %}<col class="w-match">{% endif %}
+        </colgroup>
+        <thead><tr>
+          <th class="col-check"></th><th>Name</th><th class="col-num">Size</th><th>Qty / Date</th><th>Device</th><th>Place</th>
+          {% if step != 1 %}<th class="col-num">Match</th>{% endif %}
+        </tr></thead>
+        {% include "partials/results_rows.html" %}
+      </table>
+      {% else %}
+      <div class="empty">{% if p.status == 'open' %}Nothing to review here. {% if step == 4 %}Run the re-check after accepting recommendations in step 3.{% else %}Run a scan from Sources.{% endif %}{% else %}No groups with this status.{% endif %}</div>
+      {% endif %}
+    </div>
+
+    <div id="selbar" class="selbar-slot" hx-get="/selection/bar?step={{ step }}" hx-trigger="load, selection-changed from:body"></div>
+  </div>
+
+  <aside class="results-panel" x-show="panel" aria-label="Preview">
+    <div id="preview"><div class="empty small">Click a file to preview it.</div></div>
+  </aside>
+</div>
+{% endblock %}

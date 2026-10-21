@@ -104,3 +104,16 @@ accepted ones. Supersede them with a new entry instead.
 - **Consequences:**
   - The schema is a working subset of `schema.sql`, created in `meta_duplo/db.py`.
   - Moving to the full spec replaces adapters and resolvers module by module; the plan engine, decisions and UI carry over.
+
+### ADR-014 Results as one compact grouped table, not cards
+- **Context:** cards with large thumbnails were unusable with hundreds of groups (user feedback on v0.1).
+- **Decision:** steps 1, 2 and 4 share one table modelled on Disk Drill's duplicate finder:
+  - collapsible group rows with one line per copy;
+  - checkboxes mean "remove", backed by server-side selection;
+  - Smart select rules and a sticky selection bar;
+  - a toggleable preview panel;
+  - search, sort, and paging by 100 groups.
+- **Consequences:**
+  - New `selection` table.
+  - `build_cleanup_plan` accepts an explicit set of files, still never empties a group.
+  - The card templates are gone; Compare stays for side-by-side checks.

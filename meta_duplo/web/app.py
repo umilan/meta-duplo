@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import secrets
+from urllib.parse import urlencode
 from pathlib import Path
 
 from fastapi import FastAPI, Form, Request
@@ -11,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .. import geo, harmonize, match, plans
+from . import results
 from ..__main__ import add_source
 from ..db import Library
 from ..metadata import device_name
@@ -18,10 +20,6 @@ from ..scan import Runner, scan_all
 
 HERE = Path(__file__).parent
 PAGE = 100
-STEP4_SORTS = {  # column → row key
-    "name": "name", "folder": "rel_path", "size": "size", "date": "time", "place": "place",
-    "device": "device", "confidence": "score", "bindings": "bindings", "group": "gid",
-}
 
 
 def human_size(n: int | None) -> str:
@@ -168,36 +166,88 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 }
         return groups
 
-    def step_page(request: Request, step: int, tab: str, status: str):
-        if step == 1:
-            groups = load_groups(1, status)
-        elif tab == "bursts":
-            groups = load_groups(2, status, verdict="similar_shot")
-        else:
-            groups = load_groups(2, status, exclude_verdict="similar_shot")
-        return render(request, f"step{step}.html", groups=groups, tab=tab, status=status, step=step)
+    # ───────────────────────── steps 1, 2 and 4: results table ─────────────────────────
+
+    def results_ctx(step: int, kind: str, status: str, q: str, sort: str, dir: str, min_conf: float,
+                    offset: int = 0) -> dict:
+        groups, total = results.load(lib, step, status=status, kind=kind, q=q.strip(), sort=sort,
+                                     desc=dir != "asc", min_conf=min_conf, offset=offset, limit=PAGE)
+        params = {"status": status, "kind": kind, "q": q, "sort": sort, "dir": dir, "min_conf": min_conf}
+        return {"groups": groups, "total": total, "step": step, "offset": offset,
+                "next_offset": offset + len(groups), "params": params, "query": urlencode(params)}
+
+    def results_page(request: Request, step: int, kind: str, status: str, q: str, sort: str, dir: str,
+                     min_conf: float = 0.0):
+        ctx = results_ctx(step, kind, status, q, sort, dir, min_conf)
+        return render(request, "results.html", folders=results.folders(lib, step, kind), **ctx)
 
     @app.get("/step/1", response_class=HTMLResponse)
-    def step1(request: Request, status: str = "open"):
-        return step_page(request, 1, "dups", status)
+    def step1(request: Request, status: str = "open", q: str = "", sort: str = "size", dir: str = "desc"):
+        return results_page(request, 1, "", status, q, sort, dir)
 
     @app.get("/step/2", response_class=HTMLResponse)
-    def step2(request: Request, tab: str = "dups", status: str = "open"):
-        return step_page(request, 2, tab, status)
+    def step2(request: Request, kind: str = "dups", status: str = "open", q: str = "", sort: str = "size",
+              dir: str = "desc"):
+        return results_page(request, 2, kind if kind in ("dups", "bursts") else "dups", status, q, sort, dir)
+
+    @app.get("/step/4", response_class=HTMLResponse)
+    def step4(request: Request, status: str = "open", q: str = "", sort: str = "confidence", dir: str = "desc",
+              min_conf: float = 0.5):
+        return results_page(request, 4, "", status, q, sort, dir, min_conf)
+
+    @app.get("/step/{step}/rows", response_class=HTMLResponse)
+    def result_rows(request: Request, step: int, offset: int = 0, kind: str = "", status: str = "open", q: str = "",
+                    sort: str = "size", dir: str = "desc", min_conf: float = 0.0):
+        ctx = results_ctx(step, kind, status, q, sort, dir, min_conf, offset)
+        return templates.TemplateResponse(request, "partials/results_rows.html", ctx)
 
     @app.post("/groups/{gid}/keeper/{fid}", response_class=HTMLResponse)
     def set_keeper(request: Request, gid: int, fid: int):
-        with lib.connect() as con:
-            con.execute("UPDATE group_members SET role = CASE file_id WHEN ? THEN 'keeper' ELSE 'member' END WHERE group_id = ?",
-                        (fid, gid))
-            con.execute("UPDATE groups SET keeper_file_id = ?, reclaimable = (SELECT SUM(f.size) FROM group_members gm "
-                        "JOIN files f ON f.id = gm.file_id WHERE gm.group_id = ? AND gm.file_id != ?) WHERE id = ?",
-                        (fid, gid, fid, gid))
-            step = con.execute("SELECT step FROM groups WHERE id = ?", (gid,)).fetchone()["step"]
-        g = next(iter(load_groups(step, "open", after=gid - 1)), None)
-        return templates.TemplateResponse(request, "partials/group_card.html", {"g": g, "step": step})
+        results.set_keeper(lib, gid, fid)
+        step = _step_of(gid)[0]
+        groups, _ = results.load(lib, step, group_ids=[gid])
+        resp = templates.TemplateResponse(request, "partials/results_group.html",
+                                          {"g": groups[0] if groups else None, "step": step, "open": True})
+        resp.headers["HX-Trigger"] = "selection-changed"
+        return resp
 
-    @app.post("/groups/{gid}/decide", response_class=HTMLResponse)
+    @app.post("/select")
+    def select(file_id: int = Form(...), group_id: int = Form(...), step: int = Form(...), on: str | None = Form(None)):
+        results.toggle(lib, file_id, group_id, step, bool(on))
+        return Response(status_code=204, headers={"HX-Trigger": "selection-changed"})
+
+    @app.post("/select/smart")
+    def smart(step: int = Form(...), mode: str = Form(...), kind: str = Form("")):
+        folder = ""
+        if mode.startswith("folder:"):
+            mode, folder = "folder", mode[len("folder:"):]
+        n = results.smart_select(lib, step, mode, kind, folder)
+        msg = "Selection cleared" if mode == "none" else f"Selected {n} copies"
+        return Response(status_code=204, headers={"HX-Trigger": json.dumps(
+            {"selection-changed": True, "results-reload": True, "toast": msg})})
+
+    @app.get("/selection/bar", response_class=HTMLResponse)
+    def selection_bar(request: Request, step: int):
+        return templates.TemplateResponse(request, "partials/selection_bar.html",
+                                          {"sel": results.summary(lib, step), "step": step})
+
+    @app.post("/plans/cleanup-selection")
+    def cleanup_selection(step: int = Form(...)):
+        chosen = results.selected_by_group(lib, step)
+        if not chosen:
+            return Response(status_code=204, headers={"HX-Trigger": json.dumps({"toast": "Nothing selected"})})
+        pid = plans.build_cleanup_plan(lib, list(chosen), remove_file_ids={f for fs in chosen.values() for f in fs})
+        results.clear(lib, step)  # the plan holds the selection now
+        return Response(headers={"HX-Redirect": f"/plans/{pid}"})
+
+    @app.get("/preview/{fid}", response_class=HTMLResponse)
+    def preview(request: Request, fid: int, group: int):
+        groups, _ = results.load(lib, _step_of(group)[0], group_ids=[group])
+        g = groups[0] if groups else None
+        m = next((x for x in g["members"] if x["id"] == fid), None) if g else None
+        return templates.TemplateResponse(request, "partials/preview.html", {"g": g, "m": m})
+
+    @app.post("/groups/{gid}/decide")
     def decide(gid: int, decision: str = Form(...)):
         with lib.connect() as con:
             g = con.execute("SELECT * FROM groups WHERE id = ?", (gid,)).fetchone()
@@ -217,15 +267,12 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             elif decision == "reopen":
                 con.execute("DELETE FROM decisions WHERE scope = 'group' AND subject = ?", (g["signature"],))
                 con.execute("UPDATE groups SET status = 'open' WHERE id = ?", (gid,))
-        return HTMLResponse("")  # the card disappears from the open list
+            con.execute("DELETE FROM selection WHERE group_id = ?", (gid,))
+        # the group leaves the current list: swap it out and refresh the selection bar
+        return HTMLResponse("", headers={"HX-Trigger": "selection-changed"})
 
     @app.post("/plans/cleanup")
-    def cleanup(step: int = Form(...), group_ids: list[int] = Form(default=[]), all_open: str | None = Form(None),
-                verdict: str | None = Form(None)):
-        if all_open:
-            with lib.connect() as con:
-                sql = "SELECT id FROM groups WHERE step = ? AND status = 'open' AND verdict != 'similar_shot'"
-                group_ids = [r["id"] for r in con.execute(sql, (step,))]
+    def cleanup(step: int = Form(...), group_ids: list[int] = Form(default=[])):
         pid = plans.build_cleanup_plan(lib, group_ids)
         return Response(headers={"HX-Redirect": f"/plans/{pid}"})
 
@@ -303,34 +350,6 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         return Response(headers={"HX-Redirect": f"/plans/{pid}"})
 
     # ───────────────────────── step 4: re-check ─────────────────────────
-
-    def step4_rows(sort: str, direction: str, min_conf: float) -> list[dict]:
-        key = STEP4_SORTS.get(sort, "score")
-        with lib.connect() as con:
-            values = harmonize.effective_values(con)
-            caps = {r["file_id"]: r["capture_id"] for r in con.execute("SELECT * FROM captures")}
-            rows = [dict(r) for r in con.execute(
-                "SELECT g.id AS gid, g.score AS gscore, gm.role, gm.score, gm.evidence, f.id, f.name, f.rel_path, f.size, f.kind, "
-                "(SELECT COUNT(*) - 1 FROM group_members x WHERE x.group_id = g.id) AS bindings "
-                "FROM groups g JOIN group_members gm ON gm.group_id = g.id JOIN files f ON f.id = gm.file_id "
-                "WHERE g.step = 4 AND g.status = 'open' AND g.score >= ?", (min_conf,))]
-        for r in rows:
-            v = values.get(caps.get(r["id"]), {})
-            r.update(time=v.get("capture_time", ""), place=v.get("location_name", ""), device=v.get("device_name", ""),
-                     evidence=json.loads(r["evidence"] or "{}"))
-            if r["role"] == "keeper":
-                r["score"] = r["gscore"]
-        rows.sort(key=lambda r: r[key].lower() if isinstance(r[key], str) else (r[key] or 0),
-                  reverse=direction == "desc")
-        return rows
-
-    @app.get("/step/4", response_class=HTMLResponse)
-    def step4(request: Request, sort: str = "confidence", dir: str = "desc", min_conf: float = 0.5):
-        rows = step4_rows(sort, dir, min_conf)
-        ctx = {"rows": rows, "sort": sort, "dir": dir, "min_conf": min_conf, "sorts": list(STEP4_SORTS)}
-        if request.headers.get("hx-target") == "recheck-table":
-            return templates.TemplateResponse(request, "partials/step4_table.html", ctx)
-        return render(request, "step4.html", **ctx)
 
     @app.post("/recheck", response_class=HTMLResponse)
     def recheck(request: Request):

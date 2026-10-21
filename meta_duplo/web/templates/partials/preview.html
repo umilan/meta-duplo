@@ -1,0 +1,21 @@
+{% if m %}
+<div class="preview">
+  <img class="preview__img" src="{{ '/media/' if m.kind == 'image' else '/thumb/' }}{{ m.id }}" alt="{{ m.name }}">
+  <h3 class="preview__name">{{ m.name }}</h3>
+  <div class="small muted path">{{ m.crumbs|join(' › ') }}</div>
+  <dl class="facts">
+    <dt>Role</dt><dd>{{ 'Kept copy' if m.role == 'keeper' else ('Selected for removal' if m.selected else 'Copy') }}</dd>
+    <dt>Date</dt><dd>{{ m.date or '—' }}</dd>
+    <dt>Device</dt><dd>{{ m.device or '—' }}</dd>
+    <dt>Place</dt><dd>{{ m.place or '—' }}{% if m.gps_lat is not none %} <span class="muted">({{ '%.4f'|format(m.gps_lat) }}, {{ '%.4f'|format(m.gps_lon) }})</span>{% endif %}</dd>
+    <dt>Size</dt><dd>{{ m.size|size }}{% if m.width %} · {{ m.width }}×{{ m.height }}{% endif %}{% if m.duration %} · {{ m.duration }} s{% endif %}</dd>
+    {% if m.software %}<dt>Software</dt><dd>{{ m.software }}</dd>{% endif %}
+    {% if m.role != 'keeper' and m.evidence %}
+    <dt>Evidence</dt><dd>{% for k, v in m.evidence.items() if v is not none %}<span class="chip">{{ k|replace('_', ' ') }}: {{ v }}</span> {% endfor %}</dd>
+    {% endif %}
+  </dl>
+  <a class="btn btn--small" href="/compare?group={{ g.id }}">Compare the group</a>
+</div>
+{% else %}
+<div class="empty small">File not found.</div>
+{% endif %}

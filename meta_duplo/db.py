@@ -124,6 +124,11 @@ CREATE TABLE IF NOT EXISTS jobs (
   done INTEGER DEFAULT 0, total INTEGER DEFAULT 0,
   message TEXT, started_at TEXT, finished_at TEXT
 );
+CREATE TABLE IF NOT EXISTS selection (     -- files ticked for removal in the results table
+  file_id INTEGER PRIMARY KEY REFERENCES files(id),
+  group_id INTEGER NOT NULL,
+  step INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
 """
 

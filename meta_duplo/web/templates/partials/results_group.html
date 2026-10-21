@@ -1,0 +1,55 @@
+{% set verdict_labels = {'identical': 'Identical', 'same_pixels': 'Same pixels', 'same_photo': 'Same photo', 'edited': 'Edited', 'same_video': 'Same video', 'similar_shot': 'Similar shot', 'likely': 'Likely duplicate'} %}
+{% if g %}
+<tbody class="rgroup" id="g-{{ g.id }}" x-data="{ open: {{ 'true' if open else 'false' }} }" @expand-all.window="open = $event.detail">
+  <tr class="rgroup__head" @click="open = !open">
+    <td class="col-check"><span class="chev" :class="open && 'chev--open'" aria-hidden="true">›</span></td>
+    <td>
+      <div class="rname">
+        <img class="rthumb" src="/thumb/{{ g.keeper.id }}" alt="" loading="lazy">
+        <span class="rname__text" title="{{ g.keeper.name }}">{{ g.keeper.name }}</span>
+        {% if step != 1 %}<span class="chip">{{ verdict_labels.get(g.verdict, g.verdict) }}</span>{% endif %}
+        {% if g.selected %}<span class="chip chip--selected">{{ g.selected }} selected</span>{% endif %}
+        <span class="rgroup__tools" @click.stop>
+          <a class="linkbtn" href="/compare?group={{ g.id }}">Compare</a>
+          {% if g.status == 'open' %}
+          <button class="linkbtn" hx-post="/groups/{{ g.id }}/decide" hx-vals='{"decision": "not_duplicate"}' hx-target="#g-{{ g.id }}" hx-swap="outerHTML" title="Teaches the matcher: these are different photos">Not duplicates</button>
+          <button class="linkbtn" hx-post="/groups/{{ g.id }}/decide" hx-vals='{"decision": "ignore"}' hx-target="#g-{{ g.id }}" hx-swap="outerHTML" title="Hide this group, also after rescans">Ignore</button>
+          {% elif g.status in ('ignored', 'not_duplicate') %}
+          <button class="linkbtn" hx-post="/groups/{{ g.id }}/decide" hx-vals='{"decision": "reopen"}' hx-target="#g-{{ g.id }}" hx-swap="outerHTML">Reopen</button>
+          {% endif %}
+        </span>
+      </div>
+    </td>
+    <td class="col-num"><strong>{{ g.total|size }}</strong></td>
+    <td>{{ g.members|length }}</td>
+    <td class="muted col-text">{{ g.keeper.device }}</td>
+    <td class="muted col-text">{{ g.keeper.place }}</td>
+    {% if step != 1 %}<td class="col-num"><span class="badge badge--{{ g.score|band }}">{{ g.score|pct }}</span></td>{% endif %}
+  </tr>
+  {% for m in g.members %}
+  <tr class="rrow {{ 'rrow--keeper' if m.role == 'keeper' }} {{ 'rrow--selected' if m.selected }}" x-show="open"
+      hx-get="/preview/{{ m.id }}?group={{ g.id }}" hx-target="#preview" hx-trigger="click" @click="$dispatch('panel-open')">
+    <td class="col-check" @click.stop>
+      <input type="checkbox" name="on" value="1" {{ 'checked' if m.selected }} {{ 'disabled' if g.status != 'open' }}
+             aria-label="Select {{ m.name }} for removal"
+             hx-post="/select" hx-vals='{"file_id": {{ m.id }}, "group_id": {{ g.id }}, "step": {{ step }}}' hx-swap="none"
+             @change="$el.closest('tr').classList.toggle('rrow--selected', $el.checked)">
+    </td>
+    <td>
+      <div class="rpath">
+        {% set cr = m.crumbs if m.crumbs|length <= 3 else [m.crumbs[0], '…'] + m.crumbs[-2:] %}
+        <span class="crumbs" title="{{ m.crumbs|join(' › ') }}">{% for c in cr %}<span class="crumb">{{ c }}</span>{% endfor %}</span>
+        <span class="rpath__file {{ 'is-diff' if 'name' in m.diff }}">{{ m.name }}</span>
+        {% if m.role == 'keeper' %}<span class="keep-pill">Keep</span>
+        {% elif g.status == 'open' %}<button class="linkbtn rpath__keep" hx-post="/groups/{{ g.id }}/keeper/{{ m.id }}" hx-target="#g-{{ g.id }}" hx-swap="outerHTML" @click.stop>Keep this one</button>{% endif %}
+      </div>
+    </td>
+    <td class="col-num {{ 'is-diff' if 'size' in m.diff }}">{{ m.size|size }}</td>
+    <td class="nowrap {{ 'is-diff' if 'date' in m.diff }}">{{ m.date or '—' }}</td>
+    <td class="col-text {{ 'is-diff' if 'device' in m.diff }}" title="{{ m.device }}">{{ m.device or '—' }}</td>
+    <td class="col-text {{ 'is-diff' if 'place' in m.diff }}" title="{{ m.place }}">{{ m.place or '—' }}</td>
+    {% if step != 1 %}<td class="col-num small muted">{% if m.role != 'keeper' and m.score is not none %}{{ m.score|pct }}{% endif %}</td>{% endif %}
+  </tr>
+  {% endfor %}
+</tbody>
+{% endif %}
