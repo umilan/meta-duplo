@@ -154,6 +154,10 @@
       openFilter(d, op = "contains") { this.f = { key: d.key, label: d.label, op, value: "" }; this.dialog = "filter"; },
       openEdit(d) { this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit"; },
       close() { this.dialog = null; },
+      sortText() {
+        const [key, dir] = Alpine.store("wb").sort, col = Alpine.store("wb").colLabels.find((c) => c[0] === key);
+        return col ? `${col[1]} ${dir === "asc" ? "↑" : "↓"}` : "Default";
+      },
       // Sort by picker: a column's first direction is high-first for numbers (as a header click)
       sortBy(key, dir) {
         const col = Alpine.store("wb").colLabels.find((c) => c[0] === key);

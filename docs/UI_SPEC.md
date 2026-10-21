@@ -119,8 +119,9 @@ One table for every task; the four step screens stay as the guided path. No desc
 Header (three rows, as in the user's mockup):
 - **Workbench** title and **Data input**: a field showing how many folders are scanned and *Found N files*; it opens
   a sheet listing each folder (name, path, file count, writable / read-only / reference) and *Add or manage folders…*.
-- **Grouping by**, **Sort by** (Default or any visible data column; numbers start high-first, the ↑/↓ button
-  flips the direction; header clicks and the picker stay in sync) and a **Search** field with an icon and a clear ×.
+- **Grouping by**, **Sort by** (a dropdown sheet: *Column* — Default or any visible data column, numbers start
+  high-first — and *Order* — Ascending / Descending; the button reads e.g. *Filename ↑*; header clicks and the
+  picker stay in sync) and a **Search** field with an icon and a clear ×.
 - **Duplicates grouping** starts with the chip **Dup.: ≥ 2** (switching to it adds the chip, switching away removes
   it if it was added that way). Remove the chip and files without any copy come back as one **No duplicates (n)**
   group, always last and collapsed; it shows no differences or match values.
@@ -131,7 +132,7 @@ only the title, toolbar, filters and count above it are inset slightly.
 
 ```
 [☰] Workbench   Data input [3 folders ·························· Found 32 235 files ›]                [⚙]
-Grouping by [Duplicates ▾]  Sort by [Dup. confidence ▾] [↓]  [🔍 Search…                                    ×]
+Grouping by [Duplicates ▾]  Sort by [Dup. confidence ↓ ▾]  [🔍 Search…                                        ×]
 Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selection [None ▾]  Action [Choose… ▾]
 ┌─┬─────┬─────────────────────────⋯┬────────────────────⋯┬──New filename───────────⋯┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
 │☐│[▣]  │ Diff                      │ Diff                 │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ –              │ Same       │ → …     │
@@ -193,7 +194,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere
   (the direction a click would give).
-- **Sorted column:** its header label and its cells are bold, in the normal text colour.
+- **Sorted column:** its header label and its cells are bold; cells keep their red / green. Group rows are
+  regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light blue; the row shown in the preview is a darker blue. Clicking a row or
   ticking its checkbox shows it in the preview panel (and opens the panel).
 - **Preview panel:** image; the edits not yet applied; Dates, Location, Device, Author, File; the duplicate set with

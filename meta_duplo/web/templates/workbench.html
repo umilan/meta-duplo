@@ -48,16 +48,24 @@
           {% for k, label in group_names.items() %}<option value="{{ k }}" {{ 'selected' if view.group == k }}>{{ label }}</option>{% endfor %}
         </select>
       </label>
-      <label>Sort by
-        <select x-effect="$store.wb.colLabels; $nextTick(() => $el.value = $store.wb.sort[0])"
-                @change="sortBy($event.target.value)">
-          <option value="">Default</option>
-          <template x-for="c in $store.wb.colLabels" :key="c[0]"><option :value="c[0]" x-text="c[1]"></option></template>
-        </select>
-      </label>
-      <button type="button" class="btn btn--icon" x-show="$store.wb.sort[0]" @click="sortBy($store.wb.sort[0], $store.wb.sort[1] === 'asc' ? 'desc' : 'asc')"
-              :title="$store.wb.sort[1] === 'asc' ? 'Ascending: click for descending' : 'Descending: click for ascending'"
-              x-text="$store.wb.sort[1] === 'asc' ? '↑' : '↓'"></button>
+      <div class="sortpick" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+        <span class="wbbar__label" id="sortby-label">Sort by</span>
+        <button type="button" class="selectbtn" aria-labelledby="sortby-label" aria-haspopup="menu" :aria-expanded="open.toString()"
+                @click="open = !open" x-text="sortText()">Default</button>
+        <div class="wbsheet sortpick__sheet" role="menu" x-show="open" x-cloak x-transition.opacity>
+          <div class="wbsheet__section">Column</div>
+          <button type="button" role="menuitemradio" :aria-checked="(!$store.wb.sort[0]).toString()" @click="sortBy(''); open = false">Default</button>
+          <template x-for="c in $store.wb.colLabels" :key="c[0]">
+            <button type="button" role="menuitemradio" :aria-checked="($store.wb.sort[0] === c[0]).toString()" x-text="c[1]"
+                    @click="sortBy(c[0], $store.wb.sort[0] === c[0] ? $store.wb.sort[1] : undefined); open = false"></button>
+          </template>
+          <div class="wbsheet__section">Order</div>
+          <button type="button" role="menuitemradio" :disabled="!$store.wb.sort[0]" :aria-checked="($store.wb.sort[0] !== '' && $store.wb.sort[1] === 'asc').toString()"
+                  @click="sortBy($store.wb.sort[0], 'asc'); open = false">↑ Ascending</button>
+          <button type="button" role="menuitemradio" :disabled="!$store.wb.sort[0]" :aria-checked="($store.wb.sort[0] !== '' && $store.wb.sort[1] === 'desc').toString()"
+                  @click="sortBy($store.wb.sort[0], 'desc'); open = false">↓ Descending</button>
+        </div>
+      </div>
       <div class="searchfield" x-data='{ q: {{ view.q|tojson }} }'>
         <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         <input type="search" placeholder="Search…" title="Search path, filename and new filename" aria-label="Search" x-model="q"

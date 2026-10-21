@@ -289,6 +289,12 @@
 .datain__root { grid-column: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); }
 .datain__src > .small:last-child { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--muted); }
 .datain__manage { border-top: 1px solid var(--line); margin-top: var(--space-050); border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+.sortpick { position: relative; display: inline-flex; align-items: center; gap: var(--space-100); }
+.selectbtn { display: inline-flex; align-items: center; min-width: 176px; text-align: left; white-space: nowrap; }
+.sortpick__sheet { position: absolute; left: 0; top: calc(100% + var(--space-050)); z-index: 40; min-width: 208px; max-height: 64vh; overflow-y: auto; }
+.wbsheet [role=menuitemradio] { padding-left: var(--space-300); position: relative; }
+.wbsheet [role=menuitemradio][aria-checked="true"] { font-weight: 600; }
+.wbsheet [role=menuitemradio][aria-checked="true"]::before { content: "✓"; position: absolute; left: var(--space-100); color: var(--accent); }
 .searchfield { position: relative; flex: 1; min-width: 208px; display: flex; align-items: center; }
 .searchfield svg { position: absolute; left: var(--space-100); width: var(--icon); height: var(--icon); color: var(--muted); pointer-events: none; }
 .searchfield input { width: 100%; padding-left: var(--space-400); padding-right: var(--space-400); }
@@ -328,10 +334,9 @@
 .wbh-cell--edit .wbh__label { color: var(--edit-text); }
 .wbh-cell--tree .wbh__label { cursor: default; }
 .wbh-cell.is-dragging { opacity: .48; }
-.wbt td[data-sorted] { font-weight: 600; color: var(--text); }
-.wbt td[data-sorted] :is(.is-same, .is-diff, .muted) { color: inherit; }
-.wbg__head td { background: var(--group-bg); font-weight: 600; cursor: pointer; border-top: 1px solid var(--line); }
-.wbg__label { font-weight: 600; }
+.wbt td[data-sorted] { font-weight: 600; }  /* keeps its red / green */
+.wbg__head td { background: var(--group-bg); font-weight: 400; cursor: pointer; border-top: 1px solid var(--line); }
+.wbg__head td.wbg__label { font-weight: 600; }  /* the group title stays bold; other group cells are regular */
 .wbg__label .chev { margin-right: var(--space-050); }
 .wbg__sum--same { color: var(--same); }
 .wbg__sum--diff { color: var(--differ); }

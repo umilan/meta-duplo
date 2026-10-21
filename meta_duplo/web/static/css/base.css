@@ -15,7 +15,7 @@ img { display: block; max-width: 100%; }
 
 /* form controls: one look everywhere (ADS text field / select / checkbox) */
 input, select, button, textarea { font: inherit; color: inherit; }
-input:is([type=text], [type=search], [type=number], [type=date], :not([type])), select, textarea {
+input:is([type=text], [type=search], [type=number], [type=date], :not([type])), select, textarea, .selectbtn {
   min-height: var(--control-h); padding: 0 var(--space-100); background: var(--surface);
   border: 1px solid var(--line-strong); border-radius: var(--radius-sm); font-size: var(--text-md); line-height: var(--line-md);
   color: var(--text); font-weight: 400;
@@ -24,14 +24,14 @@ input:is([type=text], [type=search], [type=number], [type=date], :not([type])), 
 textarea { padding: var(--space-050) var(--space-100); }
 input::-webkit-search-decoration, input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
 /* select arrow drawn with two gradients, so it follows the theme colour */
-select {
+select, .selectbtn {
   padding-right: var(--space-400); cursor: pointer;
   background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
   background-position: calc(100% - var(--space-200)) 50%, calc(100% - var(--space-200) + var(--space-050)) 50%;
   background-size: var(--space-050) var(--space-050); background-repeat: no-repeat;
 }
 select:disabled, input:disabled { opacity: .5; cursor: not-allowed; }
-input:is([type=text], [type=search], [type=number], [type=date], :not([type])):hover, select:hover, textarea:hover { border-color: var(--muted); }
+input:is([type=text], [type=search], [type=number], [type=date], :not([type])):hover, select:hover, textarea:hover, .selectbtn:hover, .selectbtn[aria-expanded="true"] { border-color: var(--muted); }
 input:is([type=text], [type=search], [type=number], [type=date], :not([type])):focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 1px var(--accent); }
 input::placeholder { color: var(--muted); }
 input[type=checkbox], input[type=radio] { width: var(--check); height: var(--check); margin: 0; accent-color: var(--accent); cursor: pointer; vertical-align: middle; flex: none; }
