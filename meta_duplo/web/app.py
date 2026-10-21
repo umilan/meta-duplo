@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .. import geo, harmonize, match, plans
-from . import rename_grid, results
+from . import rename_grid, results, workbench as wb
 from ..__main__ import add_source
 from ..db import Library
 from ..metadata import device_name
@@ -21,6 +21,7 @@ from ..scan import Runner, scan_all
 HERE = Path(__file__).parent
 PAGE = 100
 GRID_PAGE = 200
+WB_PAGE = 60  # groups per chunk in the workbench
 
 
 def human_size(n: int | None) -> str:
@@ -367,6 +368,146 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
 
         start("re-check", fn)
         return templates.TemplateResponse(request, "partials/job.html", {"job": last_job()})
+
+    # ───────────────────────── workbench (experimental): one table for every task ─────────────────────────
+
+    def wb_ctx(offset: int = 0) -> dict:
+        view = wb.load_view(lib)
+        groups, exif_keys, nrows = wb.table(lib, view)
+        cols = []
+        for key, width in view["columns"]:
+            f = wb.field_for(key)
+            if f:
+                target = key[5:] if key.startswith("edit:") else f.editable
+                cols.append({"key": key, "label": f.label, "kind": f.kind, "width": int(width),
+                             "target": target, "edit": key.startswith("edit:"),
+                             "groupable": {"path": "folder", "date": "day", "device": "device", "place": "place",
+                                           "dup_count": "dups", "dup_conf": "dups"}.get(key, "")})
+        return {"view": view, "groups": groups[offset:offset + WB_PAGE], "ngroups": len(groups), "nrows": nrows,
+                "offset": offset, "next_offset": offset + WB_PAGE, "cols": cols,
+                "table_width": 36 + 40 + sum(c["width"] for c in cols),
+                "catalog": wb.catalog(exif_keys), "group_names": wb.GROUPS, "ops": wb.OPS,
+                "no_value_ops": wb.NO_VALUE_OPS, "date_sources": wb.DATE_SOURCES,
+                "field_label": lambda k: (wb.field_for(k).label if wb.field_for(k) else k),
+                "conf_label": wb.conf_label, "value": wb.value,
+                "tokens": harmonize.TOKENS_HELP, "pattern": lib.setting("filename_pattern")}
+
+    @app.get("/workbench", response_class=HTMLResponse)
+    def workbench(request: Request):
+        return render(request, "workbench.html", **wb_ctx())
+
+    @app.get("/wb/table", response_class=HTMLResponse)
+    def wb_table(request: Request):
+        return templates.TemplateResponse(request, "partials/wb_table.html", wb_ctx())
+
+    @app.get("/wb/more", response_class=HTMLResponse)
+    def wb_more(request: Request, offset: int = 0):
+        return templates.TemplateResponse(request, "partials/wb_groups.html", wb_ctx(offset))
+
+    @app.post("/wb/view")
+    async def wb_view(request: Request):
+        """Every change to the view (sort, group, filters, columns, edit rules) goes through here."""
+        form = await request.form()
+        f = {k: str(v) for k, v in form.items()}
+        view = wb.load_view(lib)
+        act = f.get("action", "")
+        cols = view["columns"]
+        keys = [c[0] for c in cols]
+        reload = True
+        if act == "sort":
+            view["sort"] = [f.get("key", ""), f.get("dir", "asc")]
+        elif act == "group":
+            view["group"] = f.get("group", "dups")
+        elif act == "q":
+            view["q"] = f.get("q", "")
+        elif act == "colors":
+            view["colors"] = not view.get("colors", True)
+        elif act == "filter_add" and f.get("key") and f.get("op") in wb.OPS:
+            view["filters"].append({"key": f["key"], "op": f["op"], "value": f.get("value", "")})
+        elif act == "filter_remove":
+            idx = int(f.get("index", -1))
+            if 0 <= idx < len(view["filters"]):
+                view["filters"].pop(idx)
+        elif act == "col_add" and f.get("key") and f["key"] not in keys and wb.field_for(f["key"]):
+            cols.append([f["key"], wb.field_for(f["key"]).width])
+        elif act == "col_remove":
+            view["columns"] = [c for c in cols if c[0] != f.get("key")]
+        elif act == "col_move" and f.get("key") in keys and f.get("key") != f.get("before"):
+            moving = next(c for c in cols if c[0] == f["key"])
+            rest = [c for c in cols if c[0] != f["key"]]
+            at = next((i for i, c in enumerate(rest) if c[0] == f.get("before")), len(rest))
+            view["columns"] = rest[:at] + [moving] + rest[at:]
+        elif act == "col_width" and f.get("key") in keys:
+            for c in cols:
+                if c[0] == f["key"]:
+                    c[1] = max(40, min(900, int(float(f.get("width", c[1])))))
+            reload = False  # the browser already shows the new width
+        elif act == "edit_set" and f.get("target") in wb.EDIT_LABELS:
+            t, kind = f["target"], f.get("kind", "recommended")
+            rule: dict = {"kind": kind}
+            if t == "filename":
+                rule = {"kind": "pattern", "pattern": f.get("pattern") or harmonize.DEFAULT_PATTERN}
+            elif kind == "column":
+                rule["column"] = f.get("column", "")
+            elif kind == "fixed":
+                rule["value"] = f.get("value", "").strip()
+            elif kind == "shift":
+                secs = int(f.get("hh") or 0) * 3600 + int(f.get("mm") or 0) * 60 + int(f.get("ss") or 0)
+                rule.update(column=f.get("shift_column") or "date", seconds=-secs if f.get("sign") == "-" else secs)
+            view["edits"][t] = rule
+            ekey = f"edit:{t}"
+            if ekey not in keys:  # the edit column goes right after its source column
+                base = wb.EDIT_BASE[t]
+                at = keys.index(base) + 1 if base in keys else len(cols)
+                cols.insert(at, [ekey, 300 if t == "filename" else 170])
+        elif act == "edit_remove" and f.get("target") in wb.EDIT_LABELS:
+            view["edits"].pop(f["target"], None)
+            view["columns"] = [c for c in cols if c[0] != f"edit:{f['target']}"]
+        elif act == "reset":
+            view = json.loads(json.dumps(wb.DEFAULT_VIEW))
+        wb.save_view(lib, view)
+        return Response(status_code=204, headers={"HX-Trigger": "wb-reload"} if reload else {})
+
+    @app.get("/wb/preview/{fid}", response_class=HTMLResponse)
+    def wb_preview(request: Request, fid: int):
+        view = wb.load_view(lib)
+        rows, _ = wb.build_rows(lib)
+        wb.apply_edits(rows, view["edits"])
+        r = next((x for x in rows if x["id"] == fid), None)
+        mates = [x for x in rows if r and r["cluster"] is not None and x["cluster"] == r["cluster"]] if r else []
+        return templates.TemplateResponse(request, "partials/wb_preview.html",
+                                          {"r": r, "mates": mates, "conf_label": wb.conf_label, "edit_labels": wb.EDIT_LABELS})
+
+    @app.get("/wb/ids")
+    def wb_ids(which: str = "nonkeepers"):
+        return {"ids": wb.nonkeeper_ids(lib, wb.load_view(lib))}
+
+    def _ids(raw: str) -> set[int]:
+        return {int(x) for x in raw.split(",") if x.strip().isdigit()}
+
+    @app.post("/wb/commit")
+    def wb_commit(ids: str = Form("")):
+        n = wb.commit(lib, wb.load_view(lib), _ids(ids))
+        return Response(status_code=204, headers={"HX-Trigger": json.dumps(
+            {"wb-reload": True, "toast": f"Saved {n} values as decisions" if n else "Nothing to save for the selection"})})
+
+    @app.post("/wb/rename-plan")
+    def wb_rename_plan(ids: str = Form(""), write_xmp: str | None = Form(None)):
+        chosen = _ids(ids)
+        if not chosen:
+            return Response(status_code=204, headers={"HX-Trigger": json.dumps({"toast": "Select files first"})})
+        wb.commit(lib, wb.load_view(lib), chosen)  # the plan uses exactly what the table shows
+        pid = plans.build_rename_plan(lib, write_xmp=bool(write_xmp), only_ids=chosen)
+        return Response(headers={"HX-Redirect": f"/plans/{pid}"})
+
+    @app.post("/wb/remove-plan")
+    def wb_remove_plan(ids: str = Form("")):
+        chosen = _ids(ids)
+        gids = wb.groups_for(lib, chosen)
+        if not gids:
+            return Response(status_code=204, headers={"HX-Trigger": json.dumps({"toast": "No duplicates in the selection"})})
+        pid = plans.build_cleanup_plan(lib, gids, remove_file_ids=chosen)
+        return Response(headers={"HX-Redirect": f"/plans/{pid}"})
 
     # ───────────────────────── plans ─────────────────────────
 

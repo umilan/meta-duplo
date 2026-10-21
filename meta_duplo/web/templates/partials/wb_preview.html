@@ -1,0 +1,28 @@
+{% if r %}
+<div class="preview">
+  <img class="preview__img" src="{{ '/media/' if r.v.kind == 'image' else '/thumb/' }}{{ r.id }}" alt="{{ r.v.filename }}">
+  <h3 class="preview__name">{{ r.v.filename }}</h3>
+  <div class="small muted path">{{ r.v.path }}</div>
+  {% set sections = [
+    ('Dates', [('Date taken', r.v.date), ('Date digitized', r.v.digitized), ('Date modified (EXIF)', r.v.modify), ('File date', r.v.file_date), ('GPS date (UTC)', r.v.gps_date), ('Date in filename', r.v.name_date), ('Recommended', r.v.rec_date)]),
+    ('Location', [('Place', r.v.place), ('Country', r.v.country), ('GPS', r.v.gps), ('Recommended', r.v.rec_place)]),
+    ('Device', [('Device', r.v.device), ('Make', r.v.make), ('Model', r.v.model), ('Serial', r.v.serial), ('Lens', r.v.lens), ('Software', r.v.software), ('Recommended', r.v.rec_device)]),
+    ('Author', [('Author', r.v.author), ('Copyright', r.v.copyright), ('Camera owner', r.v.owner)]),
+    ('File', [('Size', r.v.size|size), ('Dimensions', r.v.dims), ('Type', r.v.ext), ('Original name', r.original_name)]),
+  ] %}
+  {% if r.e %}
+  <div class="pv-section pv-section--edit"><div class="pv-title">Edits (not applied yet)</div>
+    <dl class="facts">{% for t, val in r.e.items() %}<dt>{{ edit_labels[t] }}</dt><dd>{{ val or '—' }}</dd>{% endfor %}</dl></div>
+  {% endif %}
+  {% for title, items in sections %}
+  <div class="pv-section"><div class="pv-title">{{ title }}</div>
+    <dl class="facts">{% for k, val in items %}<dt>{{ k }}</dt><dd>{{ val or '—' }}</dd>{% endfor %}</dl></div>
+  {% endfor %}
+  {% if mates|length > 1 %}
+  <div class="pv-section"><div class="pv-title">Duplicates ({{ mates|length }})</div>
+    <dl class="facts">{% for m in mates %}<dt>{{ '✓ ' if m.keeper }}{{ m.v.filename }}</dt><dd>{{ conf_label(m) or 'kept' }} · {{ m.v.path }}</dd>{% endfor %}</dl></div>
+  {% endif %}
+  <div class="pv-section"><div class="pv-title">All metadata ({{ r.tags|length }} tags)</div>
+    <dl class="facts facts--mono">{% for k, val in r.tags|dictsort %}<dt title="{{ k }}">{{ k }}</dt><dd>{{ val }}</dd>{% endfor %}</dl></div>
+</div>
+{% else %}<div class="empty small">File not found.</div>{% endif %}

@@ -162,7 +162,9 @@ def extract(lib: Library, job: Job) -> None:
         todo = con.execute(
             "SELECT f.id, f.kind, s.root, f.rel_path FROM files f JOIN sources s ON s.id = f.source_id "
             "LEFT JOIN meta m ON m.file_id = f.id "
-            "WHERE f.present = 1 AND f.kind IN ('image', 'video') AND m.file_id IS NULL"
+            "WHERE f.present = 1 AND f.kind IN ('image', 'video') "
+            "AND (m.file_id IS NULL OR instr(COALESCE(m.raw_json, ''), ?) = 0)",
+            (f'"_v": {metadata.RAW_VERSION}',),  # older libraries re-read once to get every tag
         ).fetchall()
     for i, r in enumerate(todo):
         if i % 25 == 0:

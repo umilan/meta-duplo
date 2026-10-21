@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/static/css/layout.css">
   <link rel="stylesheet" href="/static/css/components.css">
   <script src="/static/js/htmx.min.js" defer></script>
+  {% block head %}{% endblock %}
   <script src="/static/js/alpine.min.js" defer></script>
 </head>
 <body hx-boost="true" hx-headers='{"X-Meta-Duplo-Token": "{{ token }}"}'
@@ -24,6 +25,8 @@
         <li><a class="nav__link {{ 'nav__link--active' if path == '/step/2' }}" href="/step/2"><span class="nav__step">2</span>Near duplicates<span class="nav__count">{{ counts.step2 }}</span></a></li>
         <li><a class="nav__link {{ 'nav__link--active' if path == '/step/3' }}" href="/step/3"><span class="nav__step">3</span>Harmonize &amp; rename<span class="nav__count">{{ counts.step3 }}</span></a></li>
         <li><a class="nav__link {{ 'nav__link--active' if path == '/step/4' }}" href="/step/4"><span class="nav__step">4</span>Re-check<span class="nav__count">{{ counts.step4 }}</span></a></li>
+        <li><div class="nav__sep"></div></li>
+        <li><a class="nav__link {{ 'nav__link--active' if path.startswith('/workbench') }}" href="/workbench"><span class="nav__step">▦</span>Workbench<span class="nav__count"><span class="chip chip--exp">beta</span></span></a></li>
         <li><div class="nav__sep"></div></li>
         <li><a class="nav__link {{ 'nav__link--active' if path.startswith('/plans') }}" href="/plans"><span class="nav__step">↺</span>Plans &amp; undo<span class="nav__count">{{ counts.drafts or '' }}</span></a></li>
         <li><a class="nav__link {{ 'nav__link--active' if path.startswith('/settings') }}" href="/settings"><span class="nav__step">⚙</span>Settings</a></li>

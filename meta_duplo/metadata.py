@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from PIL import Image
+from PIL import ExifTags, Image
 
 try:  # HEIC/HEIF support is optional
     from pillow_heif import register_heif_opener
@@ -168,6 +168,56 @@ def _gps(gps: dict) -> tuple[float | None, float | None]:
     return round(lat, 6), round(lon, 6)
 
 
+RAW_VERSION = 2  # bump when the stored raw metadata changes; extract re-reads older rows
+
+_XP_TAGS = {0x9C9B, 0x9C9C, 0x9C9D, 0x9C9E, 0x9C9F}  # Windows XP* tags: UTF-16LE bytes
+
+
+def _tag_value(tag: int, v):
+    if isinstance(v, bytes):
+        if tag in _XP_TAGS:
+            return v.decode("utf-16-le", "ignore").strip("\x00 ")
+        if len(v) > 64:
+            return f"<{len(v)} bytes>"
+        text = v.decode("utf-8", "ignore").strip("\x00 ")
+        return text if text.isprintable() else v.hex()
+    if isinstance(v, tuple):
+        return ", ".join(str(_tag_value(tag, x)) for x in v)
+    if hasattr(v, "numerator") and not isinstance(v, int):
+        try:
+            return round(float(v), 6)
+        except (ZeroDivisionError, ValueError):
+            return None
+    if isinstance(v, str):
+        return v.strip("\x00 ")
+    return v
+
+
+def all_tags(exif, sub: dict, gps: dict) -> dict:
+    """Every EXIF tag as 'Group:Name' → readable value (MakerNote and other blobs summarised)."""
+    out = {}
+    for group, items, names in (("IFD0", exif.items(), ExifTags.TAGS), ("ExifIFD", sub.items(), ExifTags.TAGS),
+                                ("GPS", gps.items(), ExifTags.GPSTAGS)):
+        for tag, v in items:
+            if group == "IFD0" and tag in (0x8769, 0x8825, 0xA005):
+                continue  # pointers to sub-IFDs
+            name = names.get(tag, f"0x{tag:04X}")
+            val = _tag_value(tag, v)
+            if val not in (None, ""):
+                out[f"{group}:{name}"] = val
+    return out
+
+
+def _gps_time(gps: dict) -> str | None:
+    """GPSDateStamp + GPSTimeStamp (UTC), e.g. '2019-05-14 16:22:03'."""
+    try:
+        d = str(gps[29]).strip("\x00 ").replace(":", "-")
+        h, mi, s = (int(float(x)) for x in gps[7])
+        return f"{d} {h:02d}:{mi:02d}:{s:02d}"
+    except (KeyError, TypeError, ValueError, ZeroDivisionError):
+        return None
+
+
 def read_image(path: Path) -> Meta:
     m = Meta()
     with Image.open(path) as img:
@@ -187,12 +237,25 @@ def read_image(path: Path) -> Meta:
             m.dto, m.dto_source = dto.strftime(TIME_FMT), "EXIF DateTimeOriginal"
         m.unique_id = sub.get(0xA420)
         m.gps_lat, m.gps_lon = _gps(exif.get_ifd(0x8825))
+        gps = exif.get_ifd(0x8825)
+        tags = all_tags(exif, sub, gps)
+        digitized = parse_exif_time(sub.get(0x9004))
         m.raw = {
+            "_v": RAW_VERSION,
             "Make": m.make, "Model": m.model, "Software": m.software,
             "DateTimeOriginal": sub.get(0x9003), "DateTime": exif.get(0x0132),
             "OffsetTimeOriginal": sub.get(0x9011), "Orientation": m.orientation,
             "GPS": [m.gps_lat, m.gps_lon] if m.gps_lat is not None else None,
             "Format": img.format,
+            # the fields the workbench shows by name; everything else is in "tags"
+            "DateTimeDigitized": digitized.strftime(TIME_FMT) if digitized else None,
+            "GPSDateTime": _gps_time(gps),
+            "Artist": tags.get("IFD0:Artist") or tags.get("IFD0:XPAuthor"),
+            "Copyright": tags.get("IFD0:Copyright"),
+            "OwnerName": tags.get("ExifIFD:CameraOwnerName"),
+            "SerialNumber": tags.get("ExifIFD:BodySerialNumber"),
+            "LensModel": tags.get("ExifIFD:LensModel"),
+            "tags": tags,
         }
     return m
 
@@ -243,7 +306,8 @@ def read_video(path: Path, home_tz: str) -> Meta:
         mm = re.match(r"([+-]\d+\.?\d*)([+-]\d+\.?\d*)", loc)
         if mm:
             m.gps_lat, m.gps_lon = float(mm.group(1)), float(mm.group(2))
-    m.raw = {"format": fmt.get("format_name"), "tags": tags}
+    m.raw = {"_v": RAW_VERSION, "format": fmt.get("format_name"),
+             "tags": {f"QuickTime:{k}": v for k, v in tags.items()}}
     return m
 
 

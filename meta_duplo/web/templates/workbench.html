@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Workbench{% endblock %}
+{% block head %}<script src="/static/js/workbench.js" defer></script>{% endblock %}
+{% block content %}
+<div class="wb" x-data="wbPage" :class="panel && 'wb--panel'"
+     @wb-filter.window="openFilter($event.detail, $event.detail.op || 'contains')" @wb-edit.window="openEdit($event.detail)"
+     @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true">
+  <div class="wb-main">
+    <div class="results-head">
+      <div>
+        <h1>Workbench <span class="chip chip--exp">experimental</span></h1>
+        <p class="muted">One table for every task. <strong>Group by</strong> duplicates to clean up copies, or by photo, folder or day to fix metadata. Red marks values that differ from the group's first (kept) row. Header <em>Actions</em>: sort, filter, search, edit; drag headers to reorder, drag their right edge to resize.</p>
+      </div>
+      <div class="toolbar">
+        <button class="btn" type="button" @click="panel = !panel">◧ Preview</button>
+        <button class="btn btn--small" type="button" @click="post({ action: 'reset' })" title="Default columns, no filters">Reset view</button>
+      </div>
+    </div>
+
+    <div class="results-toolbar">
+      <label class="small">Group by
+        <select @change="post({ action: 'group', group: $event.target.value })">
+          {% for k, label in group_names.items() %}<option value="{{ k }}" {{ 'selected' if view.group == k }}>{{ label }}</option>{% endfor %}
+        </select>
+      </label>
+      <input type="search" placeholder="Search path, filename, new filename" aria-label="Search" value="{{ view.q }}"
+             @input.debounce.400ms="post({ action: 'q', q: $event.target.value })">
+      <label class="small"><input type="checkbox" {{ 'checked' if view.colors }} @change="post({ action: 'colors' })"> Colour differences</label>
+    </div>
+
+    <div id="wb-table" hx-get="/wb/table" hx-trigger="wb-reload from:body" hx-swap="innerHTML" hx-disinherit="*">
+      {% include "partials/wb_table.html" %}
+    </div>
+
+    <div class="selbar-slot">
+      <div class="selbar" :class="$store.wb.count && 'selbar--active'">
+        <strong x-text="$store.wb.count + ' selected'"></strong>
+        <button class="btn btn--small" type="button" @click="$store.wb.selectDuplicates()" title="Every copy except the kept one, in all duplicate groups">Select duplicates</button>
+        <button class="btn btn--small" type="button" @click="$store.wb.clear()">Clear</button>
+        <span class="results-toolbar__spacer"></span>
+        <button class="btn" type="button" :disabled="!$store.wb.count" hx-post="/wb/commit" hx-swap="none"
+                hx-vals='js:{ids: Alpine.store("wb").csv()}' title="Store the purple edit values of the selected rows as decisions">Save edits</button>
+        <button class="btn" type="button" :disabled="!$store.wb.count" hx-post="/wb/remove-plan"
+                hx-vals='js:{ids: Alpine.store("wb").csv()}'>Remove selected copies…</button>
+        <button class="btn btn--primary" type="button" :disabled="!$store.wb.count" hx-post="/wb/rename-plan"
+                hx-vals='js:{ids: Alpine.store("wb").csv(), write_xmp: "1"}'>Review rename plan…</button>
+      </div>
+    </div>
+  </div>
+
+  <aside class="wb-panel results-panel" x-show="panel" aria-label="Preview">
+    <div id="wb-preview"><div class="empty small">Click a row to see all of its metadata.</div></div>
+  </aside>
+
+  {# ── dialogs ── #}
+  <div class="modal" x-show="dialog" x-cloak @keydown.escape.window="close()">
+    <div class="modal__backdrop" @click="close()"></div>
+
+    <form class="modal__box" x-show="dialog === 'filter'" hx-post="/wb/view" hx-swap="none" @submit="close()">
+      <h3>Add filter</h3>
+      <input type="hidden" name="action" value="filter_add">
+      <label>Column
+        <select name="key" x-model="f.key">
+          {% for g, fields in catalog.items() %}<optgroup label="{{ g }}">{% for fl in fields %}<option value="{{ fl.key }}">{{ fl.label }}</option>{% endfor %}</optgroup>{% endfor %}
+          <optgroup label="Edit columns">{% for c in cols if c.edit %}<option value="{{ c.key }}">{{ c.label }}</option>{% endfor %}</optgroup>
+        </select>
+      </label>
+      <label>Condition
+        <select name="op" x-model="f.op">{% for k, label in ops.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select>
+      </label>
+      <label x-show="!['empty', 'not_empty', 'diff', 'same'].includes(f.op)">Value <input type="text" name="value" x-model="f.value" x-effect="if (dialog === 'filter') $nextTick(() => $el.focus())"></label>
+      <p class="small muted">Grouped views keep a whole group when any of its rows matches; “No grouping” filters rows.</p>
+      <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button><button class="btn btn--primary">Apply filter</button></div>
+    </form>
+
+    <form class="modal__box modal__box--wide" x-show="dialog === 'edit'" hx-post="/wb/view" hx-swap="none" @submit="close()">
+      <input type="hidden" name="action" value="edit_set"><input type="hidden" name="target" :value="e.target">
+      <h3 x-text="{ filename: 'Edit: new filename', date: 'Edit: new date', place: 'Edit: new place', device: 'Edit: new device' }[e.target] || 'Edit'"></h3>
+      <p class="small muted">Creates a purple column to the right with the new values. Nothing changes on disk: <em>Save edits</em> stores them as decisions, <em>Review rename plan…</em> shows exactly what would happen.</p>
+      <template x-if="e.target === 'filename'">
+        <div class="rule-editor" x-data="{ insert(t) { const el = this.$refs.pat; const at = el.selectionStart ?? el.value.length; el.value = el.value.slice(0, at) + t + el.value.slice(el.selectionEnd ?? at); el.focus(); } }">
+          <label>Rule <input type="text" name="pattern" x-ref="pat" value="{{ pattern }}" spellcheck="false" class="mono-input"></label>
+          <div class="rule__tokens">
+            {% for tok in ['{date:%Y-%m-%d %H-%M-%S}', '{location_name}', '{country}', '{device_name}', '{original_filename}', '{ext}', '{EXT}'] %}
+            <button type="button" class="chip chip--btn" @click="insert('{{ tok }}')">{{ tok }}</button>
+            {% endfor %}
+          </div>
+          <p class="small muted">Uses the New date / place / device columns when they exist, otherwise the accepted values.</p>
+        </div>
+      </template>
+      <template x-if="e.target && e.target !== 'filename'">
+        <div class="rule-editor">
+          <label class="radio"><input type="radio" name="kind" value="recommended" x-model="e.kind"> Recommended value (from every copy of the photo)</label>
+          <label class="radio"><input type="radio" name="kind" value="column" x-model="e.kind"> Copy from another column</label>
+          <div class="indent" x-show="e.kind === 'column'">
+            <select name="column">
+              <template x-if="e.target === 'date'"><optgroup label="Dates">{% for k in date_sources %}<option value="{{ k }}">{{ field_label(k) }}</option>{% endfor %}</optgroup></template>
+              {% for g, fields in catalog.items() if g != 'Duplicates' %}<optgroup label="{{ g }}">{% for fl in fields if fl.kind != 'special' %}<option value="{{ fl.key }}">{{ fl.label }}</option>{% endfor %}</optgroup>{% endfor %}
+            </select>
+          </div>
+          <template x-if="e.target === 'date'">
+            <div>
+              <label class="radio"><input type="radio" name="kind" value="shift" x-model="e.kind"> Shift a date (wrong camera clock, time zone)</label>
+              <div class="indent shift" x-show="e.kind === 'shift'">
+                <select name="shift_column" aria-label="Date to shift">{% for k in date_sources %}<option value="{{ k }}">{{ field_label(k) }}</option>{% endfor %}</select>
+                <select name="sign"><option value="+">+</option><option value="-">−</option></select>
+                <input type="number" name="hh" min="0" value="0" aria-label="Hours"> h
+                <input type="number" name="mm" min="0" max="59" value="0" aria-label="Minutes"> min
+                <input type="number" name="ss" min="0" max="59" value="0" aria-label="Seconds"> s
+              </div>
+            </div>
+          </template>
+          <label class="radio"><input type="radio" name="kind" value="fixed" x-model="e.kind"> Fixed value</label>
+          <div class="indent" x-show="e.kind === 'fixed'"><input type="text" name="value" :placeholder="e.target === 'date' ? 'YYYY-MM-DD HH:MM:SS' : ''"></div>
+        </div>
+      </template>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--danger" @click="post({ action: 'edit_remove', target: e.target }); close()">Remove edit column</button>
+        <span class="results-toolbar__spacer"></span>
+        <button type="button" class="btn" @click="close()">Cancel</button><button class="btn btn--primary">Apply rule</button>
+      </div>
+    </form>
+
+    <div class="modal__box modal__box--wide" x-show="dialog === 'addcol'">
+      <h3>Add column</h3>
+      <input type="search" placeholder="Search fields (e.g. Date, GPS, Artist, Lens)" x-model="colQuery" aria-label="Search fields">
+      <div class="colcat">
+        {% for g, fields in catalog.items() %}
+        <div class="colcat__group"><div class="colcat__title">{{ g }}</div>
+          {% for fl in fields %}
+          <button type="button" class="colcat__item" x-show="!colQuery || '{{ fl.label|lower }}'.includes(colQuery.toLowerCase())"
+                  @click="post({ action: 'col_add', key: '{{ fl.key }}' }); close()" {{ 'disabled' if fl.key in view.columns|map('first')|list }}>{{ fl.label }}</button>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="modal__actions"><button type="button" class="btn" @click="close()">Close</button></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

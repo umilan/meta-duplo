@@ -173,6 +173,13 @@ After step 3 accepts the file-name date, step 4 matches it to the original at 85
 
 ---
 
+## Workbench (experimental)
+
+The four steps are the guided path. The **Workbench** does the same work in one table. Group by *Duplicates*
+for steps 1, 2 and 4; group by *Photo*, *Folder* or *Day* for step 3. Edit columns (rename rule, date shift
+for a wrong camera clock, fixed or copied values) give a live preview. Save edits, remove selected copies or
+build a rename plan for the selected rows. See UI_SPEC → Workbench and ADR-016.
+
 ## Safety (all steps)
 
 - Sources are read-only until marked *writable*. *Reference* sources are never changed.

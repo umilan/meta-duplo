@@ -31,6 +31,7 @@ Previous versions: `research/meta-duplo-UI_SPEC-v1.md` (12 screens) and
 | 3 | **Harmonize & rename** | One date/place/device per photo; new names | File name rule bar; **rename grid** (below): one row per file, old → new name, metadata columns, inline decisions | ✓ |
 | 4 | **Re-check** | New candidates after harmonizing | Results table on harmonized date/place/device, with a minimum-confidence filter | ✓ |
 | ↺ | **Plans & undo** | Approve, apply, undo | Plan list; plan detail = dry-run diff (action, before → after, status, error); Apply / Discard / Undo | ✓ |
+| ▦ | **Workbench** (beta) | One screen for every task (below) | Group by, column catalog, resizable/reorderable headers with actions, edit columns, preview | ✓ experimental |
 | ⚙ | **Settings** | Config | Home time zone, near-duplicate threshold, re-check minimum | ✓ |
 | – | Folders overlap | Whole-folder decisions | `A ≡ B`, `A ⊂ B`, `A ∩ B %` tree and heatmap | later |
 | – | Timeline, Map, Devices | Sanity views from meta_duplo v1 | Histogram, clustered map, device units | later |
@@ -111,6 +112,61 @@ All files 721 · Needs a decision 1 · Name changes 719 · Problems 0 · Exclude
 - The grid scrolls in its own box with a sticky header; 200 rows load at a time as you scroll.
 - **Apply bar** (sticky): how many files get a new name, how many still need a decision, the sidecar and file-date options,
   *Review rename plan…*.
+
+### Workbench (experimental, `workbench.html`, `workbench.py`, `static/js/workbench.js`)
+
+One table for every task; the four step screens stay as the guided path.
+
+```
+Group by [Duplicates ▾] [Search path, filename, new filename]  ☑ Colour differences          [◧ Preview] [Reset view]
+Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ “100” ×]
+47 groups · 111 files with duplicates
+┌─┬─────┬──────────────────Actions▾┬─────────────Actions▾┬──New filename────Actions▾┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
+│☐│[▣]  │ Diff                      │ Diff                 │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ –              │ Same       │ → …     │
+│☐│└ ▫  │ disk / Camera / DCIM /    │ IMG_0003.JPG (Keep)  │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │
+│☐│└ ▫  │ disk / Backup 2019 /      │ Copy of IMG_0003.JPG │ → …                       │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │
+└─┴─────┴───────────────────────────┴──────────────────────┴───────────────────────────┴────┴───────────────┴────────────────┴────────────┴─────────┘
+ 0 selected [Select duplicates] [Clear]                       [Save edits] [Remove selected copies…] [Review rename plan…]
+```
+
+- **Group by** sets the task: *Duplicates* (only files with copies; the kept copy is the reference row),
+  *Photo (all copies)*, *Folder*, *Day*, *Device*, *Place*, *No grouping*. The group row shows the reference
+  thumbnail and, per column, **Same** (green) or **Diff** (red).
+- **Differences:** values that differ from the group's reference row are red. Path segments and file names are
+  green when equal, red when not. *Colour differences* switches the colours off.
+- **Path and Filename are separate columns.**
+- **Columns:** the catalog has the core fields first (Dates, Location, Device, Author, Duplicates, File) and
+  then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), dates, GPS,
+  device and author tags first. *+* opens the searchable picker. Width (drag the right edge of a header), order
+  (drag a header onto another) and visibility are saved per library (`workbench_view` setting).
+- **Header actions ▾:** Sort ascending/descending, Filter…, Search… (*contains*), *Show groups where it differs*,
+  Edit…, Group by this (Path, Date, Device, Place, Dup.), Hide column. Clicking the label toggles the sort.
+- **Filters** (bar above the table, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
+  differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
+  its context); *No grouping* filters rows.
+- **Edit columns** (light purple, inserted right of the source column): *Edit…* opens a rule dialog.
+  - **Filename:** the rename rule with token chips. It uses the New date / place / device columns when present.
+  - **Date:** recommended value; copy from another column (taken, digitized, modified, file date, GPS date,
+    date in filename, recommended); **shift** a date by ± h:m:s (wrong camera clock, time zone); fixed value.
+  - **Place, Device:** recommended; copy from any column; fixed value.
+
+  `= value` means unchanged, `→ value` a change, `—` not enough data (e.g. no date). *Remove edit column* drops the rule.
+- **Duplicate confidence:**
+  - 100 % = byte-identical;
+  - 99 % = same pixels, different metadata;
+  - lower = the matcher's score, capped at 98 % (e.g. "98 % · same photo").
+
+  *Meta checks* shows date / loc / device pills: green when equal to the reference row, red when not.
+- **Selection and actions** (sticky bar):
+  - *Select duplicates* selects every copy except the kept one;
+  - *Save edits* stores the selected rows' edit values as decisions (`proposals` = edited, per photo);
+  - *Remove selected copies…* builds a cleanup plan (a group never loses its last copy);
+  - *Review rename plan…* saves the edits and builds a rename + XMP plan for the selected files only.
+
+  Nothing touches the disk before a plan is applied.
+- **Preview panel:** image; the edits not yet applied; Dates, Location, Device, Author, File; the duplicate set with
+  confidences; **all metadata tags** in a monospace list.
+- 60 groups load at a time as you scroll. The table scrolls in its own box with a sticky header.
 
 ## Interaction patterns (htmx)
 

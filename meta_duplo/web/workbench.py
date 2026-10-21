@@ -1,0 +1,449 @@
+"""Workbench (experimental): one table for duplicates and metadata.
+
+One row per file. "Group by" decides the task:
+- duplicates → every duplicate set with its kept copy as the reference row;
+- photo, folder, day, device, place → fixing metadata across related files;
+- none → a flat list.
+
+Cells that differ from the group's reference row are marked (red), equal ones in Path and Filename green.
+Columns come from a catalog (core fields + every EXIF tag found), with user widths and order.
+An *edit column* (purple) holds a rule for filename, date, place or device; its values feed the
+same decisions (proposals) and plans as steps 1–4, so nothing here bypasses the plan engine.
+"""
+from __future__ import annotations
+
+import json
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from pathlib import PurePosixPath
+
+from .. import geo, harmonize
+from ..db import Library
+from ..metadata import TIME_FMT, device_name, time_from_filename
+
+
+@dataclass(frozen=True)
+class Field:
+    key: str
+    label: str
+    group: str
+    kind: str = "text"        # text | date | num | special
+    editable: str = ""        # edit target: filename | date | place | device
+    width: int = 140
+
+
+CORE = [
+    Field("thumb", "Th.", "File", "special", width=66),
+    Field("path", "Path", "File", width=260),
+    Field("filename", "Filename", "File", editable="filename", width=190),
+    Field("dup_count", "Dup.", "Duplicates", "num", width=70),
+    Field("dup_conf", "Dup. confidence", "Duplicates", width=150),
+    Field("checks", "Meta checks", "Duplicates", "special", width=150),
+    Field("date", "Date taken", "Dates", "date", editable="date", width=160),
+    Field("digitized", "Date digitized", "Dates", "date", width=160),
+    Field("modify", "Date modified (EXIF)", "Dates", "date", width=160),
+    Field("file_date", "File date", "Dates", "date", width=160),
+    Field("gps_date", "GPS date (UTC)", "Dates", "date", width=160),
+    Field("name_date", "Date in filename", "Dates", "date", width=160),
+    Field("rec_date", "Recommended date", "Dates", "date", width=160),
+    Field("place", "Place", "Location", editable="place", width=120),
+    Field("rec_place", "Recommended place", "Location", width=130),
+    Field("gps", "GPS", "Location", width=150),
+    Field("country", "Country", "Location", width=80),
+    Field("device", "Device", "Device", editable="device", width=150),
+    Field("rec_device", "Recommended device", "Device", width=150),
+    Field("make", "Make", "Device", width=110),
+    Field("model", "Model", "Device", width=140),
+    Field("serial", "Serial number", "Device", width=120),
+    Field("lens", "Lens", "Device", width=140),
+    Field("software", "Software", "Device", width=130),
+    Field("author", "Author", "Author", editable="", width=130),
+    Field("copyright", "Copyright", "Author", width=160),
+    Field("owner", "Camera owner", "Author", width=130),
+    Field("size", "Size", "File", "num", width=90),
+    Field("dims", "Dimensions", "File", width=100),
+    Field("ext", "Type", "File", width=60),
+    Field("kind", "Kind", "File", width=70),
+]
+CORE_BY_KEY = {f.key: f for f in CORE}
+EDIT_LABELS = {"filename": "New filename", "date": "New date", "place": "New place", "device": "New device"}
+EDIT_BASE = {"filename": "filename", "date": "date", "place": "place", "device": "device"}
+GROUPS = {"dups": "Duplicates", "capture": "Photo (all copies)", "folder": "Folder", "day": "Day",
+          "device": "Device", "place": "Place", "none": "No grouping"}
+OPS = {"contains": "contains", "equals": "is", "not_equals": "is not", "empty": "is empty",
+       "not_empty": "is not empty", "gte": "≥", "lte": "≤", "diff": "differs in group", "same": "same in group"}
+NO_VALUE_OPS = {"empty", "not_empty", "diff", "same"}
+DATE_SOURCES = ["date", "digitized", "modify", "file_date", "gps_date", "name_date", "rec_date"]
+VERDICT_TEXT = {"identical": "exact", "same_pixels": "diff meta", "same_photo": "same photo", "edited": "edited",
+                "same_video": "same video", "likely": "likely", "similar_shot": "similar shot"}
+
+DEFAULT_VIEW = {
+    "columns": [["thumb", 66], ["path", 250], ["filename", 180], ["edit:filename", 320], ["dup_count", 64],
+                ["dup_conf", 130], ["checks", 150], ["date", 160], ["edit:date", 170], ["modify", 160],
+                ["gps_date", 160], ["place", 110], ["device", 140], ["author", 130]],
+    "edits": {"filename": {"kind": "pattern"}, "date": {"kind": "recommended"}},
+    "filters": [],
+    "group": "dups",
+    "sort": ["", "asc"],
+    "q": "",
+    "colors": True,
+}
+
+
+# ───────────────────────── view state ─────────────────────────
+
+def load_view(lib: Library) -> dict:
+    try:
+        v = json.loads(lib.setting("workbench_view") or "null") or {}
+    except ValueError:
+        v = {}
+    view = json.loads(json.dumps(DEFAULT_VIEW))
+    view.update({k: v[k] for k in v if k in DEFAULT_VIEW})
+    return view
+
+
+def save_view(lib: Library, view: dict) -> None:
+    lib.set_setting("workbench_view", json.dumps(view))
+
+
+def field_for(key: str, exif_keys: set[str] | None = None) -> Field | None:
+    if key in CORE_BY_KEY:
+        return CORE_BY_KEY[key]
+    if key.startswith("edit:") and key[5:] in EDIT_LABELS:
+        return Field(key, EDIT_LABELS[key[5:]], "Edit", "date" if key == "edit:date" else "text", width=170)
+    if key.startswith("exif:"):
+        group, _, name = key[5:].partition(":")
+        return Field(key, f"{name} ({group})", "EXIF", width=150)
+    return None
+
+
+def catalog(exif_keys: list[str]) -> dict[str, list[Field]]:
+    """Every column the user can add, grouped; dates, location, device and author first."""
+    out: dict[str, list[Field]] = defaultdict(list)
+    for f in CORE:
+        out[f.group].append(f)
+    for k in exif_keys:
+        out["EXIF"].append(field_for(f"exif:{k}"))
+    order = ["Dates", "Location", "Device", "Author", "Duplicates", "File", "EXIF"]
+    return {g: out[g] for g in order if out.get(g)}
+
+
+# ───────────────────────── rows ─────────────────────────
+
+def _dup_clusters(con) -> tuple[dict[int, int], dict[int, dict]]:
+    """Union of open duplicate groups from steps 1, 2 and 4 → cluster per file, plus per-file match info."""
+    rows = con.execute(
+        "SELECT g.id, g.step, g.verdict, g.score, g.keeper_file_id, gm.file_id, gm.role, gm.score AS mscore "
+        "FROM groups g JOIN group_members gm ON gm.group_id = g.id "
+        "WHERE g.status = 'open' AND g.step IN (1, 2, 4) AND g.verdict != 'similar_shot'").fetchall()
+    parent: dict[int, int] = {}
+
+    def find(x: int) -> int:
+        parent.setdefault(x, x)
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    info: dict[int, dict] = {}
+    for r in rows:
+        a, b = find(r["keeper_file_id"]), find(r["file_id"])
+        parent[max(a, b)] = min(a, b)
+        score = 1.0 if r["verdict"] == "identical" else (r["score"] if r["role"] == "keeper" else r["mscore"]) or 0
+        if r["verdict"] == "same_pixels":
+            score = 0.99            # exact picture, different metadata
+        elif r["verdict"] != "identical":
+            score = min(score, 0.98)  # 100 % is reserved for byte-identical files
+        cur = info.get(r["file_id"])
+        entry = {"score": score or 0, "verdict": r["verdict"], "keeper": r["role"] == "keeper", "step": r["step"],
+                 "group": r["id"]}
+        if cur is None:
+            info[r["file_id"]] = entry
+        else:  # a file in several groups: keep the strongest link, stay keeper if kept anywhere in step 1
+            if entry["score"] > cur["score"]:
+                entry["keeper"] = entry["keeper"] or (cur["keeper"] and cur["step"] == 1)
+                info[r["file_id"]] = entry
+    return {f: find(f) for f in parent}, info
+
+
+def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
+    """All present files with every catalog value; returns rows and the EXIF keys seen."""
+    pattern = lib.setting("filename_pattern")
+    with lib.connect() as con:
+        files = con.execute(
+            "SELECT f.id, f.name, f.original_name, f.rel_path, f.ext, f.kind, f.size, f.mtime, s.label AS source, "
+            "s.writable, s.role AS source_role, c.capture_id, m.dto, m.make, m.model, m.software, m.gps_lat, m.gps_lon, "
+            "m.width, m.height, m.duration, m.modify_date, m.raw_json "
+            "FROM files f JOIN sources s ON s.id = f.source_id LEFT JOIN captures c ON c.file_id = f.id "
+            "LEFT JOIN meta m ON m.file_id = f.id "
+            "WHERE f.present = 1 AND f.removed = 0 AND f.kind IN ('image', 'video')").fetchall()
+        props: dict[int, dict] = defaultdict(dict)
+        for r in con.execute("SELECT * FROM proposals"):
+            props[r["capture_id"]][r["field"]] = dict(r)
+        effective = harmonize.effective_values(con)
+        cluster, dupinfo = _dup_clusters(con)
+    sizes: dict[int, int] = defaultdict(int)
+    for f, c in cluster.items():
+        sizes[c] += 1
+    exif_keys: set[str] = set()
+    rows = []
+    for f in files:
+        raw = json.loads(f["raw_json"] or "{}")
+        tags = raw.get("tags") or {}
+        exif_keys.update(tags)
+        cp = props.get(f["capture_id"], {}) if f["capture_id"] is not None else {}
+        place = geo.place(f["gps_lat"], f["gps_lon"]) if f["gps_lat"] is not None else {}
+        nd, _ = time_from_filename(f["original_name"] or f["name"])
+        di = dupinfo.get(f["id"])
+        parent = str(PurePosixPath(f["rel_path"]).parent)
+        v = {
+            "path": f["source"] + ("" if parent == "." else "/" + parent),
+            "filename": f["name"],
+            "dup_count": sizes.get(cluster.get(f["id"]), 1) if f["id"] in cluster else 1,
+            "dup_conf": round((di["score"] if di else 0) * 100) if di else None,
+            "date": f["dto"] or "",
+            "digitized": raw.get("DateTimeDigitized") or "",
+            "modify": f["modify_date"] or "",
+            "file_date": datetime.fromtimestamp(f["mtime"]).strftime(TIME_FMT) if f["mtime"] else "",
+            "gps_date": raw.get("GPSDateTime") or "",
+            "name_date": nd.strftime(TIME_FMT) if nd else "",
+            "rec_date": (cp.get("capture_time") or {}).get("value") or "",
+            "place": place.get("city", ""),
+            "rec_place": (cp.get("location_name") or {}).get("value") or "",
+            "gps": "" if f["gps_lat"] is None else f"{f['gps_lat']:.5f}, {f['gps_lon']:.5f}",
+            "country": place.get("country", ""),
+            "device": device_name(f["make"], f["model"]),
+            "rec_device": (cp.get("device_name") or {}).get("value") or "",
+            "make": f["make"] or "", "model": f["model"] or "", "software": f["software"] or "",
+            "serial": raw.get("SerialNumber") or "", "lens": raw.get("LensModel") or "",
+            "author": raw.get("Artist") or "", "copyright": raw.get("Copyright") or "", "owner": raw.get("OwnerName") or "",
+            "size": f["size"] or 0,
+            "dims": f"{f['width']}×{f['height']}" if f["width"] else "",
+            "ext": (f["ext"] or "").upper(), "kind": f["kind"],
+        }
+        for k, val in tags.items():
+            v[f"exif:{k}"] = val if isinstance(val, (int, float)) else str(val)
+        rows.append({
+            "id": f["id"], "capture": f["capture_id"], "cluster": cluster.get(f["id"]), "dup": di,
+            "keeper": bool(di and di["keeper"]), "verdict": di["verdict"] if di else None,
+            "original_name": f["original_name"] or f["name"], "ext_raw": f["ext"] or "",
+            "writable": bool(f["writable"]) and f["source_role"] != "reference",
+            "effective": effective.get(f["capture_id"], {}) if f["capture_id"] is not None else {},
+            "v": v, "tags": tags, "pattern": pattern,
+        })
+    return rows, sorted(exif_keys, key=_exif_rank)
+
+
+def _exif_rank(k: str) -> tuple:
+    focus = ("Date", "Time", "GPS", "Make", "Model", "Serial", "Lens", "Artist", "Author", "Copyright", "Owner", "Software")
+    name = k.split(":", 1)[-1]
+    return (0 if any(w in name for w in focus) else 1, k)
+
+
+# ───────────────────────── edit rules ─────────────────────────
+
+def _shift(value: str, seconds: int) -> str:
+    try:
+        return (datetime.strptime(value, TIME_FMT) + timedelta(seconds=seconds)).strftime(TIME_FMT)
+    except ValueError:
+        return ""
+
+
+def apply_edits(rows: list[dict], edits: dict) -> None:
+    """Compute each row's edit-column values (r['e'])."""
+    for r in rows:
+        v, e = r["v"], {}
+        for target in ("date", "place", "device"):
+            rule = edits.get(target)
+            if not rule:
+                continue
+            kind = rule.get("kind")
+            rec = v[f"rec_{target}"] or v[target]
+            if kind == "recommended":
+                e[target] = rec
+            elif kind == "column":
+                e[target] = str(v.get(rule.get("column", ""), "") or "")
+            elif kind == "fixed":
+                e[target] = rule.get("value", "")
+            elif kind == "shift" and target == "date":
+                base = v.get(rule.get("column") or "date") or ""
+                e[target] = _shift(base, int(rule.get("seconds") or 0)) if base else ""
+        if "filename" in edits:
+            pattern = edits["filename"].get("pattern") or r["pattern"]
+            eff = r["effective"]
+            values = {
+                "capture_time": e.get("date", eff.get("capture_time") or v["date"]),
+                "location_name": e.get("place", eff.get("location_name") or v["place"]),
+                "device_name": e.get("device", eff.get("device_name") or v["device"]),
+                "country": eff.get("country") or v["country"],
+            }
+            new = harmonize.render_name(pattern, values, r["original_name"], r["ext_raw"])
+            e["filename"] = new if new is not None else ""
+        r["e"] = e
+
+
+def value(r: dict, key: str):
+    if key.startswith("edit:"):
+        return r["e"].get(key[5:], "")
+    return r["v"].get(key, "")
+
+
+# ───────────────────────── grouping, differences, filters, sorting ─────────────────────────
+
+def _group_key(r: dict, by: str):
+    v = r["v"]
+    return {
+        "dups": r["cluster"],
+        "capture": r["capture"] if r["capture"] is not None else f"f{r['id']}",
+        "folder": v["path"],
+        "day": v["date"][:10] or "No date",
+        "device": v["device"] or "Unknown device",
+        "place": v["place"] or "No place",
+        "none": "all",
+    }[by]
+
+
+def _match(val, op: str, arg: str, differs: bool) -> bool:
+    s = "" if val is None else str(val)
+    if op == "diff":
+        return differs
+    if op == "same":
+        return not differs
+    if op == "empty":
+        return s == ""
+    if op == "not_empty":
+        return s != ""
+    if op == "contains":
+        return arg.lower() in s.lower()
+    if op == "equals":
+        return s.lower() == arg.lower()
+    if op == "not_equals":
+        return s.lower() != arg.lower()
+    if op in ("gte", "lte"):
+        try:
+            a, b = float(val), float(arg)
+        except (TypeError, ValueError):
+            a, b = s, arg  # dates and text compare as text (ISO dates sort correctly)
+        return a >= b if op == "gte" else a <= b
+    return True
+
+
+@dataclass
+class Group:
+    key: object
+    label: str
+    rows: list[dict]
+    ref: dict
+    summary: dict = field(default_factory=dict)
+
+
+def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
+    """Grouped, compared, filtered and sorted rows for the current view."""
+    rows, exif_keys = build_rows(lib)
+    apply_edits(rows, view["edits"])
+    by = view["group"] if view["group"] in GROUPS else "dups"
+    if by == "dups":
+        rows = [r for r in rows if r["cluster"] is not None]  # duplicates task: only files that have copies
+    q = (view.get("q") or "").strip().lower()
+    if q:
+        rows = [r for r in rows if q in r["v"]["path"].lower() or q in r["v"]["filename"].lower()
+                or q in str(r["e"].get("filename", "")).lower()]
+    buckets: dict = defaultdict(list)
+    for r in rows:
+        buckets[_group_key(r, by)].append(r)
+    keys = [c[0] for c in view["columns"]]
+    sort_key, sort_dir = (view.get("sort") or ["", "asc"])[:2]
+
+    def sk(r):
+        val = value(r, sort_key)
+        return (val in ("", None), val.lower() if isinstance(val, str) else (val if val is not None else 0))
+
+    groups = []
+    for gk, rs in buckets.items():
+        if sort_key:
+            rs.sort(key=sk, reverse=sort_dir == "desc")
+        else:
+            rs.sort(key=lambda r: (not r["keeper"], r["v"]["path"].lower(), r["v"]["filename"].lower()))
+        ref = next((r for r in rs if r["keeper"]), rs[0]) if by == "dups" else rs[0]
+        for r in rs:  # differences against the group's reference row
+            r["diff"] = {k: len(rs) > 1 and r is not ref and str(value(r, k)) != str(value(ref, k)) for k in keys}
+            r["is_ref"] = r is ref
+            r["path_parts"] = _path_diff(r["v"]["path"], ref["v"]["path"], r is ref or len(rs) == 1)
+            r["checks"] = {t: (str(r["v"][t]) == str(ref["v"][t])) for t in ("date", "place", "device")}
+        label = {"dups": f"{len(rs)} copies", "none": "All files",
+                 "capture": ref["v"]["filename"]}.get(by, str(gk))
+        g = Group(gk, label, rs, ref)
+        g.summary = {k: ("Diff" if any(r["diff"].get(k) for r in rs) else "Same") for k in keys}
+        groups.append(g)
+
+    # filters: per row when ungrouped, per group otherwise (a duplicate set needs its context)
+    for flt in view.get("filters", []):
+        k, op, arg = flt.get("key"), flt.get("op"), flt.get("value", "")
+        if by == "none":
+            for g in groups:
+                g.rows = [r for r in g.rows if _match(value(r, k), op, arg, r["diff"].get(k, False))]
+            groups = [g for g in groups if g.rows]
+        else:
+            groups = [g for g in groups if any(_match(value(r, k), op, arg, r["diff"].get(k, False)) for r in g.rows)]
+
+    if sort_key:
+        groups.sort(key=lambda g: sk(g.rows[0]), reverse=sort_dir == "desc")
+    elif by == "dups":
+        groups.sort(key=lambda g: -sum(r["v"]["size"] for r in g.rows))
+    else:
+        groups.sort(key=lambda g: str(g.key))
+    return groups, exif_keys, sum(len(g.rows) for g in groups)
+
+
+def _path_diff(path: str, ref: str, same: bool) -> list[tuple[str, bool]]:
+    a, b = path.split("/"), ref.split("/")
+    return [(seg, same or (i < len(b) and b[i] == seg)) for i, seg in enumerate(a)]
+
+
+def conf_label(r: dict) -> str:
+    """100 % = byte-identical, 99 % = same pixels with different metadata, lower = the matcher's score."""
+    if not r["dup"]:
+        return ""
+    pct = round(r["dup"]["score"] * 100)
+    text = VERDICT_TEXT.get(r["verdict"], "")
+    return f"{pct} %" + (f" · {text}" if text and r["verdict"] != "identical" else "")
+
+
+# ───────────────────────── actions ─────────────────────────
+
+def commit(lib: Library, view: dict, ids: set[int]) -> int:
+    """Turn the edit columns of the selected rows into decisions (proposals 'edited'), per photo."""
+    rows, _ = build_rows(lib)
+    apply_edits(rows, view["edits"])
+    if "filename" in view["edits"] and view["edits"]["filename"].get("pattern"):
+        lib.set_setting("filename_pattern", view["edits"]["filename"]["pattern"])
+    fields = {"date": "capture_time", "place": "location_name", "device": "device_name"}
+    n = 0
+    done: set[tuple] = set()
+    for r in rows:
+        if r["id"] not in ids or r["capture"] is None:
+            continue
+        for target, pfield in fields.items():
+            if target not in r["e"] or (r["capture"], pfield) in done:
+                continue
+            new = r["e"][target]
+            if new and new != r["v"][target]:
+                harmonize.set_status(lib, r["capture"], pfield, "edited", new)
+                done.add((r["capture"], pfield))
+                n += 1
+    return n
+
+
+def nonkeeper_ids(lib: Library, view: dict) -> list[int]:
+    groups, _, _ = table(lib, view)
+    return [r["id"] for g in groups for r in g.rows if r["dup"] and not r["keeper"]]
+
+
+def groups_for(lib: Library, ids: set[int]) -> list[int]:
+    """Open duplicate groups that contain any of the files."""
+    with lib.connect() as con:
+        marks = ",".join("?" * len(ids)) or "NULL"
+        return [r["group_id"] for r in con.execute(
+            f"SELECT DISTINCT gm.group_id FROM group_members gm JOIN groups g ON g.id = gm.group_id "
+            f"WHERE g.status = 'open' AND g.step IN (1, 2, 4) AND gm.file_id IN ({marks})", list(ids))]

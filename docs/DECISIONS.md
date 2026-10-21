@@ -132,3 +132,27 @@ accepted ones. Supersede them with a new entry instead.
   - The rule is saved as you type (it changes nothing on disk).
   - Paging is 200 rows. The read model recomputes the preview per request, which is fine for thousands of files;
     hundreds of thousands need a cached preview table (milestone M5).
+
+### ADR-016 Workbench: one table for every task (experimental)
+- **Context:** the four step screens are a guided path, but power users want one place to look at duplicates
+  and metadata together, as in the user's mockup.
+- **Decision:** add `/workbench` (nav: *Workbench, beta*):
+  - one row per file;
+  - *Group by* chooses the task (duplicates, photo, folder, day, device, place, none);
+  - red/green differences against the group's reference row;
+  - a column catalog with every EXIF tag;
+  - resizable and reorderable headers with Actions (sort, filter, search, edit);
+  - purple edit columns driven by rules (rename pattern; date recommended / copy / shift / fixed;
+    place and device recommended / copy / fixed);
+  - a full-metadata preview.
+
+  Edits go through the same decisions and plans as steps 1–4.
+- **Consequences:**
+  - Extraction now keeps every EXIF tag (`raw_json.tags`, `RAW_VERSION = 2`), plus digitized date, GPS date
+    (UTC), artist, copyright, owner, serial and lens. Older libraries re-read their files once on the next scan.
+  - Confidence display: 100 % only for byte-identical files, 99 % for same pixels, ≤ 98 % for other matches.
+  - `build_rename_plan(only_ids=…)` limits a plan to the selection.
+  - View state lives in one setting (`workbench_view`).
+  - Column widths are inline styles because they are user data: the second exception to "no inline styles",
+    after the swipe compare.
+  - Not yet: column filters by value list, an undo of view changes, keyboard navigation.

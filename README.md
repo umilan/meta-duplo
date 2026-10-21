@@ -9,6 +9,8 @@ A local tool for big photo/video disks. It works in four steps:
    → `2019-05-14 18-22-03 (Bratislava, Apple iPhone 12) - IMG_0001.jpg`
 4. **Re-check:** with the harmonized metadata, new duplicate candidates appear in a list you can sort by name, size, date, place, device, confidence or bindings.
 
+There is also an experimental **Workbench**: one table for all of it, grouped by duplicates, photo, folder or day, with configurable columns (every EXIF tag), red/green differences and rule-based edit columns.
+
 Nothing on disk changes outside a **plan** you review and apply. Every plan is journaled and can be undone.
 
 ## Try it (macOS or Linux)

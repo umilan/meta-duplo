@@ -55,12 +55,20 @@ def _gps(lat: float, lon: float) -> dict:
 
 def _exif(make: str, model: str, when: str, place: str | None = None, software: str = "") -> bytes:
     t = when.replace("-", ":").encode()
-    zeroth = {piexif.ImageIFD.Make: make.encode(), piexif.ImageIFD.Model: model.encode(), piexif.ImageIFD.DateTime: t}
+    zeroth = {piexif.ImageIFD.Make: make.encode(), piexif.ImageIFD.Model: model.encode(), piexif.ImageIFD.DateTime: t,
+              piexif.ImageIFD.Artist: b"Demo Family" if make == "Apple" else b"Demo Photographer"}
+    if make == "Canon":
+        zeroth[piexif.ImageIFD.Copyright] = b"(c) Demo Photographer"
     if software:
         zeroth[piexif.ImageIFD.Software] = software.encode()
     exif = {"0th": zeroth, "Exif": {piexif.ExifIFD.DateTimeOriginal: t, piexif.ExifIFD.DateTimeDigitized: t}}
     if place:
         exif["GPS"] = _gps(*PLACES[place])
+        # demo GPS clock: UTC, i.e. local summer time minus 2 h
+        utc = datetime.strptime(when, "%Y-%m-%d %H:%M:%S").timestamp() - 7200
+        u = datetime.fromtimestamp(utc)
+        exif["GPS"][piexif.GPSIFD.GPSDateStamp] = u.strftime("%Y:%m:%d").encode()
+        exif["GPS"][piexif.GPSIFD.GPSTimeStamp] = ((u.hour, 1), (u.minute, 1), (u.second, 1))
     return piexif.dump(exif)
 
 

@@ -136,7 +136,9 @@ def _xmp(values: dict) -> str:
 """
 
 
-def build_rename_plan(lib: Library, write_xmp: bool = True, set_mtime: bool = False) -> int:
+def build_rename_plan(lib: Library, write_xmp: bool = True, set_mtime: bool = False,
+                      only_ids: set[int] | None = None) -> int:
+    """Rename (and annotate) every file, or only `only_ids` (the workbench selection)."""
     preview = rename_preview(lib)
     with lib.connect() as con:
         sources = _writable_sources(con)
@@ -144,7 +146,7 @@ def build_rename_plan(lib: Library, write_xmp: bool = True, set_mtime: bool = Fa
         src_of = {r["id"]: r["source_id"] for r in con.execute("SELECT id, source_id FROM files")}
         actions, blocked = [], []
         for p in preview:
-            if p["status"] == "excluded":
+            if p["status"] == "excluded" or (only_ids is not None and p["file_id"] not in only_ids):
                 continue
             src = sources[src_of[p["file_id"]]]
             if not src["writable"] or src["role"] == "reference":

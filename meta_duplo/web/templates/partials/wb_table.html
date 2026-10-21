@@ -1,0 +1,50 @@
+<div class="filters" aria-label="Applied filters">
+  <span class="small muted">Applied filters:</span>
+  <button class="btn btn--small" type="button" @click="openFilter({ key: '{{ cols[1].key if cols|length > 1 else 'path' }}', label: '' })">+ Add new…</button>
+  {% for flt in view.filters %}
+  <span class="fchip">{{ field_label(flt.key) }}: {{ ops[flt.op] }}{% if flt.op not in no_value_ops %} “{{ flt.value }}”{% endif %}
+    <button type="button" aria-label="Remove filter" @click="post({ action: 'filter_remove', index: {{ loop.index0 }} })">×</button></span>
+  {% endfor %}
+</div>
+
+<p class="small muted results-count">{{ ngroups }} group{{ '' if ngroups == 1 else 's' }} · {{ nrows }} file{{ '' if nrows == 1 else 's' }}{% if view.group == 'dups' %} with duplicates{% endif %}</p>
+{% if ngroups %}
+<div class="wb-scroll">
+  <table class="wbt {{ 'wbt--colors' if view.colors }}" style="width: {{ table_width }}px">{# widths are user data; the only inline styles besides the swipe clip #}
+    <colgroup>
+      <col class="wbt__c-check">
+      {% for c in cols %}<col data-key="{{ c.key }}" style="width: {{ c.width }}px">{% endfor %}
+      <col class="wbt__c-add">
+    </colgroup>
+    <thead><tr>
+      <th class="wbt__check"><input type="checkbox" aria-label="Select all visible rows" @change="$store.wb.selectVisible($event.target.checked)"></th>
+      {% for c in cols %}
+      {% set sorted = view.sort[0] == c.key %}
+      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }}" draggable="true" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}')"
+          @dragstart="dragStart($event)" @dragover.prevent @drop.prevent="drop($event)">
+        <div class="wbh">
+          <span class="wbh__label {{ 'is-sorted' if sorted }}" @click="sort()" title="{{ c.label }}">{{ c.label }}{% if sorted %} {{ '↑' if view.sort[1] == 'asc' else '↓' }}{% endif %}</span>
+          {% if c.key != 'thumb' %}<button type="button" class="wbh__act" @click.stop="menu = !menu" :aria-expanded="menu.toString()">Actions ▾</button>{% endif %}
+          <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" title="Drag to resize"></span>
+        </div>
+        <div class="wbmenu" x-show="menu" x-cloak @click.outside="menu = false">
+          <button type="button" @click="sort('asc'); menu = false">Sort ascending</button>
+          <button type="button" @click="sort('desc'); menu = false">Sort descending</button>
+          <button type="button" @click="$dispatch('wb-filter', { key: '{{ c.key }}', label: '{{ c.label }}' }); menu = false">Filter…</button>
+          <button type="button" @click="$dispatch('wb-filter', { key: '{{ c.key }}', label: '{{ c.label }}', op: 'contains' }); menu = false">Search…</button>
+          <button type="button" @click="$dispatch('wb-filter', { key: '{{ c.key }}', label: '{{ c.label }}', op: 'diff' }); menu = false">Show groups where it differs</button>
+          {% if c.target %}<button type="button" @click="$dispatch('wb-edit', { target: '{{ c.target }}', kind: 'recommended' }); menu = false">Edit…</button>
+          {% else %}<button type="button" disabled title="Editing this field is not supported yet">Edit…</button>{% endif %}
+          {% if c.groupable %}<button type="button" @click="post({ action: 'group', group: '{{ c.groupable }}' }); menu = false">Group by this</button>{% endif %}
+          <button type="button" @click="post({ action: 'col_remove', key: '{{ c.key }}' }); menu = false">Hide column</button>
+        </div>
+      </th>
+      {% endfor %}
+      <th class="wbt__add"><button type="button" class="btn btn--small" title="Add column" @click="$dispatch('wb-addcol')">+</button></th>
+    </tr></thead>
+    {% include "partials/wb_groups.html" %}
+  </table>
+</div>
+{% else %}
+<div class="empty">{% if view.filters or view.q %}No rows match the filters.{% elif view.group == 'dups' %}No duplicates. Run a scan from Sources, or group by photo or folder to work on metadata.{% else %}No files yet. Run a scan from Sources.{% endif %}</div>
+{% endif %}
