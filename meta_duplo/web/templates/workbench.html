@@ -193,16 +193,26 @@
       </div>
     </form>
 
-    <div class="modal__box modal__box--wide" x-show="dialog === 'addcol'">
+    <div class="modal__box modal__box--wide" x-show="dialog === 'addcol'" x-data='{ allFields: {{ catalog_pairs.values()|sum(start=[])|tojson }} }'>
       <div class="colpick-head">
         <h3>Columns</h3>
-        <span class="small muted" x-text="$store.wb.cols.length + ' shown'"></span>
+        <span class="colpick-head__tools">
+          <span class="small muted" x-text="$store.wb.cols.length + ' shown'"></span>
+          <button type="button" class="linkbtn" @click="colsSet(colKeys(allFields), true)"
+                  x-text="colQuery ? 'Select all found' : 'Select all'">Select all</button>
+          <button type="button" class="linkbtn" @click="colsSet(colKeys(allFields), false)"
+                  x-text="colQuery ? 'None of found' : 'None'">None</button>
+        </span>
       </div>
       <input type="search" placeholder="Search fields (e.g. Date, GPS, Artist, Lens)" x-model="colQuery" aria-label="Search fields">
       <div class="colcat">
         {% for g, fields in catalog.items() %}
-        <fieldset class="colcat__group" x-show="!colQuery || {{ fields|map(attribute='label')|map('lower')|list|tojson|forceescape }}.some(l => l.includes(colQuery.toLowerCase()))">
-          <legend class="colcat__title">{{ g }}</legend>
+        <fieldset class="colcat__group" x-data='{ fields: {{ catalog_pairs[g]|tojson }} }' x-show="colKeys(fields).length">
+          <legend class="colcat__title"><label>
+            <input type="checkbox" :checked="colsState(colKeys(fields)) === 'all'"
+                   x-effect="$el.indeterminate = colsState(colKeys(fields)) === 'some'"
+                   @change="colsSet(colKeys(fields), $event.target.checked)" aria-label="All {{ g }} fields">
+            {{ g }}</label></legend>
           {% for fl in fields %}
           <label class="colcat__item" x-show="!colQuery || '{{ fl.label|lower }}'.includes(colQuery.toLowerCase())">
             <input type="checkbox" :checked="$store.wb.cols.includes('{{ fl.key }}')"

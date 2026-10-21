@@ -407,6 +407,8 @@
 .shift input[type=number] { width: 64px; }
 .mono-input { font-family: var(--font-mono); width: 100%; }
 .colpick-head { display: flex; align-items: baseline; justify-content: space-between; }
+.colpick-head__tools { display: inline-flex; align-items: baseline; gap: var(--space-200); }
+.colcat__title label { display: inline-flex; align-items: center; gap: var(--space-100); cursor: pointer; }
 .colcat { display: grid; grid-template-columns: repeat(auto-fill, minmax(224px, 1fr)); gap: var(--space-200) var(--space-300); align-items: start; }
 .colcat__group { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: var(--space-025); }
 .colcat__title { padding: 0 0 var(--space-100); margin-bottom: var(--space-050); border-bottom: 1px solid var(--line); width: 100%; }

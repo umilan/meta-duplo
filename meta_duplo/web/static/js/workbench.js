@@ -154,6 +154,16 @@
       openFilter(d, op = "contains") { this.f = { key: d.key, label: d.label, op, value: "" }; this.dialog = "filter"; },
       openEdit(d) { this.e = { target: d.target, kind: d.kind || "recommended" }; this.dialog = "edit"; },
       close() { this.dialog = null; },
+      // Column picker: [key, label] pairs matching the search, their shown state, and bulk show / hide
+      colKeys(pairs) {
+        const q = (this.colQuery || "").toLowerCase();
+        return pairs.filter(([, label]) => !q || label.toLowerCase().includes(q)).map(([key]) => key);
+      },
+      colsState(keys) {
+        const shown = keys.filter((k) => Alpine.store("wb").cols.includes(k)).length;
+        return shown === 0 ? "none" : shown === keys.length ? "all" : "some";
+      },
+      colsSet(keys, on) { if (keys.length) postView({ action: "cols_set", keys: keys.join(","), on: on ? "1" : "" }); },
       selText() {
         const st = Alpine.store("wb"), names = { none: "None", all: "All", custom: "Custom", dup_newer: "Duplicates – newer",
                                                  dup_older: "Duplicates – older", dup_lessmeta: "Duplicates – less metadata" };

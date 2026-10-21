@@ -396,7 +396,9 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 "col_labels": [[c["key"], c["label"], c["kind"]] for c in cols if c["kind"] != "special"],  # Sort by choices
                 "tree": tree,
                 "table_width": 40 + 40 + sum(c["width"] for c in cols) + (tree["width"] if tree else 0),
-                "catalog": wb.catalog(exif_keys), "group_names": wb.GROUPS, "ops": wb.OPS,
+                "catalog": (catalog := wb.catalog(exif_keys)),
+                "catalog_pairs": {g: [[f.key, f.label] for f in fs] for g, fs in catalog.items()},  # column picker JS
+                "group_names": wb.GROUPS, "ops": wb.OPS,
                 "no_value_ops": wb.NO_VALUE_OPS, "date_sources": wb.DATE_SOURCES,
                 "field_label": lambda k: (wb.field_for(k).label if wb.field_for(k) else k),
                 "conf_label": wb.conf_label, "value": wb.value,
@@ -451,6 +453,12 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 view["filters"].pop(idx)
         elif act == "col_add" and f.get("key") and f["key"] not in keys and wb.field_for(f["key"]):
             cols.append([f["key"], wb.field_for(f["key"]).width])
+        elif act == "cols_set":  # column picker: show or hide many fields at once (a category, or all found)
+            wanted = [k for k in f.get("keys", "").split(",") if k]
+            if f.get("on"):
+                cols += [[k, wb.field_for(k).width] for k in wanted if k not in keys and wb.field_for(k)]
+            else:
+                view["columns"] = [c for c in cols if c[0] not in wanted]
         elif act == "col_remove":
             view["columns"] = [c for c in cols if c[0] != f.get("key")]
         elif act == "col_move" and f.get("key") in keys and f.get("key") != f.get("before"):
