@@ -134,7 +134,8 @@ Header (three rows, as in the user's mockup):
 - **Grouping by**: None, Duplicates, Photo (all copies), Path / Folders, Day, Device, Place, Author.
 - **Duplicates grouping** starts with the chip **Dup.: ≥ 2** (switching to it adds the chip, switching away removes
   it if it was added that way). Remove the chip and files without any copy come back as one **No duplicates (n)**
-  group, always last and collapsed; it shows no differences or match values.
+  group, always last and collapsed. Its files are unrelated, so it has no red / green colours (path and
+  filename in the normal text colour), no meta checks and no match values.
 - **Applied filters** as grey chips (*Type: JPG ×*) and a **+** button; on the right **Selection** (None, All (n),
   Custom (n), Duplicates – newer / older / less metadata, each with its hint) and **Actions** (*Delete…* = removal
   plan, *Rename…* = rename plan, *Change*: *Date… / Place… / Device…* open the edit rule dialog for a purple

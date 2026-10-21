@@ -33,11 +33,12 @@
     {% if c.key == 'thumb' %}
       <td{{ " data-sorted" if c.key == sc }} class="wbt__thumbcell"><img class="wbt__thumb" src="/thumb/{{ r.id }}" alt="" loading="lazy"></td>
     {% elif c.key == 'path' %}
-      <td{{ " data-sorted" if c.key == sc }} class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ 'is-same' if same else 'is-diff' }}">{{ seg }}</span> / {% endfor %}</td>
+      <td{{ " data-sorted" if c.key == sc }} class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ '' if singles else ('is-same' if same else 'is-diff') }}">{{ seg }}</span> / {% endfor %}</td>
     {% elif c.key == 'filename' %}
-      <td{{ " data-sorted" if c.key == sc }} class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
+      <td{{ " data-sorted" if c.key == sc }} class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 and not singles else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}>{{ r.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}>{{ conf_label(r) }}</td>
+    {% elif c.key == 'checks' and singles %}<td{{ " data-sorted" if c.key == sc }} class="muted">–</td>
     {% elif c.key == 'checks' %}
       <td{{ " data-sorted" if c.key == sc }}>{% for t, ok in r.checks.items() %}<span class="check {{ 'check--ok' if ok else 'check--no' }}" title="{{ t }} {{ 'same as' if ok else 'differs from' }} the reference row">{{ {'date': 'date', 'place': 'loc', 'device': 'device'}[t] }}</span>{% endfor %}</td>
     {% elif c.edit %}
