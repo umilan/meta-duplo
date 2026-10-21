@@ -99,6 +99,18 @@
   });
   document.addEventListener("drop", hideLine);
 
+  // Table reloads (sort, filter, columns…) replace the scrolling box: keep its sideways position.
+  let keepLeft = null;
+  document.addEventListener("htmx:beforeSwap", (e) => {
+    if (e.detail.target && e.detail.target.id === "wb-table") keepLeft = document.querySelector("#wb-table .wb-scroll")?.scrollLeft ?? null;
+  });
+  document.addEventListener("htmx:afterSwap", (e) => {
+    if (!e.detail.target || e.detail.target.id !== "wb-table" || keepLeft === null) return;
+    const box = document.querySelector("#wb-table .wb-scroll");
+    if (box) box.scrollLeft = keepLeft;
+    keepLeft = null;
+  });
+
   document.addEventListener("alpine:init", () => {
     // Selection as a plain object (id → true): reliably reactive in every browser, Safari included.
     Alpine.store("wb", {

@@ -208,6 +208,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   - *Review rename plan…* saves the edits and builds a rename + XMP plan for the selected files only.
 
   Nothing touches the disk before a plan is applied.
+- **Scroll position:** reloading the table (sort, filter, column changes) keeps its sideways scroll position.
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere
   (the direction a click would give).
