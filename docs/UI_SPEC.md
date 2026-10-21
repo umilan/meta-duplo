@@ -200,6 +200,11 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   - **Place, Device:** recommended; copy from any column; fixed value.
 
   `= value` means unchanged, `→ value` a change, `—` not enough data (e.g. no date). *Remove edit column* drops the rule.
+  The ⋯ sheet of an edit column starts with **Apply · Edit all · Clear · Remove** (instead of a plain Remove):
+  *Apply* saves its values as decisions for the ticked files, or every row in the view when none is ticked (the
+  filename column saves its pattern; nothing changes on disk until a plan is applied); *Edit all* opens the rule
+  dialog; *Clear* drops the rule and the per-file values but keeps the column (all `= current`); *Remove* drops
+  the column and its rule.
   **Double-click** an edit cell to type a value for that one file (the *Edit this value…* dialog, prefilled without
   the `=` / `→` mark); in New filename it opens the naming-pattern dialog (one pattern for all files).
 - **Duplicate confidence:**

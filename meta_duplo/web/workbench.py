@@ -644,13 +644,16 @@ def explain_diff(r: dict, ref: dict) -> str:
 
 # ───────────────────────── actions ─────────────────────────
 
-def commit(lib: Library, view: dict, ids: set[int]) -> int:
-    """Turn the edit columns of the selected rows into decisions (proposals 'edited'), per photo."""
+def commit(lib: Library, view: dict, ids: set[int], only: str | None = None) -> int:
+    """Turn the edit columns of the selected rows into decisions (proposals 'edited'), per photo.
+    `only` limits it to one edit column (date / place / device / filename)."""
     rows, _ = build_rows(lib)
     apply_edits(rows, view["edits"])
-    if "filename" in view["edits"] and view["edits"]["filename"].get("pattern"):
+    if only in (None, "filename") and "filename" in view["edits"] and view["edits"]["filename"].get("pattern"):
         lib.set_setting("filename_pattern", view["edits"]["filename"]["pattern"])
     fields = {"date": "capture_time", "place": "location_name", "device": "device_name"}
+    if only:
+        fields = {k: v for k, v in fields.items() if k == only}
     n = 0
     done: set[tuple] = set()
     for r in rows:

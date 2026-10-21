@@ -183,8 +183,20 @@
     <template x-if="menu && !menu.cell">
       <div>
         <div class="wbsheet__title wbsheet__title--row"><span x-text="menu.label"></span>
-          <button type="button" class="linkbtn wbsheet__remove" title="Remove this column from the table (add it back with +)"
+          <button type="button" class="linkbtn wbsheet__remove" x-show="!menu.edit" title="Remove this column from the table (add it back with +)"
                   @click="post({ action: 'col_remove', key: menu.key }); menu = null">Remove</button></div>
+        <template x-if="menu.edit">
+          <div class="wbsheet__acts" role="group" aria-label="Edit column">
+            <button type="button" class="wbsheet__act wbsheet__act--primary" @click="applyEdit(menu.target); menu = null"
+                    :title="($store.wb.count ? 'Save the new values of the ' + $store.wb.count + ' selected files' : 'Save the new values of all rows in the view') + ' as decisions (nothing changes on disk until you apply a plan)'">Apply</button>
+            <button type="button" class="wbsheet__act" @click="openEdit({ target: menu.target, kind: 'recommended' }); menu = null"
+                    title="Change the rule for the whole column">Edit all</button>
+            <button type="button" class="wbsheet__act" @click="post({ action: 'edit_clear', target: menu.target }); menu = null"
+                    title="Back to the current values: drop the rule and the values typed per file, keep the column">Clear</button>
+            <button type="button" class="wbsheet__act wbsheet__act--danger" @click="post({ action: 'edit_remove', target: menu.target }); menu = null"
+                    title="Remove this edit column and its rule">Remove</button>
+          </div>
+        </template>
         <div class="wbsheet__section">Sort by</div>
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'asc' }); menu = null">↑ Ascending (A → Z, old → new)</button>
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'desc' }); menu = null">↓ Descending (Z → A, new → old)</button>

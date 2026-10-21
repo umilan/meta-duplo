@@ -405,6 +405,11 @@
         htmx.ajax("POST", url, { source: document.body, swap: "none",
                                  values: what === "rename" ? { ids, write_xmp: "1" } : { ids } });
       },
+      // edit column header: Apply saves its values as decisions, for the selection or else every row in the view
+      applyEdit(target) {
+        const ids = Alpine.store("wb").csv();
+        htmx.ajax("POST", "/wb/commit", { source: document.body, swap: "none", values: ids ? { ids, target } : { all: "1", target } });
+      },
       post: postView,
     }));
 

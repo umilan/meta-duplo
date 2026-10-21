@@ -620,6 +620,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                     view["edits"][t] = {"kind": "fixed", "value": wb.cell_value(r, key), "ids": ids,
                                         "overrides": view["edits"].get(t, {}).get("overrides", {})}
                     add_edit_column(t, key)
+        elif act == "edit_clear" and f.get("target") in wb.EDIT_LABELS:  # every row back to "= current value"
+            view["edits"][f["target"]] = {"kind": "keep"} | ({"pattern": ""} if f["target"] == "filename" else {})
         elif act == "edit_remove" and f.get("target") in wb.EDIT_LABELS:
             view["edits"].pop(f["target"], None)
             view["columns"] = [c for c in cols if c[0] != f"edit:{f['target']}"]
@@ -727,10 +729,13 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         return {int(x) for x in raw.split(",") if x.strip().isdigit()}
 
     @app.post("/wb/commit")
-    def wb_commit(ids: str = Form("")):
-        n = wb.commit(lib, wb.load_view(lib), _ids(ids))
+    def wb_commit(ids: str = Form(""), target: str = Form(""), all: str = Form("")):
+        view = wb.load_view(lib)
+        chosen = set(wb.preset_ids(lib, view, "all")) if all else _ids(ids)
+        n = wb.commit(lib, view, chosen, only=target if target in wb.EDIT_LABELS else None)
         return Response(status_code=204, headers={"HX-Trigger": json.dumps(
-            {"wb-reload": True, "toast": f"Saved {n} values as decisions" if n else "Nothing to save for the selection"})})
+            {"wb-reload": True, "toast": "Saved the filename pattern; review the rename plan to apply it" if target == "filename"
+             else f"Saved {n} value{'' if n == 1 else 's'} as decisions" if n else "Nothing to save for these files"})})
 
     @app.post("/wb/rename-plan")
     def wb_rename_plan(ids: str = Form(""), write_xmp: str | None = Form(None)):
