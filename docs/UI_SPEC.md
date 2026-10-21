@@ -177,7 +177,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Group by** sets the task: *Duplicates* (only files with copies; the kept copy is the reference row),
   *Photo (all copies)*, *Folder*, *Day*, *Device*, *Place*, *No grouping*. The group row shows the reference
   thumbnail and, per column, **Same** (green) or **Diff** (red).
-- **Differences:** values that differ from the group's reference row are red. Path segments and file names are
+- **Differences:** values that differ from the group's reference row are red (with *No grouping* there is no
+  reference, so nothing is red or green and Meta checks shows –). Path segments and file names are
   green when equal, red when not. *Text colours* in the settings sheet switches the colours off.
 - **Path and Filename are separate columns.**
 - **Columns:** the catalog has the core fields first (Dates, Location, Device, Author, Duplicates, File) and

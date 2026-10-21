@@ -3,6 +3,7 @@
 {% for g in groups %}
 {% set ids = g.rows|map(attribute='id')|list %}
 {% set singles = g.key == "__singles__" %}
+{% set nocmp = singles or view.group == 'none' %}{# nothing to compare against: no red / green #}
 <tbody class="wbg {{ 'wbg--singles' if singles }}" x-data="{ open: {{ 'false' if singles else '$store.wb.expanded' }} }" @wb-fold.window="open = $event.detail">
   {% if view.group != 'none' %}
   <tr class="wbg__head" @click="open = !open">
@@ -34,12 +35,12 @@
     {% if c.key == 'thumb' %}
       <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__thumbcell {{ 'wbt__pin' if loop.first }}"><img class="wbt__thumb" src="/thumb/{{ r.id }}" alt="" loading="lazy"></td>
     {% elif c.key == 'path' %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ '' if singles else ('is-same' if same else 'is-diff') }}">{{ seg }}</span> / {% endfor %}</td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ '' if nocmp else ('is-same' if same else 'is-diff') }}">{{ seg }}</span> / {% endfor %}</td>
     {% elif c.key == 'filename' %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 and not singles else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 and not nocmp else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{{ r.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{% set cp = conf_parts(r) %}{{ cp[0] }}{% if cp[1] %} <span class="conf-why">· {{ cp[1] }}</span>{% endif %}</td>
-    {% elif c.key == 'checks' and singles %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="nil">–</td>
+    {% elif c.key == 'checks' and nocmp %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="nil">–</td>
     {% elif c.key == 'checks' %}
       <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}><div class="checks">{% for t, ok in r.checks.items() %}{% set n = r.meta_counts[t] %}<span class="check {{ 'check--na' if ok is none else ('check--ok' if ok else 'check--no') }}" title="{{ checks_meta[t][1] }}: {{ n }} tag{{ '' if n == 1 else 's' }} in this file; {{ 'no value here or in the reference row' if ok is none else ('same as' if ok else 'differs from') ~ ' the reference row' }}"><span class="check__name">{{ checks_meta[t][0] }}</span> <span class="check__n">{{ n }}</span></span>{% endfor %}</div></td>
     {% elif c.edit %}

@@ -632,7 +632,7 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
             rs.sort(key=lambda r: (not r["keeper"], r["v"]["path"].lower(), r["v"]["filename"].lower()))
         chosen = next((r for r in rs if r["id"] in ref_ids), None)  # "use this cell as reference"
         ref = chosen or (next((r for r in rs if r["keeper"]), rs[0]) if by == "dups" else rs[0])
-        unrelated = gk == SINGLES  # files without copies: nothing to compare
+        unrelated = gk == SINGLES or by == "none"  # files without copies, or no grouping: nothing to compare
         for r in rs:  # differences against the group's reference row
             r["diff"] = {k: not unrelated and len(rs) > 1 and r is not ref and str(value(r, k)) != str(value(ref, k)) for k in keys}
             r["is_ref"] = r is ref
@@ -644,7 +644,7 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
             r["checks"] = {t: None if not r["v"][t] and not ref["v"][t] else str(r["v"][t]) == str(ref["v"][t])
                            for t in CHECKS}
         label = {"dups": ref["v"]["filename"], "capture": ref["v"]["filename"], "none": "All files"}.get(by, str(gk))
-        if unrelated:
+        if gk == SINGLES:
             label = "No duplicates"
         g = Group(gk, label, rs, ref)
         g.summary = {k: ("" if unrelated
