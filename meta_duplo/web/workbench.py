@@ -13,6 +13,7 @@ same decisions (proposals) and plans as steps 1–4, so nothing here bypasses th
 from __future__ import annotations
 
 import json
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -40,6 +41,8 @@ CORE = [
     Field("dup_count", "Dup.", "Duplicates", "num", width=72),
     Field("dup_conf", "Dup. confidence", "Duplicates", "num", width=152),
     Field("checks", "Meta checks", "Duplicates", "special", width=240),
+    Field("key_dto", "DateTimeOriginal (EXIF)", "Key dates", "date", width=168),
+    Field("key_created", "DateCreated (IPTC/XMP)", "Key dates", "date", width=168),
     Field("date", "Date taken", "Dates", "date", editable="date", width=160),
     Field("digitized", "Date digitized", "Dates", "date", width=160),
     Field("modify", "Date modified (EXIF)", "Dates", "date", width=160),
@@ -78,14 +81,14 @@ DATE_SOURCES = ["date", "digitized", "modify", "file_date", "gps_date", "name_da
 VERDICT_TEXT = {"identical": "exact", "same_pixels": "diff meta", "same_photo": "same photo", "edited": "edited",
                 "same_video": "same video", "likely": "likely", "similar_shot": "similar shot"}
 
-VIEW_VERSION = 3
+VIEW_VERSION = 4
 # Duplicates grouping starts with this filter (a removable chip); without it, files that have no copy
 # show as one "No duplicates" group at the bottom.
 DUP_FILTER = {"key": "dup_count", "op": "gte", "value": "2", "auto": True}
 SINGLES = "__singles__"  # group key of files without duplicates
 DEFAULT_VIEW = {
     "v": VIEW_VERSION,
-    "columns": [["thumb", 48], ["path", 248], ["filename", 192], ["dup_count", 64], ["dup_conf", 144],
+    "columns": [["thumb", 48], ["key_dto", 168], ["key_created", 168], ["path", 248], ["filename", 192], ["dup_count", 64], ["dup_conf", 144],
                 ["checks", 240], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 112],
                 ["device", 152], ["author", 128]],
     "edits": {},              # purple edit columns appear only after "Edit…" in a header's Actions sheet
@@ -117,11 +120,21 @@ def load_view(lib: Library) -> dict:
         v = json.loads(lib.setting("workbench_view") or "null") or {}
     except ValueError:
         v = {}
+    return load_view_from(v)
+
+
+def load_view_from(v: dict) -> dict:
+    """A stored view, upgraded to the current version and completed with defaults."""
     if v and v.get("v", 1) < 2:  # v1 opened with default edit columns: drop them once
         v["columns"] = [c for c in v.get("columns", []) if not str(c[0]).startswith("edit:")]
         v["edits"] = {}
     if v and v.get("v", 1) < 3:  # v3: the duplicates filter became a visible chip
         set_group(v, v.get("group", "dups"))
+    if v and v.get("v", 1) < 4:  # v4: the two key capture dates are shown by default, right after the thumbnail
+        shown = [c[0] for c in v.get("columns", [])]
+        for key in ("key_dto", "key_created"):
+            if key not in shown:
+                insert_column(v.setdefault("columns", []), key, CORE_BY_KEY[key].width)
     if v:
         v["v"] = VIEW_VERSION
     view = json.loads(json.dumps(DEFAULT_VIEW))
@@ -168,7 +181,7 @@ TAG_CATEGORIES = (
 )
 # The column picker lists categories in this order, and the table follows it: new columns land in their place,
 # and "Order like this list" sorts the shown ones the same way.
-CATEGORY_ORDER = ["File", "Duplicates", "Dates", "Location", "Device", "Author", "Capture settings", "Other"]
+CATEGORY_ORDER = ["Key dates", "File", "Duplicates", "Dates", "Location", "Device", "Author", "Capture settings", "Other"]
 
 
 def exif_category(tag: str) -> str:
@@ -194,22 +207,23 @@ def meta_counts(tags: dict) -> dict[str, int]:
     return out
 
 
-# The capture-date fields that matter most: marked with a red "!" and listed first among the dates.
+# The capture-date fields that matter most: marked with a red "!", their own first category in the picker and
+# the first data columns of the table (shown by default). The raw tags they come from are not listed again.
 KEY_FIELDS = {
-    "exif:ExifIFD:DateTimeOriginal": "EXIF DateTimeOriginal: when the camera took the photo",
-    "exif:XMP:DateCreated": "XMP DateCreated: the creation date written by photo apps",
-    "exif:IPTC:DateCreated": "IPTC DateCreated: the creation date in IPTC data",
+    "key_dto": "EXIF DateTimeOriginal: when the camera took the photo",
+    "key_created": "DateCreated from XMP (photoshop:DateCreated) or IPTC (2:55 + 2:60): the creation date photo apps write",
 }
+KEY_SOURCE_TAGS = {"ExifIFD:DateTimeOriginal", "XMP:DateCreated", "IPTC:DateCreated"}
 
 
 def column_rank(key: str) -> tuple:
     """Position of a column in catalog order; an edit column sits right after the field it edits."""
     if key.startswith("edit:"):
         return column_rank(EDIT_BASE.get(key[5:], key[5:]))[:3] + (1,)
+    if key == "thumb":  # the thumbnail stays the first column, so it can stay pinned
+        return (-1, 0, (0,), 0)
     f = field_for(key)
     cat = CATEGORY_ORDER.index(f.group) if f and f.group in CATEGORY_ORDER else len(CATEGORY_ORDER)
-    if key in KEY_FIELDS:
-        return (cat, -1, (list(KEY_FIELDS).index(key),), 0)
     if key in CORE_BY_KEY:
         return (cat, 0, (CORE.index(CORE_BY_KEY[key]),), 0)
     return (cat, 1, _exif_rank(key[5:]) if key.startswith("exif:") else (key,), 0)
@@ -228,10 +242,9 @@ def catalog(exif_keys: list[str]) -> dict[str, list[Field]]:
     for f in CORE:
         out[f.group].append(f)
     for k in exif_keys:
-        f = field_for(f"exif:{k}")
-        out[f.group].append(f)
-    for fields in out.values():  # key capture-date fields first in their category
-        fields.sort(key=lambda f: column_rank(f.key))
+        if k not in KEY_SOURCE_TAGS:  # shown as the key date columns instead
+            f = field_for(f"exif:{k}")
+            out[f.group].append(f)
     return {g: out[g] for g in CATEGORY_ORDER if out.get(g)}
 
 
@@ -314,6 +327,8 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
             "file_date": datetime.fromtimestamp(f["mtime"]).strftime(TIME_FMT) if f["mtime"] else "",
             "gps_date": raw.get("GPSDateTime") or "",
             "name_date": nd.strftime(TIME_FMT) if nd else "",
+            "key_dto": _readable_date(tags.get("ExifIFD:DateTimeOriginal")),
+            "key_created": _readable_date(tags.get("XMP:DateCreated") or tags.get("IPTC:DateCreated")),
             "rec_date": (cp.get("capture_time") or {}).get("value") or "",
             "place": place.get("city", ""),
             "rec_place": (cp.get("location_name") or {}).get("value") or "",
@@ -339,6 +354,16 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
             "v": v, "tags": tags, "pattern": pattern, "meta_counts": meta_counts(tags),
         })
     return rows, sorted(exif_keys, key=_exif_rank)
+
+
+def _readable_date(raw) -> str:
+    """'2019:05:18 11:47:10' / '2019-05-18T11:47:10+02:00' → '2019-05-18 11:47:10…' (the stored text, tidied)."""
+    if not raw:
+        return ""
+    s = str(raw).strip()
+    if re.match(r"^\d{4}:\d{2}:\d{2}", s):
+        s = s[:4] + "-" + s[5:7] + "-" + s[8:]
+    return s.replace("T", " ", 1)
 
 
 def _exif_rank(k: str) -> tuple:

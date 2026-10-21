@@ -74,7 +74,8 @@ def test_old_views_lose_default_edit_columns(lib):
     lib.set_setting("workbench_view", json.dumps({"columns": [["path", 200], ["edit:filename", 300]],
                                                   "edits": {"filename": {"kind": "pattern"}}, "group": "device"}))
     view = wb.load_view(lib)
-    assert view["columns"] == [["path", 200]] and view["edits"] == {} and view["group"] == "device"
+    assert view["edits"] == {} and view["group"] == "device"
+    assert view["columns"] == [["key_dto", 168], ["key_created", 168], ["path", 200]]  # v4 adds the key dates
 
 
 def test_selection_presets(lib):
@@ -119,7 +120,7 @@ def test_columns_follow_the_picker_order():
     shuffled = [["author", 1], ["edit:date", 1], ["date", 1], ["path", 1], ["dup_count", 1]]
     shuffled.sort(key=lambda c: wb.column_rank(c[0]))
     assert [c[0] for c in shuffled] == ["path", "dup_count", "date", "edit:date", "author"]
-    assert list(wb.catalog([]))[:3] == ["File", "Duplicates", "Dates"]
+    assert list(wb.catalog([]))[:4] == ["Key dates", "File", "Duplicates", "Dates"]
 
 
 def test_meta_check_counts():
@@ -139,7 +140,10 @@ def test_key_date_fields_first_and_xmp_date_read(tmp_path):
     Image.new("RGB", (8, 8)).save(path, "JPEG", xmp=xmp)
     assert metadata.read_image(path).raw["tags"]["XMP:DateCreated"] == "2019-05-18T11:47:10"
     cat = wb.catalog(["ExifIFD:DateTimeDigitized", "ExifIFD:DateTimeOriginal", "XMP:DateCreated"])
-    assert [f.key for f in cat["Dates"]][:2] == ["exif:ExifIFD:DateTimeOriginal", "exif:XMP:DateCreated"]
-    cols = [["path", 248], ["date", 160]]
-    wb.insert_column(cols, "exif:ExifIFD:DateTimeOriginal", 152)
-    assert [c[0] for c in cols] == ["path", "exif:ExifIFD:DateTimeOriginal", "date"]
+    assert [f.key for f in cat["Key dates"]] == ["key_dto", "key_created"]  # always there, first
+    assert not any(f.key.endswith(("DateTimeOriginal", "DateCreated")) for f in cat["Dates"])  # not listed twice
+    cols = [["thumb", 48], ["path", 248], ["date", 160]]
+    wb.insert_column(cols, "key_created", 168)
+    assert [c[0] for c in cols] == ["thumb", "key_created", "path", "date"]
+    view = wb.load_view_from({"v": 3, "columns": [["thumb", 48], ["path", 248]]})
+    assert [c[0] for c in view["columns"]] == ["thumb", "key_dto", "key_created", "path"]  # shown once on upgrade
