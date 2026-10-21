@@ -208,8 +208,6 @@
 .status--renumbered { color: var(--band-medium); }
 
 /* workbench (experimental) */
-:root { --edit-bg: #f6ecfd; --edit-text: #8a2fb8; --same: #1f8a4c; --differ: #c62f2f; }
-@media (prefers-color-scheme: dark) { :root { --edit-bg: #33213f; --edit-text: #d59cf5; --same: #4cc27e; --differ: #ff6b6b; } }
 .chip--exp { background: var(--edit-bg); color: var(--edit-text); font-weight: 600; }
 .wb { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-items: start; }
 .wb--panel { grid-template-columns: minmax(0, 1fr) 340px; }
@@ -254,8 +252,6 @@
 .wbt:not(.wbt--colors) .wbg__sum--same, .wbt:not(.wbt--colors) .wbg__sum--diff { color: var(--muted); }
 .wbr { cursor: pointer; }
 /* hover: row, column and cell tints are overlays, so they work on purple edit cells and group rows too */
-.wbt { --tint: rgb(47 111 222 / 6%); --tint-cell: rgb(47 111 222 / 12%); }
-@media (prefers-color-scheme: dark) { .wbt { --tint: rgb(140 170 255 / 7%); --tint-cell: rgb(140 170 255 / 15%); } }
 .wbt tbody tr:hover > td, .wbt .is-hcol { background-image: linear-gradient(var(--tint), var(--tint)); }
 .wbt tbody tr:hover > td.is-hcol { background-image: linear-gradient(var(--tint), var(--tint)), linear-gradient(var(--tint), var(--tint)); }
 .wbt tbody td:not(.wbt__check):hover { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); }
@@ -311,3 +307,11 @@
 .colcat__item:hover:not([disabled]) { background: var(--accent-soft); }
 .colcat__item[disabled] { color: var(--muted); cursor: default; }
 @media (max-width: 1100px) { .wb--panel { grid-template-columns: minmax(0, 1fr); } }
+
+/* top bar + theme switcher */
+.topbar { display: flex; justify-content: flex-end; margin: calc(-1 * var(--space-2)) 0 var(--space-2); }
+.themeswitch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); padding: 2px; gap: 2px; }
+.themeswitch button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--muted); font-size: var(--text-sm); padding: 3px 10px; border-radius: 999px; cursor: pointer; }
+.themeswitch button:hover { color: var(--text); }
+.themeswitch button[aria-checked="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.themeswitch svg { width: 14px; height: 14px; }

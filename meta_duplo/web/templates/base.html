@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}meta-duplo{% endblock %} · meta-duplo</title>
+  <script src="/static/js/theme.js"></script>
   <link rel="stylesheet" href="/static/css/tokens.css">
   <link rel="stylesheet" href="/static/css/base.css">
   <link rel="stylesheet" href="/static/css/layout.css">
@@ -34,6 +35,16 @@
       </ul>
     </nav>
     <main class="main" id="main">
+      <div class="topbar">
+        <div class="themeswitch" role="radiogroup" aria-label="Colour theme" x-data="{ mode: window.mdTheme ? mdTheme.get() : 'auto' }">
+          <button type="button" role="radio" :aria-checked="(mode === 'auto').toString()" @click="mode = 'auto'; mdTheme.set('auto')" title="Follow the system setting">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg>Auto</button>
+          <button type="button" role="radio" :aria-checked="(mode === 'light').toString()" @click="mode = 'light'; mdTheme.set('light')" title="Light">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M3 13l1-1M12 4l1-1"/></g></svg>Light</button>
+          <button type="button" role="radio" :aria-checked="(mode === 'dark').toString()" @click="mode = 'dark'; mdTheme.set('dark')" title="Dark">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 10.5A6 6 0 0 1 5.5 2.5a6 6 0 1 0 8 8z" fill="currentColor"/></svg>Dark</button>
+        </div>
+      </div>
       <div id="job">{% if job and job.status == 'running' %}{% include "partials/job.html" %}{% endif %}</div>
       {% block content %}{% endblock %}
     </main>
