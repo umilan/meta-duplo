@@ -96,6 +96,7 @@
       count: 0,
       total: 0,              // rows in the current view (all groups, filters applied), set by the table
       cols: [],              // keys of the columns shown, set by the table (drives the column picker)
+      panel: false,          // preview panel open (mirrors wbPage.panel for the settings sheet)
       has(id) { return this.sel[id] === true; },
       add(id) { if (!this.sel[id]) { this.sel[id] = true; this.count++; } },
       remove(id) { if (this.sel[id]) { delete this.sel[id]; this.count--; } },
@@ -112,6 +113,7 @@
 
     Alpine.data("wbPage", () => ({
       panel: false,
+      init() { this.$watch("panel", (on) => { Alpine.store("wb").panel = on; }); },
       dialog: null,          // "filter" | "edit" | "addcol" | null
       f: { key: "", op: "contains", value: "", label: "" },
       e: { target: "", kind: "recommended" },

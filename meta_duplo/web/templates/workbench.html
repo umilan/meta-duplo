@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Workbench{% endblock %}
 {% block head %}<script src="/static/js/workbench.js" defer></script>{% endblock %}
+{% block settings_menu %}
+<div class="setsheet__section">Workbench</div>
+<label class="setsheet__item setsheet__check">
+  <input type="checkbox" :checked="$store.wb.panel" @change="$dispatch('wb-panel', { on: $event.target.checked })"> Preview panel</label>
+<button type="button" class="setsheet__item" title="Default columns, no filters" @click="$dispatch('wb-reset'); open = false">Reset view</button>
+{% endblock %}
 {% block content %}
 <div class="wb" x-data="wbPage" :class="panel && 'wb--panel'"
      @wb-filter.window="openFilter($event.detail, $event.detail.op || 'contains')" @wb-edit.window="openEdit($event.detail)"
-     @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true" @wb-cellmenu.window="openCellMenu($event.detail.btn)">
+     @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true" @wb-panel.window="panel = $event.detail.on" @wb-reset.window="post({ action: 'reset' })" @wb-cellmenu.window="openCellMenu($event.detail.btn)">
   <div class="wb-main">
     <div class="results-head">
       <div>
@@ -15,10 +21,6 @@
           Workbench <span class="chip chip--exp">experimental</span>
         </h1>
         <p class="muted">One table for every task. <strong>Group by</strong> duplicates to clean up copies, or by photo, folder or day to fix metadata. Red marks values that differ from the group's first (kept) row. Header <em>⋯</em>: sort, filter, search, edit; drag headers to reorder, drag their right edge to resize.</p>
-      </div>
-      <div class="toolbar">
-        <button class="btn" type="button" @click="panel = !panel">◧ Preview</button>
-        <button class="btn btn--small" type="button" @click="post({ action: 'reset' })" title="Default columns, no filters">Reset view</button>
       </div>
     </div>
 

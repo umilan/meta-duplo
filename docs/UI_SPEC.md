@@ -118,7 +118,7 @@ All files 721 · Needs a decision 1 · Name changes 719 · Problems 0 · Exclude
 One table for every task; the four step screens stay as the guided path.
 
 ```
-Group by [Duplicates ▾] [Search path, filename, new filename]  ☑ Colour differences          [◧ Preview] [Reset view]
+Group by [Duplicates ▾] [Search path, filename, new filename]  ☑ Colour differences                       [⚙]
 Applied filters: [+ Add new…] [Type: is “JPG” ×] [Dup. confidence: ≥ “100” ×]
 47 groups · 111 files with duplicates
 ┌─┬─────┬─────────────────────────⋯┬────────────────────⋯┬──New filename───────────⋯┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
@@ -205,7 +205,7 @@ SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for
 
 - Only **CSS custom properties** for colours, spacing, radius and type, in `static/css/tokens.css`.
   Dark values live in one block applied by `prefers-color-scheme` unless `<html data-theme="light">`, and by
-  `data-theme="dark"`. The **theme switcher** (top right of every page: Auto / Light / Dark) sets that attribute.
+  `data-theme="dark"`. The **settings button** (⚙, top right of every page) opens a dropdown sheet: *Appearance* (Auto / Light / Dark theme switcher, which sets that attribute), page items (on the Workbench: *Preview panel* checkbox and *Reset view*), and *All settings…*. Esc or a click outside closes it.
   `static/js/theme.js` loads synchronously in `<head>` and applies the saved choice (browser storage) before the
   first paint. Auto follows the system.
 - Files: `base.css` (elements), `layout.css` (app shell, grids), `components.css` (cards, badges, tables, fields).

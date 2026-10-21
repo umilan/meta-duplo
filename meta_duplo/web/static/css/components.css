@@ -311,7 +311,18 @@
 @media (max-width: 1100px) { .wb--panel { grid-template-columns: minmax(0, 1fr); } }
 
 /* top bar + theme switcher */
-.topbar { display: flex; justify-content: flex-end; margin: calc(-1 * var(--space-2)) 0 var(--space-2); }
+.topbar { position: relative; display: flex; justify-content: flex-end; margin: calc(-1 * var(--space-2)) 0 var(--space-2); }
+.setbtn { display: inline-grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--muted); cursor: pointer; }
+.setbtn:hover, .setbtn[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+.setbtn svg { width: 18px; height: 18px; }
+.setsheet { position: absolute; right: 0; top: calc(100% + 4px); z-index: 45; width: 260px; display: grid; gap: 2px; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 12px 32px rgb(0 0 0 / 22%); }
+.setsheet__section { font-size: 11px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); padding: 6px 10px 2px; }
+.setsheet .themeswitch { margin: 2px 6px 6px; justify-self: start; }
+.setsheet__item { display: block; text-align: left; border: 0; background: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: var(--text-sm); color: var(--text); text-decoration: none; }
+.setsheet__item:hover, .setsheet__item:focus-visible { background: var(--accent-soft); }
+.setsheet__check { display: flex; align-items: center; gap: 8px; }
+.setsheet__check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+.setsheet a.setsheet__item { border-top: 1px solid var(--line); border-radius: 0 0 4px 4px; margin-top: 4px; padding-top: 8px; }
 .themeswitch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); padding: 2px; gap: 2px; }
 .themeswitch button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--muted); font-size: var(--text-sm); padding: 3px 10px; border-radius: 999px; cursor: pointer; }
 .themeswitch button:hover { color: var(--text); }
