@@ -66,6 +66,73 @@
     }
   });
 
+  // Keyboard: a cell cursor in the table. ↑ ↓ rows, ← → columns; Enter ticks the row, Space shows it in the
+  // preview (on a group row: folds it), ⌥/Ctrl/⌘+Enter opens the cell's ⋯ menu, Esc leaves the cursor.
+  const kb = { rowid: null, row: null, col: -1 };
+  const visibleRows = () => [...document.querySelectorAll("#wb-table .wbt tbody tr")]
+    .filter((tr) => tr.offsetParent !== null && (tr.classList.contains("wbr") || tr.classList.contains("wbg__head")));
+  const cursorCell = () => (kb.row && kb.row.isConnected ? kb.row.cells[kb.col] : null);
+  const paint = () => {
+    document.querySelectorAll(".wbt .is-cursor, .wbt .is-cursor-row").forEach((el) => el.classList.remove("is-cursor", "is-cursor-row"));
+    const td = cursorCell();
+    if (!td) return;
+    kb.row.classList.add("is-cursor-row");
+    td.classList.add("is-cursor");
+    td.scrollIntoView({ block: "nearest", inline: "nearest" });
+  };
+  const setCursor = (tr, col) => {
+    if (!tr) return;
+    kb.row = tr; kb.rowid = tr.dataset.rowid || null;
+    kb.col = Math.max(0, Math.min(col, tr.cells.length - 2));  // the last cell is the empty "+" column
+    paint();
+  };
+  const typing = (el) => el && (el.closest("input, select, textarea, [contenteditable], .modal") !== null);
+  document.addEventListener("keydown", (e) => {
+    if (!document.querySelector("#wb-table .wbt") || typing(e.target)) return;
+    const menuOpen = [...document.querySelectorAll(".wbsheet, .setsheet")].some((m) => m.getClientRects().length);
+    if (menuOpen) return;  // a menu or sheet is open: its own keys (Esc) apply
+    const rows = visibleRows();
+    if (!rows.length) return;
+    let i = rows.indexOf(kb.row);
+    const has = i >= 0 && cursorCell();
+    const first = () => setCursor(rows[0], 3);
+    switch (e.key) {
+      case "ArrowDown": e.preventDefault(); has ? setCursor(rows[Math.min(i + 1, rows.length - 1)], kb.col) : first(); return;
+      case "ArrowUp": e.preventDefault(); has ? setCursor(rows[Math.max(i - 1, 0)], kb.col) : first(); return;
+      case "ArrowRight": e.preventDefault(); has ? setCursor(kb.row, kb.col + 1) : first(); return;
+      case "ArrowLeft": e.preventDefault(); has ? setCursor(kb.row, kb.col - 1) : first(); return;
+      case "Escape": if (has) { kb.row = null; paint(); } return;
+    }
+    if (!has) return;
+    const tr = kb.row, td = cursorCell();
+    if (e.key === "Enter" && (e.altKey || e.ctrlKey || e.metaKey)) {  // the cell's ⋯ menu
+      e.preventDefault();
+      const head = tr.closest("table").tHead.rows[0].cells[kb.col];
+      if (tr.classList.contains("wbr") && head && head.dataset.key && head.dataset.key !== "thumb") {
+        const btn = cellButton();
+        td.appendChild(btn);
+        window.dispatchEvent(new CustomEvent("wb-cellmenu", { detail: { btn } }));
+      }
+    } else if (e.key === "Enter") {  // tick / untick the row (or the whole group)
+      e.preventDefault();
+      tr.querySelector("td.wbt__check input")?.click();
+    } else if (e.key === " ") {
+      e.preventDefault();
+      if (tr.classList.contains("wbg__head")) tr.click();  // fold / unfold the group
+      else { Alpine.store("wb").active = Number(tr.dataset.rowid); htmx.trigger(tr, "wb-show"); window.dispatchEvent(new CustomEvent("wb-preview")); }
+    }
+  });
+  // a click puts the cursor on that cell; after a reload the cursor finds its row again
+  document.addEventListener("click", (e) => {
+    const td = e.target.closest && e.target.closest(".wbt tbody td");
+    if (td && td.parentElement.matches(".wbr, .wbg__head")) setCursor(td.parentElement, td.cellIndex);
+  });
+  document.addEventListener("htmx:afterSwap", (e) => {
+    if (!e.detail.target || e.detail.target.id !== "wb-table" || !kb.rowid) return;
+    const tr = document.querySelector(`#wb-table tr[data-rowid="${kb.rowid}"]`);
+    if (tr) setCursor(tr, kb.col); else kb.row = null;
+  });
+
   // Column drag: a vertical line shows where the dragged header will land.
   const dropLine = () => {
     let el = document.getElementById("wb-dropline");

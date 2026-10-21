@@ -209,6 +209,11 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   - *Review rename plan…* saves the edits and builds a rename + XMP plan for the selected files only.
 
   Nothing touches the disk before a plan is applied.
+- **Keyboard:** a cell cursor (2 px accent frame, row tinted). ↑ ↓ move between visible rows (group and file rows),
+  ← → between columns; the first arrow starts at the top. *Enter* ticks or unticks the row (a group row: the whole
+  group); *Space* shows the file in the preview panel (a group row: folds or unfolds it); *⌥/Ctrl/⌘ + Enter* opens
+  the cell's ⋯ menu; *Esc* closes an open menu first, then leaves the cursor. Clicking a cell moves the cursor there;
+  after a reload it returns to the same file. Keys typed in fields, menus and dialogs are left alone.
 - **Scroll position:** reloading the table (sort, filter, column changes) keeps its sideways scroll position.
 - **Sorting:** click anywhere on a header (not ⋯ or the resize edge) to sort; numbers start high-first, a second
   click flips. An arrow next to the header text shows the sort: always on the sorted column, on hover elsewhere

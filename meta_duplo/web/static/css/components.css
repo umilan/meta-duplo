@@ -431,6 +431,9 @@
 .wbt tbody td:has(> .cellbtn) { padding-right: var(--space-400); }
 .cellbtn { position: absolute; right: var(--space-050); top: 50%; transform: translateY(-50%); z-index: 1; }
 .wbt tbody .wbr--selected > td { background-color: var(--sel); }
+/* keyboard cursor: the row gets the hover tint, the cell a 2px accent frame */
+.wbt tbody tr.is-cursor-row > td { background-image: linear-gradient(var(--tint), var(--tint)); }
+.wbt tbody td.is-cursor { box-shadow: inset 0 0 0 2px var(--accent); }
 .wbt tbody .wbr--active > td { background-color: var(--sel-active); }
 .wbt--colors .is-diff { color: var(--differ); }
 .wbt--colors .is-same { color: var(--same); }
