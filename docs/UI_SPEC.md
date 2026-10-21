@@ -218,8 +218,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light blue; the row shown in the preview is a darker blue. Clicking a row or
   ticking its checkbox shows it in the preview panel (and opens the panel).
-- **Preview panel:** image; the edits not yet applied; Dates, Location, Device, Author, File; the duplicate set with
-  confidences; **all metadata tags** in a monospace list.
+- **Preview panel:** image; the edits not yet applied; Dates, Location, Device, Author, File (labels and values
+  each take half the width); the duplicate set stacked one copy per block (name, confidence, path; ✓ = kept copy,
+  accent bar = this file); **all metadata tags** in a monospace list.
 - **Hover:** a light tint on the row and the column under the pointer, a stronger tint and outline on the cell; the
   column header lights up too. The same works on the header row: hovering a header tints the header row, the
   column and that header cell. Tints are overlays, so they also work on purple and group rows.

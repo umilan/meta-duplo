@@ -20,7 +20,11 @@
   {% endfor %}
   {% if mates|length > 1 %}
   <div class="pv-section"><div class="pv-title">Duplicates ({{ mates|length }})</div>
-    <dl class="facts">{% for m in mates %}<dt>{{ '✓ ' if m.keeper }}{{ m.v.filename }}</dt><dd>{{ conf_label(m) or 'kept' }} · {{ m.v.path }}</dd>{% endfor %}</dl></div>
+    <ul class="pv-list">{% for m in mates %}
+      <li class="{{ 'is-current' if m.id == r.id }}"><div class="pv-list__name">{{ '✓ ' if m.keeper }}{{ m.v.filename }}</div>
+        <div class="small">{{ conf_label(m) or 'kept copy' }}{% if m.id == r.id %} · this file{% endif %}</div>
+        <div class="small muted path">{{ m.v.path }}</div></li>{% endfor %}
+    </ul></div>
   {% endif %}
   <div class="pv-section"><div class="pv-title">All metadata ({{ r.tags|length }} tags)</div>
     <dl class="facts facts--mono">{% for k, val in r.tags|dictsort %}<dt title="{{ k }}">{{ k }}</dt><dd>{{ val }}</dd>{% endfor %}</dl></div>
