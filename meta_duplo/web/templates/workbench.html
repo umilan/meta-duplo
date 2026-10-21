@@ -62,7 +62,7 @@
       </div>
       <div class="pick" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
         <span class="wbbar__label" id="sortby-label">Sort by</span>
-        <button type="button" class="selectbtn" aria-labelledby="sortby-label" aria-haspopup="menu" :aria-expanded="open.toString()"
+        <button type="button" class="selectbtn" :class="$store.wb.sort[0] && 'is-sorting'" aria-labelledby="sortby-label" aria-haspopup="menu" :aria-expanded="open.toString()"
                 @click="open = !open" x-text="sortText()">Default</button>
         <div class="wbsheet pick__sheet" role="menu" x-show="open" x-cloak x-transition.opacity>
           <div class="wbsheet__section">Column</div>
@@ -98,6 +98,7 @@
   </div>
 
   <aside class="wb-panel results-panel" x-show="panel" aria-labelledby="pv-heading">
+    <div class="wb-panel__resize" @mousedown.prevent="resizePanel($event)" title="Drag to resize the preview"></div>
     <div class="pv-head">
       <h2 id="pv-heading">Preview</h2>
       <button type="button" class="btn btn--icon" @click="panel = false" title="Close the preview" aria-label="Close the preview">×</button>

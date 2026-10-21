@@ -292,7 +292,7 @@
 
 /* ───────── workbench (experimental) ───────── */
 .wb { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); align-items: start; }
-.wb--panel { grid-template-columns: minmax(0, 1fr) 336px; }
+.wb--panel { grid-template-columns: minmax(0, 1fr) var(--panel-w, 336px); }  /* --panel-w: dragged width */
 .wb-main { min-width: 0; }
 .wb-title { margin: 0 var(--space-200) 0 0; white-space: nowrap; }
 /* workbench header (user mockup): title + data input, then grouping / sort / search, then filters + selection / action */
@@ -362,7 +362,7 @@
 }
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); margin: 0 0 var(--space-200); }
 .filters label { display: inline-flex; align-items: center; gap: var(--space-100); }
-.fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h); padding: 0 var(--space-050) 0 var(--space-100); border: 0; background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 600; color: var(--muted); }
+.fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h); padding: 0 var(--space-050) 0 var(--space-100); border: 1px solid var(--filter-c); background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 600; color: var(--muted); }
 .fchip button { display: inline-grid; place-items: center; width: var(--control-h-sm); height: var(--control-h-sm); border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; color: var(--muted); font-size: var(--text-md); line-height: 1; padding: 0; }
 .fchip button:hover { background: var(--line); color: var(--text); }
 .wb-scroll { overflow: auto; max-height: calc(100vh - 304px); min-height: 256px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
@@ -391,11 +391,11 @@
 .wbh__label[draggable] { cursor: grab; }
 .wbh--sortable { cursor: pointer; }
 /* sort icon next to the header text: always on the sorted column, on hover elsewhere (the direction a click gives) */
-.wbh__filter { flex: none; display: inline-grid; place-items: center; color: var(--accent); }  /* this column has a filter */
+.wbh__filter { flex: none; display: inline-grid; place-items: center; color: var(--filter-c); }  /* this column has a filter */
 .wbh__filter svg { width: var(--space-200); height: var(--space-200); }
 .wbh__sort { flex: none; color: var(--muted); opacity: 0; }
 .wbh:hover .wbh__sort { opacity: 1; }
-.wbh__sort.is-on { opacity: 1; color: var(--text); font-weight: 700; }
+.wbh__sort.is-on { opacity: 1; color: var(--sort-c); font-weight: 700; }
 .wbh__label.is-sorted { color: var(--text); font-weight: 700; }
 .wbh__act { flex: none; position: relative; z-index: 1; margin-left: auto; }
 /* ⋯ shows on hover, like the cell ⋯ (and while its menu is open or it has keyboard focus) */
@@ -418,9 +418,13 @@
 .wbh-cell.is-slim .wbh { cursor: pointer; }
 .wbt td[data-sorted] { font-weight: 600; }
 /* filtered and sorted columns: an accent outline down the whole column (header included) */
-.wbt :is([data-filtered], td[data-sorted], th[aria-sort]) { box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent); }
-.wbt thead th:is([data-filtered], [aria-sort]) { box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent), inset 0 2px 0 var(--accent); }
-.wbt tbody:last-of-type tr:last-child > td:is([data-filtered], [data-sorted]) { box-shadow: inset 2px 0 0 var(--accent), inset -2px 0 0 var(--accent), inset 0 -2px 0 var(--accent); }
+.wbt [data-filtered] { --edge: var(--filter-c); }
+.wbt :is(td[data-sorted], th[aria-sort]) { --edge: var(--sort-c); }
+.wbt :is([data-filtered], td[data-sorted], th[aria-sort]) { box-shadow: inset 2px 0 0 var(--edge), inset -2px 0 0 var(--edge); }
+.wbt thead th:is([data-filtered], [aria-sort]) { box-shadow: inset 2px 0 0 var(--edge), inset -2px 0 0 var(--edge), inset 0 2px 0 var(--edge); }
+.wbt tbody:last-of-type tr:last-child > td:is([data-filtered], [data-sorted]) { box-shadow: inset 2px 0 0 var(--edge), inset -2px 0 0 var(--edge), inset 0 -2px 0 var(--edge); }
+/* sorted and filtered: orange outside, cyan inside */
+.wbt [data-filtered]:is([data-sorted], [aria-sort]) { box-shadow: inset 2px 0 0 var(--filter-c), inset -2px 0 0 var(--filter-c), inset 4px 0 0 var(--sort-c), inset -4px 0 0 var(--sort-c); }
 .wbg__head td { background: var(--group-bg); font-weight: 400; cursor: pointer; border-top: 1px solid var(--line); }
 .wbg__head td.wbg__label { font-weight: 600; }  /* the group title stays bold; other group cells are regular */
 .wbg__label .chev { margin-right: var(--space-050); }
@@ -517,3 +521,9 @@
 .pv-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: var(--space-100);
   margin: 0 calc(-1 * var(--space-200)) var(--space-100); padding: var(--space-200) var(--space-200) var(--space-100); background: var(--surface); }
 .pv-head h2 { margin: 0; font-size: var(--text-lg); line-height: var(--line-lg); }
+
+/* the inputs above the table use the same colours: filter chips orange, an active Sort by cyan */
+.selectbtn.is-sorting { border-color: var(--sort-c); }
+/* preview panel: drag its left edge to resize (the width is kept per browser) */
+.wb-panel__resize { position: absolute; left: 0; top: 0; bottom: 0; width: var(--space-100); cursor: col-resize; z-index: 3; border-left: 2px solid transparent; }
+.wb-panel__resize:hover, .is-resizing .wb-panel__resize { border-left-color: var(--accent); }

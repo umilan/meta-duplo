@@ -232,7 +232,29 @@
 
     Alpine.data("wbPage", () => ({
       panel: false,
-      init() { this.$watch("panel", (on) => { Alpine.store("wb").panel = on; }); },
+      init() {
+        this.$watch("panel", (on) => { Alpine.store("wb").panel = on; });
+        let w = 0;
+        try { w = Number(localStorage.getItem("meta-duplo-panel-w")) || 0; } catch { /* storage blocked */ }
+        if (w) this.$el.style.setProperty("--panel-w", `${w}px`);
+      },
+      // preview panel width: drag its left edge; 256–720px on the 8px grid, kept per browser
+      resizePanel(ev) {
+        const panel = ev.target.closest(".wb-panel"), root = this.$root;
+        const x0 = ev.clientX, w0 = panel.getBoundingClientRect().width;
+        let w = w0;
+        const move = (e) => {
+          w = Math.max(256, Math.min(720, Math.round((w0 + x0 - e.clientX) / 8) * 8));
+          root.style.setProperty("--panel-w", `${w}px`);
+        };
+        const up = () => {
+          window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up);
+          document.body.classList.remove("is-resizing");
+          try { localStorage.setItem("meta-duplo-panel-w", String(w)); } catch { /* ignore */ }
+        };
+        document.body.classList.add("is-resizing");
+        window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+      },
       dialog: null,          // "filter" | "edit" | "addcol" | null
       f: { key: "", op: "contains", value: "", label: "" },
       e: { target: "", kind: "recommended" },

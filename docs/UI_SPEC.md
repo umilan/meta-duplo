@@ -235,7 +235,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   does not sort). A slim header shows its full name in a tooltip at once on hover, with “(empty)” when it has no
   values.
 - **Filtered columns** show a funnel icon (accent colour) next to the header text (its tooltip lists the filters)
-  and a 2 px accent outline down the whole column, header included.
+  and a 2 px **orange** outline down the whole column, header included; the filter chips above the table have an
+  orange border too.
 - **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name
   is in the tooltip.
 - **Group row summaries:** *Same*, *Diff*, or *N/A* (grey) when no row of the group has a value in that column.
@@ -247,12 +248,13 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   many metadata tags of that kind the file carries (EXIF / QuickTime tags sorted like the column picker; file-system
   dates and our recommendations do not count). Below 208 px of column width only the numbers stay; the tooltip names
   each badge.
-- **Sorted column:** its header label and its cells are bold; cells keep their red / green; it has the same 2 px
-  accent outline as a filtered column. Group rows are
+- **Sorted column:** its header label and its cells are bold; cells keep their red / green; it has a 2 px **cyan**
+  outline (header arrow cyan too), and the *Sort by* picker gets a cyan border while a column is sorted. A column
+  that is both gets orange outside, cyan inside. Group rows are
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light grey (a little darker than *Shade odd rows*); the row shown in the preview is a darker blue. Clicking a row or
   ticking its checkbox shows it in the preview panel (and opens the panel).
-- **Preview panel:** a sticky header *Preview* with **×** to close it (⚙ stays in the table-side header row, left of
+- **Preview panel:** resizable by dragging its left edge (256–720 px, kept per browser); a sticky header *Preview* with **×** to close it (⚙ stays in the table-side header row, left of
   the panel); then the image; the edits not yet applied; Dates, Location, Device, Author, File (labels and values
   each take half the width); the duplicate set stacked one copy per block (name, confidence, path; ✓ = kept copy,
   accent bar = this file); **all metadata tags** in a monospace list.
