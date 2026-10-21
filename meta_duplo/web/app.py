@@ -699,6 +699,19 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         _rescan()
         return Response(headers={"HX-Refresh": "true"})
 
+    @app.post("/wb/sources/remove-all")
+    def wb_source_remove_all():
+        with lib.connect() as con:
+            ids = [r["id"] for r in con.execute("SELECT id FROM sources")]
+        kept = [sid for sid in ids if not remove_source(lib, sid)]  # a folder a plan uses stays (undo needs it)
+        if len(kept) == len(ids):
+            return _toast("These folders are used by plans. Keep them so the plans can still be undone.")
+        view = wb.load_view(lib)
+        view["sources_off"] = [s for s in view.get("sources_off", []) if s in kept]
+        wb.save_view(lib, view)
+        _rescan()  # rebuild duplicate groups and proposals without them, like a single remove
+        return Response(headers={"HX-Refresh": "true"})
+
     @app.post("/wb/sources/{sid}/remove")
     def wb_source_remove(sid: int):
         if not remove_source(lib, sid):

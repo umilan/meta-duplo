@@ -339,6 +339,9 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .datain__remove { color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .datain__remove:hover { color: var(--conflict); }
 .wbsheet .datain__addbtn { font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); }
+.wbsheet > .datain__top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); }
+.wbsheet .datain__removeall { font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--conflict); }
+.wbsheet .datain__removeall:hover { background: color-mix(in srgb, var(--conflict) 10%, var(--surface)); }
 .datain__plus { display: inline-grid; place-items: center; width: var(--space-200); font-size: var(--text-lg); line-height: 1; }
 .datain__writable { display: flex; align-items: center; gap: var(--space-100); min-height: var(--control-h); padding: var(--space-050) var(--space-100); border-top: 1px solid var(--line); cursor: pointer; }
 .wbsheet .datain__demo { color: var(--muted); border-top: 1px solid var(--line); margin-top: var(--space-050); }

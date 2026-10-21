@@ -34,7 +34,11 @@
           <span class="muted datain__count">Found {{ nfiles }} file{{ '' if nfiles == 1 else 's' }}</span>
         </button>
         <div class="wbsheet pick__sheet datain__sheet" x-show="open" x-cloak x-transition.opacity>
-          <button type="button" class="datain__addbtn" @click="addFolder()" title="Opens the folder dialog"><span class="datain__plus" aria-hidden="true">+</span>Add new…</button>
+          <div class="datain__top">
+            <button type="button" class="datain__addbtn" @click="addFolder()" title="Opens the folder dialog"><span class="datain__plus" aria-hidden="true">+</span>Add new…</button>
+            {% if sources %}<button type="button" class="datain__removeall" hx-post="/wb/sources/remove-all" hx-swap="none"
+                    hx-confirm="Remove {{ 'the folder' if sources|length == 1 else 'all ' ~ sources|length ~ ' folders' }} from the library? Nothing on disk is touched; folders used by a plan stay so it can still be undone.">Remove all</button>{% endif %}
+          </div>
           {% for s in sources %}
           <div class="datain__src" title="{{ s.root }}">
             <label><input type="checkbox" {{ 'checked' if s.id not in sources_off }} @change="post({ action: 'source_toggle', id: '{{ s.id }}' }).then(() => location.reload())">
