@@ -169,7 +169,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   categories by what they describe (date/time tags under Dates, GPS under Location, make/model/lens under Device,
   artist/copyright under Author, exposure/ISO/focal length under Capture settings, size/orientation under File, the rest under Other). *+* opens the searchable picker: one plain checkbox per field, grouped by category; tick to show, untick to hide (applies at once, the picker stays open), with a count of shown columns. Width (drag the right edge of a header), order
   (drag a header label: a strong 4 px accent line with round ends, running the full table height, shows where it lands and the target header is tinted; the left half of a header drops before it, the right half after it, including at the end) and visibility are saved per library (`workbench_view` setting).
-- **Header ⋯ button** (same look as the cell ⋯ button) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
+- **Header ⋯ button** (same look as the cell ⋯ button; shown only while hovering the header, while its menu is open or when focused) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Sort by* ascending / descending; *Find*: Filter…, Search…
   (*contains*), Show groups where it differs; *Change*: Edit… (new purple column), Group by this (Path, Date, Device,
   Place, Dup.), Hide column. Clicking the label toggles the sort; drag the label to move the column.

@@ -340,6 +340,9 @@
 .wbh__sort.is-on { opacity: 1; color: var(--text); font-weight: 700; }
 .wbh__label.is-sorted { color: var(--text); font-weight: 700; }
 .wbh__act { flex: none; position: relative; z-index: 1; margin-left: auto; }
+/* ⋯ shows on hover, like the cell ⋯ (and while its menu is open or it has keyboard focus) */
+.wbh__act:not(.wbh__fold) { visibility: hidden; }
+.wbh:hover .wbh__act, .wbh__act:focus-visible, .wbh__act.is-open { visibility: visible; }
 .wbh__fold { margin-left: 0; }
 .wbh__fold .chev { color: inherit; }
 .wbh__resize { position: absolute; right: 0; top: 0; bottom: 0; width: var(--space-100); cursor: col-resize; border-right: 1px solid var(--line); }
