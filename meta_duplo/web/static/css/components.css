@@ -324,7 +324,7 @@
 .wbh-cell.is-dragging { opacity: .48; }
 .wbt td[data-sorted] { font-weight: 600; color: var(--text); }
 .wbt td[data-sorted] :is(.is-same, .is-diff, .muted) { color: inherit; }
-.wbg__head td { background: var(--surface-2); font-weight: 600; cursor: pointer; border-top: 1px solid var(--line); }
+.wbg__head td { background: var(--group-bg); font-weight: 600; cursor: pointer; border-top: 1px solid var(--line); }
 .wbg__label { font-weight: 600; }
 .wbg__label .chev { margin-right: var(--space-050); }
 .wbg__sum--same { color: var(--same); }
@@ -348,7 +348,7 @@
 .wbt__edit--same { color: var(--muted); }
 .wbt__thumb { width: calc(var(--thumb-h) * 4 / 3); height: var(--thumb-h); max-width: none; object-fit: cover; border-radius: var(--radius-sm); display: inline-block; vertical-align: middle; }
 .wbt__thumb--small { width: 24px; height: 16px; margin-left: var(--space-050); }
-.wbt td.wbt__tree { color: var(--muted); padding-left: var(--space-200); font-size: var(--text-md); }
+.wbt td.wbt__tree { color: var(--line-strong); padding-left: var(--space-100); font-size: var(--text-md); }
 .wbt td.wbt__thumbcell { padding-top: 0; padding-bottom: 0; text-overflow: clip; }
 .wbt__path span { padding: 0 var(--space-025); }
 .wb-panel { max-height: calc(100vh - var(--space-400)); }
