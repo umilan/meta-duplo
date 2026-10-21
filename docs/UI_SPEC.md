@@ -118,7 +118,7 @@ All files 721 · Needs a decision 1 · Name changes 719 · Problems 0 · Exclude
 One table for every task; the four step screens stay as the guided path. No description text under the title.
 Header: two rows. Row 1 holds the title, Data input, Grouping by, Sort by and Search (and ⚙); row 2 the filters
 with Selection and Actions. When row 1 gets tight (under 1240 px) Search becomes a 32 px magnifier button that opens
-the field in place (it stays open while it has text); under 1040 px the labels hide visually (still read by screen
+the field in place (it stays open while it has text); the Data input field stays on one line (folder count truncates with …, *Found N files* hides below 208 px); under 1040 px the labels hide visually (still read by screen
 readers) and the pickers narrow to 128 px.
 - The Workbench is the **start screen** (`/` opens it; first item in the nav). The four steps stay in the nav.
 - Every picker in the header is a **dropdown sheet** (a select-like button and a menu sheet), with ( ) / (•) radio

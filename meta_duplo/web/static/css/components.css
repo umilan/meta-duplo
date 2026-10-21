@@ -288,6 +288,12 @@
 .wbbar { display: flex; align-items: center; gap: var(--space-200); padding-top: var(--space-200); margin-bottom: var(--space-200); container: wbbar / inline-size; position: relative; z-index: 35; }  /* containment makes a stacking context: keep its sheets above the table */
 .wbbar.wb-pad { padding-right: var(--space-800); }  /* room for the settings button */
 .wbbar .navtoggle { margin-right: calc(-1 * var(--space-100)); }
+.wbbar > .navtoggle, .setbtn, .wbbar .wb-title { flex: none; }  /* never squeezed by the row */
+/* Data input: one line; the folder count truncates, the file count goes first when the field is tight */
+.pick.datain { container: datain / inline-size; }
+.datain__folders, .datain__count { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.datain__count { flex: none; }
+@container datain (max-width: 208px) { .datain__count { display: none; } }
 .wbbar__label, .results-toolbar label, .filters label, .filters__label { color: var(--muted); font-weight: 600; white-space: nowrap; }
 .datain { position: relative; flex: 1 1 240px; min-width: 128px; }
 .datain__field { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); width: 100%; height: var(--control-h);
@@ -460,7 +466,7 @@
 
 /* Workbench page: no page padding; the table runs edge to edge, only the controls above it are inset. */
 .main--flush { padding: 0; max-width: none; position: relative; }
-.main--flush .topbar { position: absolute; top: var(--space-200); right: var(--space-200); margin: 0; z-index: 30; }
+.main--flush .topbar { position: absolute; top: var(--space-200); right: var(--space-200); margin: 0; z-index: 36; }  /* above the header row (35), or it would swallow ⚙ clicks */
 .main--flush #job:has(.job) { padding: var(--space-100) var(--space-200) 0; }  /* no space when idle: keeps the header row level with ⚙ */
 .main--flush .wb { gap: 0; }
 .wb-pad { padding-inline: var(--space-200); }

@@ -27,8 +27,8 @@
       <div class="pick datain" x-data="dataInput" @click.outside="open = false" @keydown.escape.window="open = false"
            @wb-pickpath.window="typePath($event.detail)">
         <button type="button" class="datain__field" aria-labelledby="datain-label" aria-haspopup="true" :aria-expanded="open.toString()" @click="open = !open">
-          <span>{% if n_on < sources|length %}{{ n_on }} of {% endif %}{{ sources|length }} folder{{ '' if sources|length == 1 else 's' }}</span>
-          <span class="muted">Found {{ nfiles }} file{{ '' if nfiles == 1 else 's' }}</span>
+          <span class="datain__folders">{% if n_on < sources|length %}{{ n_on }} of {% endif %}{{ sources|length }} folder{{ '' if sources|length == 1 else 's' }}</span>
+          <span class="muted datain__count">Found {{ nfiles }} file{{ '' if nfiles == 1 else 's' }}</span>
         </button>
         <div class="wbsheet pick__sheet datain__sheet" x-show="open" x-cloak x-transition.opacity>
           <button type="button" class="datain__addbtn" @click="addFolder()" title="Opens the folder dialog">Add new…</button>
