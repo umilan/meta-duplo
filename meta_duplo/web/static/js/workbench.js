@@ -18,21 +18,23 @@
     });
 
   document.addEventListener("alpine:init", () => {
+    // Selection as a plain object (id → true): reliably reactive in every browser, Safari included.
     Alpine.store("wb", {
-      ids: new Set(),
-      get count() { return this.ids.size; },
-      has(id) { return this.ids.has(id); },
-      toggle(id) { this.ids.has(id) ? this.ids.delete(id) : this.ids.add(id); },
-      setMany(ids, on) { ids.forEach((id) => (on ? this.ids.add(id) : this.ids.delete(id))); },
-      clear() { this.ids.clear(); },
-      csv() { return Array.from(this.ids).join(","); },
-      selectDuplicates() {
-        fetch("/wb/ids?which=nonkeepers").then((r) => r.json()).then((d) => { this.clear(); this.setMany(d.ids, true); });
-      },
-      selectVisible(on) {
-        const ids = Array.from(document.querySelectorAll("[data-rowid]")).map((el) => Number(el.dataset.rowid));
-        this.setMany(ids, on);
-      },
+      sel: {},
+      count: 0,
+      total: 0,              // rows in the current view (all groups, filters applied), set by the table
+      has(id) { return this.sel[id] === true; },
+      add(id) { if (!this.sel[id]) { this.sel[id] = true; this.count++; } },
+      remove(id) { if (this.sel[id]) { delete this.sel[id]; this.count--; } },
+      toggle(id) { this.has(id) ? this.remove(id) : this.add(id); },
+      setMany(ids, on) { ids.forEach((id) => (on ? this.add(id) : this.remove(id))); },
+      clear() { this.sel = {}; this.count = 0; },
+      csv() { return Object.keys(this.sel).join(","); },
+      get all() { return this.total > 0 && this.count >= this.total; },
+      load(which) { return fetch(`/wb/ids?which=${which}`).then((r) => r.json()).then((d) => { this.clear(); this.setMany(d.ids, true); }); },
+      selectDuplicates() { return this.load("nonkeepers"); },
+      // Header checkbox: every row of the table, including groups not loaded yet.
+      selectAll(on) { return on ? this.load("all") : this.clear(); },
     });
 
     Alpine.data("wbPage", () => ({

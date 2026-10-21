@@ -480,7 +480,11 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
 
     @app.get("/wb/ids")
     def wb_ids(which: str = "nonkeepers"):
-        return {"ids": wb.nonkeeper_ids(lib, wb.load_view(lib))}
+        view = wb.load_view(lib)
+        if which == "all":  # every row of the current view, also the groups not loaded yet
+            groups, _, _ = wb.table(lib, view)
+            return {"ids": [r["id"] for g in groups for r in g.rows]}
+        return {"ids": wb.nonkeeper_ids(lib, view)}
 
     def _ids(raw: str) -> set[int]:
         return {int(x) for x in raw.split(",") if x.strip().isdigit()}
