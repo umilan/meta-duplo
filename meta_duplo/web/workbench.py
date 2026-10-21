@@ -435,7 +435,9 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
             r["diff"] = {k: not unrelated and len(rs) > 1 and r is not ref and str(value(r, k)) != str(value(ref, k)) for k in keys}
             r["is_ref"] = r is ref
             r["path_parts"] = _path_diff(r["v"]["path"], ref["v"]["path"], r is ref or len(rs) == 1)
-            r["checks"] = {t: (str(r["v"][t]) == str(ref["v"][t])) for t in ("date", "place", "device")}
+            # per field: True same as the reference row, False differs, None when neither has a value
+            r["checks"] = {t: None if not r["v"][t] and not ref["v"][t] else str(r["v"][t]) == str(ref["v"][t])
+                           for t in ("date", "place", "device")}
         label = {"dups": ref["v"]["filename"], "capture": ref["v"]["filename"], "none": "All files"}.get(by, str(gk))
         if unrelated:
             label = "No duplicates"
@@ -443,6 +445,10 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
         g.summary = {k: ("" if unrelated
                          else "N/A" if all(value(r, k) in ("", None) for r in rs)  # nothing to compare
                          else "Diff" if any(r["diff"].get(k) for r in rs) else "Same") for k in keys}
+        if "checks" in keys and not unrelated:
+            states = [ok for r in rs for ok in r["checks"].values()]
+            g.summary["checks"] = ("N/A" if all(ok is None for ok in states)
+                                   else "Diff" if any(ok is False for ok in states) else "Same")
         groups.append(g)
 
     # filters: per row when ungrouped, per group otherwise (a duplicate set needs its context)

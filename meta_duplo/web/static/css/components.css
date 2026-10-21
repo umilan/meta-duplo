@@ -52,6 +52,10 @@
 .check { margin-right: var(--space-050); border: 1px solid currentColor; font-weight: 400; }
 .check--ok { color: var(--same); }
 .check--no { color: var(--differ); }
+.check--na { color: var(--muted); border-style: dashed; }
+/* meta checks: in a narrow column the three badges keep their colour but drop the text (the tooltip names them) */
+.checks { container-type: inline-size; display: flex; align-items: center; min-width: 0; }
+@container (max-width: 128px) { .check { width: var(--space-200); padding: 0; font-size: 0; } .check:not(.check--na) { background: currentColor; } }
 .status { padding: 0 var(--space-100); border-radius: var(--radius-full); }
 .status--ok { color: var(--band-verified); }
 .status--unchanged, .status--excluded { color: var(--muted); }

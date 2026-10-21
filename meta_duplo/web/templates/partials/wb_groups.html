@@ -13,7 +13,6 @@
     {% elif singles and c.key in ('dup_count', 'dup_conf', 'checks') %}<td{{ " data-sorted" if c.key == sc }} class="muted">–</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}>{{ g.ref.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}>{{ conf_label(g.ref) }}</td>
-    {% elif c.key == 'checks' %}<td{{ " data-sorted" if c.key == sc }} class="muted">–</td>
     {% elif c.edit %}<td{{ " data-sorted" if c.key == sc }} class="wbt__edit">{% set ev = value(g.ref, c.key) %}{% if ev %}→ {{ ev }}{% else %}<span class="muted">—</span>{% endif %}</td>
     {% else %}<td{{ " data-sorted" if c.key == sc }} class="wbg__sum wbg__sum--{{ g.summary[c.key]|lower|replace("/", "") }}">{{ g.summary[c.key] }}</td>
     {% endif %}
@@ -40,7 +39,7 @@
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}>{{ conf_label(r) }}</td>
     {% elif c.key == 'checks' and singles %}<td{{ " data-sorted" if c.key == sc }} class="muted">–</td>
     {% elif c.key == 'checks' %}
-      <td{{ " data-sorted" if c.key == sc }}>{% for t, ok in r.checks.items() %}<span class="check {{ 'check--ok' if ok else 'check--no' }}" title="{{ t }} {{ 'same as' if ok else 'differs from' }} the reference row">{{ {'date': 'date', 'place': 'loc', 'device': 'device'}[t] }}</span>{% endfor %}</td>
+      <td{{ " data-sorted" if c.key == sc }}><div class="checks">{% for t, ok in r.checks.items() %}<span class="check {{ 'check--na' if ok is none else ('check--ok' if ok else 'check--no') }}" title="{{ {'date': 'Date', 'place': 'Place', 'device': 'Device'}[t] }}: {{ 'no value here or in the reference row' if ok is none else ('same as' if ok else 'differs from') ~ ' the reference row' }}">{{ {'date': 'date', 'place': 'loc', 'device': 'device'}[t] }}</span>{% endfor %}</div></td>
     {% elif c.edit %}
       {% set ev = value(r, c.key) %}{% set base = r.v.get(c.target, '') %}
       <td{{ " data-sorted" if c.key == sc }} class="wbt__edit {{ 'wbt__edit--same' if ev == base }}" title="{{ ev }}">{% if not ev %}<span class="muted" title="Not enough data (e.g. no date)">—</span>{% elif ev == base %}= {{ ev }}{% else %}→ {{ ev }}{% endif %}</td>

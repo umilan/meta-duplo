@@ -210,6 +210,10 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Header labels** wrap to two lines (breaks between CamelCase words and before “(…)”, then “…”); the full name
   is in the tooltip.
 - **Group row summaries:** *Same*, *Diff*, or *N/A* (grey) when no row of the group has a value in that column.
+  *Meta checks* summarise the same way: *Diff* if any date / loc / device badge differs, *N/A* if no row has any of them.
+- **Meta check badges** have three states: green (same as the reference row), red (differs), grey dashed (no value
+  here or in the reference row). Below 128 px of column width they drop the text and become three filled squares;
+  the tooltip names each one.
 - **Sorted column:** its header label and its cells are bold; cells keep their red / green. Group rows are
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light blue; the row shown in the preview is a darker blue. Clicking a row or
