@@ -214,6 +214,7 @@
                   x-text="colQuery ? 'Select all found' : 'Select all'">Select all</button>
           <button type="button" class="linkbtn" @click="colsSet(colKeys(allFields), false)"
                   x-text="colQuery ? 'None of found' : 'None'">None</button>
+          <button type="button" class="btn btn--icon btn--small modal__close" @click="close()" title="Close" aria-label="Close">×</button>
         </span>
       </div>
       <input type="search" placeholder="Search fields (e.g. Date, GPS, Artist, Lens)" x-model="colQuery" aria-label="Search fields">
