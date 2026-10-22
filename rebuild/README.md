@@ -32,6 +32,9 @@ They complement, not replace:
 
 Port the tests early (13): they are the acceptance criteria for 03–09.
 
+[KNOWN_ISSUES.md](KNOWN_ISSUES.md) lists the defects and rule gaps found while writing these skills
+(data-safety items first). Decide each one on purpose in a rebuild rather than copying it.
+
 ## Ground rules for a rebuild (from CLAUDE.md)
 
 These are the target rules. Today's code does not meet all of them yet; skills 02–04 mark the gaps:
