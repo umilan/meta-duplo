@@ -292,10 +292,12 @@
           <span class="namer__part">
             <template x-if="p.t === 'text'">
               <input class="namer__text" x-model="p.v" :size="Math.max(p.v.length, 1)" spellcheck="false" :data-i="i"
-                     @focus="caret(i, $event)" @keyup="caret(i, $event)" @click="caret(i, $event)" @input="caret(i, $event)" aria-label="Text">
+                     @focus="caret(i, $event); picking = -1" @keyup="caret(i, $event)" @click="caret(i, $event)" @input="caret(i, $event)"
+                     @keydown="textKey(i, $event)" aria-label="Text">
             </template>
             <template x-if="p.t === 'tok'">
-              <button type="button" class="namer__tok" :class="picking === i && 'is-open'" @click="picking = picking === i ? -1 : i"
+              <button type="button" class="namer__tok" :class="picking === i && 'is-open'" :data-i="i" @click="selectTok(i)"
+                      @keydown="tokKey(i, $event)" :aria-pressed="(picking === i).toString()"
                       :title="label(p.v) + ' — ' + p.v" x-text="mode === 'preview' ? (vals[p.v] || '∅') : techName(p.v)"></button>
             </template>
           </span>
@@ -310,7 +312,7 @@
         <template x-if="picking >= 0">
           <span>Click a tag to replace <strong class="namer__sel" x-text="techName(parts[picking]?.v || '')"></strong> ·
             <button type="button" class="linkbtn namer__del" @click="removeTok()">Remove it</button> ·
-            <button type="button" class="linkbtn" @click="picking = -1">Keep it</button></span></template>
+            <button type="button" class="linkbtn" @click="leaveTok(picking, 1)">Keep it</button></span></template>
       </p>
       <div class="namer__picker" @keydown.escape.stop="picking = -1">
         <div class="namer__search">
@@ -323,6 +325,7 @@
           {% for g, label, tok in name_options %}
           {% if g != ns.group %}{% set ns.group = g %}<div class="wbsheet__section namer__group">{{ g }}</div>{% endif %}
           <button type="button" role="menuitem" class="namer__opt" data-tok="{{ tok }}" data-q="{{ (label ~ ' ' ~ tok)|lower }}"
+                  :class="picking >= 0 && parts[picking] && parts[picking].v === $el.dataset.tok && 'is-current'"
                   x-show="match($el.dataset.q)" @mousedown.prevent @click="choose($el.dataset.tok)">&lt;{{ label }}&gt;<span class="pick__hint">{{ tok[1:-1] }}</span></button>
           {% endfor %}
           <p class="small muted namer__none" x-show="q && !anyMatch()">No parameter matches.</p>

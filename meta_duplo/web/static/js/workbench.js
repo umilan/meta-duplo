@@ -562,11 +562,43 @@
       pretty(pattern) { return pattern.replace(/\{[^}]+\}/g, (t) => this.techName(t)); },  // a pattern as its chips read
       caret(i, ev) { this.at = { i, pos: ev.target.selectionStart ?? ev.target.value.length }; },
       focusEnd() { const ins = this.$el.querySelectorAll(".namer__text"); ins[ins.length - 1]?.focus(); },
+      // the line as one row of stops: text fields (caret) and parameters (selected, no caret); ← → walk through it
+      field(i) { return this.$root.querySelector(`.namer__edit [data-i="${i}"]`); },
+      selectTok(i) {
+        this.picking = i; this.q = "";
+        this.$nextTick(() => {
+          this.field(i)?.focus();
+          this.$root.querySelector(".namer__opt.is-current")?.scrollIntoView({ block: "nearest" });  // its tag in the list
+        });
+      },
+      textAt(i, pos) {  // put the caret into text part i (pos -1 = its end)
+        this.picking = -1;
+        this.$nextTick(() => {
+          const el = this.field(i); if (!el) return;
+          const at = pos < 0 ? el.value.length : Math.min(pos, el.value.length);
+          el.focus(); el.setSelectionRange(at, at); this.at = { i, pos: at };
+        });
+      },
+      leaveTok(i, dir) { if (i >= 0) this.textAt(i + dir, dir < 0 ? -1 : 0); },
+      textKey(i, ev) {
+        const el = ev.target, atStart = el.selectionStart === 0 && el.selectionEnd === 0;
+        const atEnd = el.selectionStart === el.value.length && el.selectionEnd === el.value.length;
+        if (ev.key === "ArrowLeft" && atStart && i > 0) { ev.preventDefault(); this.selectTok(i - 1); }
+        else if (ev.key === "ArrowRight" && atEnd && i < this.parts.length - 1) { ev.preventDefault(); this.selectTok(i + 1); }
+        else if (ev.key === "Backspace" && atStart && i > 0) { ev.preventDefault(); this.selectTok(i - 1); }  // select first, then delete
+        else if (ev.key === "Delete" && atEnd && i < this.parts.length - 1) { ev.preventDefault(); this.selectTok(i + 1); }
+      },
+      tokKey(i, ev) {
+        if (ev.key === "ArrowLeft") { ev.preventDefault(); this.textAt(i - 1, -1); }
+        else if (ev.key === "ArrowRight") { ev.preventDefault(); this.textAt(i + 1, 0); }
+        else if (ev.key === "Backspace" || ev.key === "Delete") { ev.preventDefault(); this.removeTok(); }
+        else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); this.leaveTok(i, 1); }
+      },
       match(text) { const q = this.q.trim().toLowerCase(); return !q || q.split(/\s+/).every((w) => text.includes(w)); },
       anyMatch() { return [...this.$root.querySelectorAll(".namer__opt")].some((b) => this.match(b.dataset.q)); },
       pickFirst() { const b = [...this.$root.querySelectorAll(".namer__opt")].find((x) => this.match(x.dataset.q)); if (b) this.choose(b.dataset.tok); },
       choose(tok) {
-        if (this.picking >= 0) { this.parts[this.picking].v = tok; }
+        if (this.picking >= 0) { this.parts[this.picking].v = tok; this.selectTok(this.picking); return; }  // stays selected
         else {  // insert at the remembered text cursor
           const { i, pos } = this.at, p = this.parts[i] && this.parts[i].t === "text" ? this.parts[i] : this.parts[this.parts.length - 1];
           const idx = this.parts.indexOf(p), cut = Math.min(pos, p.v.length);
@@ -577,8 +609,9 @@
       },
       removeTok() {
         const i = this.picking;
+        const join = (this.parts[i - 1]?.v || "").length;
         const merged = { t: "text", v: (this.parts[i - 1]?.v || "") + (this.parts[i + 1]?.v || "") };
-        this.parts.splice(i - 1, 3, merged); this.picking = -1;
+        this.parts.splice(i - 1, 3, merged); this.textAt(i - 1, join);  // the caret where the parameter was
       },
       refresh() {
         const body = new URLSearchParams({ pattern: this.pattern(), fid: String(Alpine.store("wb").active || "") });

@@ -620,6 +620,8 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .namer__tok { padding: 0 var(--space-025); border: 0; border-radius: var(--radius-sm); background: none; font: inherit;
   color: var(--edit-text); text-decoration: underline; text-underline-offset: var(--space-050); cursor: pointer; }
 .namer__tok:hover, .namer__tok.is-open { background: var(--edit-bg); }
+.namer__tok.is-open { outline: 2px solid var(--edit-text); outline-offset: 0; }  /* selected: the caret is gone, the chip has focus */
+.namer__tok:focus-visible { outline: 2px solid var(--edit-text); outline-offset: 0; }
 /* the parameter list sits under the name field, always open (search + scrolling list) */
 .namer__edit { resize: vertical; overflow: auto; min-height: var(--space-800); align-content: flex-start; }
 .namer__hint { margin: 0; }
@@ -635,6 +637,7 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .namer__clear:hover { background: var(--surface-2); color: var(--text); }
 .wbsheet.namer__list { position: static; width: auto; box-shadow: none; max-height: 320px; overflow-y: auto; }
 .wbsheet button.namer__opt { flex-direction: row; justify-content: space-between; align-items: center; gap: var(--space-200); padding-top: 0; padding-bottom: 0; color: var(--edit-text); }
+.wbsheet button.namer__opt.is-current { background: var(--edit-bg); box-shadow: inset 2px 0 0 var(--edit-text); font-weight: 600; }
 .wbsheet button.namer__opt .pick__hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; font-family: var(--font-mono); }
 .namer__none { margin: var(--space-100); }
 

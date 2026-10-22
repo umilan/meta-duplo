@@ -202,8 +202,10 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
     year … sec, place, country, device, original filename, extension; they follow the New date / place / device
     columns), *Columns in this table*, then every field by category (EXIF / XMP / IPTC tags included,
     `{tag:KEY}`). Clicking a tag inserts it at the text cursor (the cursor moves after it, so clicks add tags in
-    order; Enter in the search takes the first match). Clicking a chip selects it: the next tag replaces it, or
-    *Remove it* / *Keep it*. *Tech names / Preview* switches chips between their names (a column tag by its key,
+    order; Enter in the search takes the first match). Clicking a chip selects it (framed, it takes the focus, so
+    no text caret shows) and highlights its tag in the list, scrolled into view: the next tag replaces it (it stays
+    selected), or *Remove it* / *Keep it*. **Keyboard:** ← → walk through the line, from the text over the chips
+    (a chip is one step); Backspace / Delete next to a chip select it, and again remove it; Esc leaves a chip. *Tech names / Preview* switches chips between their names (a column tag by its key,
     e.g. `EXIF:DateTimeOriginal`) and the values of the previewed (or first) file; the full new name shows below.
     A red warning shows while the name does not end with `.<Extension>`. Empty parts are tidied like an empty
     place; `{tag:KEY|%Y-%m-%d}` formats a date tag. Rename plans use the same values the table shows.
