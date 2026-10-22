@@ -347,3 +347,8 @@ There are no HTTP-level tests; the routes are thin wrappers, verified through th
   - `GET /wb/ids?which=bogus` → 400; `GET /wb/values?key=nope` → `{"values": []}`.
   - `POST /wb/remove-plan ids=` → 204 with toast *No duplicates in the selection*.
   - `POST /wb/presets action=save name=Default` → unchanged list (Default is protected).
+
+
+## Use this for another column (update)
+
+Header menu → *Use this for another column…* (`openUseFor(menu)`, disabled for edit and special columns) reuses the `applycol` dialog in `mode: "column"` (no scope) and posts `edit_set target=<date|place|device> kind=column column=<key>`; `edit_set` refuses a `column` whose `wb.apply_targets(column)` does not contain the target (toast "That column cannot feed this field"). `apply_edits` tidies a copied date with `_readable_date(raw)[:19]`.
