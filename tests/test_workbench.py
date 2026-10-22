@@ -239,3 +239,15 @@ def test_select_filled_or_empty(lib):
     groups, _, n = wb.table(lib, view)
     filled, empty = wb.filled_ids(lib, view, "date", True), wb.filled_ids(lib, view, "date", False)
     assert filled and empty and not set(filled) & set(empty) and len(filled) + len(empty) == n
+
+
+def test_row_dates_compared_without_grouping():
+    r = {"e": {}, "v": {"key_dto": "2019-05-18 11:47:10", "date": "2019-05-18 11:47:10", "exif:IFD0:DateTime": "2019:05:18 11:47:10",
+                        "file_date": "2021-01-01 10:00:00", "key_created": "", "gps_date": "2019-05-18 09:47:10"}}
+    keys = wb._row_date_keys(["key_dto", "date", "exif:IFD0:DateTime", "file_date", "key_created", "gps_date", "place"])
+    assert "gps_date" not in keys and "place" not in keys
+    assert wb.row_date_states(r, keys) == {"file_date": "diff"}  # the odd one out is red, the majority plain
+    r["v"]["file_date"] = "2019-05-18 11:47:10"
+    assert set(wb.row_date_states(r, keys).values()) == {"same"}  # all agree (empty ignored): green
+    r["v"].update(key_dto="2020-01-01 00:00:00", date="2020-01-01 00:00:00")
+    assert set(wb.row_date_states(r, keys).values()) == {"diff"}  # 2 against 2: no majority, all red

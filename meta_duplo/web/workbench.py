@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import PurePosixPath
@@ -669,7 +669,9 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
         ref = chosen or (next((r for r in rs if r["keeper"]), rs[0]) if by == "dups" else rs[0])
         unrelated = gk == SINGLES or by == "none"  # files without copies, or no grouping: nothing to compare
         common = _common_segments([r["v"]["path"] for r in rs])
+        row_dates = _row_date_keys(keys) if by == "none" else []
         for r in rs:  # differences against the group's reference row
+            r["rowcmp"] = row_date_states(r, row_dates) if row_dates else {}
             r["diff"] = {k: not unrelated and len(rs) > 1 and r is not ref and str(value(r, k)) != str(value(ref, k)) for k in keys}
             r["is_ref"] = r is ref
             r["user_ref"] = r is chosen
@@ -710,6 +712,36 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
         groups.sort(key=lambda g: str(g.key))
     groups.sort(key=lambda g: g.key == SINGLES)  # stable: "No duplicates" always last
     return groups, exif_keys, sum(len(g.rows) for g in groups)
+
+
+_DATE_TEXT = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
+
+
+def _row_date_keys(keys: list[str]) -> list[str]:
+    """The date-time columns a row compares across (no grouping): local dates only, no UTC (GPS, "…Z")."""
+    return [k for k in keys if not k.startswith("edit:") and edit_target(k) == "date" and "gps" not in k.lower()]
+
+
+def row_date_states(r: dict, keys: list[str]) -> dict[str, str]:
+    """No grouping: compare a row's date-times with each other. All present values equal → every one "same" (green);
+    otherwise the values outside the single most common one are "diff" (red); without a single majority, all are."""
+    vals: dict[str, str] = {}
+    for k in keys:
+        raw = value(r, k)
+        if raw in ("", None) or str(raw).strip().endswith("Z"):
+            continue
+        d = _readable_date(raw)[:19]
+        if _DATE_TEXT.match(d):
+            vals[k] = d
+    if len(vals) < 2:
+        return {}
+    counts = Counter(vals.values())
+    if len(counts) == 1:
+        return {k: "same" for k in vals}
+    (top, n), *rest = counts.most_common()
+    if rest and rest[0][1] == n:  # no single majority
+        return {k: "diff" for k in vals}
+    return {k: "diff" for k, d in vals.items() if d != top}
 
 
 def _common_segments(paths: list[str]) -> list[str | None]:
