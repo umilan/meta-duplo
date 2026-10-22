@@ -383,6 +383,7 @@
       cols: [],              // keys of the columns shown, set by the table (drives the column picker)
       colLabels: [],         // [key, label, kind] of the visible columns (Sort by choices)
       sort: ["", "asc"],     // current sort, set by the table
+      sortLabel: "",         // its header label (also when the column is not shown)
       active: null,          // row shown in the preview (clicked, or just ticked)
       lightbox: false,       // the large viewer (click the preview image); follows the table cursor
       panel: false,          // preview panel open (mirrors wbPage.panel for the settings sheet)
@@ -512,9 +513,14 @@
                                                  dup_older: "Duplicates – older", dup_lessmeta: "Duplicates – less metadata" };
         return st.preset === "none" ? "None" : `${names[st.preset] || "Custom"} (${st.count})`;
       },
+      // with no column chosen the table runs by path (then file name, the kept copy first in a duplicate set)
+      sortKey() { return Alpine.store("wb").sort[0] || "path"; },
+      sortDir() { return Alpine.store("wb").sort[0] ? Alpine.store("wb").sort[1] : "asc"; },
       sortText() {
-        const [key, dir] = Alpine.store("wb").sort, col = Alpine.store("wb").colLabels.find((c) => c[0] === key);
-        return col ? `${col[1]} ${dir === "asc" ? "↑" : "↓"}` : "Default";
+        const w = Alpine.store("wb"), key = w.sort[0];
+        if (!key) return "Path ↑";
+        const col = w.colLabels.find((c) => c[0] === key);
+        return `${col ? col[1] : w.sortLabel || key} ${w.sort[1] === "asc" ? "↑" : "↓"}`;
       },
       // Sort by picker: a column's first direction is high-first for numbers (as a header click)
       sortBy(key, dir) {

@@ -1,7 +1,7 @@
 <div class="filters wb-pad" aria-label="Applied filters"
      x-init='$store.wb.total = {{ nrows }}; $store.wb.cols = {{ view.columns|map("first")|list|tojson }};
              $store.wb.colLabels = {{ col_labels|tojson }};
-             $store.wb.sort = {{ view.sort|tojson }}'>
+             $store.wb.sort = {{ view.sort|tojson }}; $store.wb.sortLabel = {{ (field_label(view.sort[0]) if view.sort[0] else "")|tojson }}'>
   <span class="filters__label">Applied filters:</span>
   {% for flt in view.filters %}
   <span class="fchip"><button type="button" class="fchip__edit" title="Edit this filter"

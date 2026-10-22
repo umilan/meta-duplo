@@ -68,19 +68,22 @@
       <div class="pick" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
         <span class="wbbar__label" id="sortby-label">Sort by</span>
         <button type="button" class="selectbtn" :class="$store.wb.sort[0] && 'is-sorting'" aria-labelledby="sortby-label" aria-haspopup="menu" :aria-expanded="open.toString()"
-                @click="open = !open" x-text="sortText()">Default</button>
+                @click="open = !open" x-text="sortText()" :title="$store.wb.sort[0] ? '' : 'Path, then file name; in a duplicate set the kept copy comes first'">Path ↑</button>
         <div class="wbsheet pick__sheet" role="menu" x-show="open" x-cloak x-transition.opacity>
           <div class="wbsheet__section">Column</div>
-          <button type="button" role="menuitemradio" :aria-checked="(!$store.wb.sort[0]).toString()" @click="sortBy(''); open = false">Default</button>
+          {# sorted by a column that is not shown: it is listed first, by its header label #}
+          <template x-if="$store.wb.sort[0] && !$store.wb.colLabels.some((c) => c[0] === $store.wb.sort[0])">
+            <button type="button" role="menuitemradio" aria-checked="true" x-text="$store.wb.sortLabel" @click="open = false"></button>
+          </template>
           <template x-for="c in $store.wb.colLabels" :key="c[0]">
-            <button type="button" role="menuitemradio" :aria-checked="($store.wb.sort[0] === c[0]).toString()" x-text="c[1]"
-                    @click="sortBy(c[0], $store.wb.sort[0] === c[0] ? $store.wb.sort[1] : undefined); open = false"></button>
+            <button type="button" role="menuitemradio" :aria-checked="(sortKey() === c[0]).toString()" x-text="c[1]"
+                    @click="sortBy(c[0], sortKey() === c[0] ? sortDir() : undefined); open = false"></button>
           </template>
           <div class="wbsheet__section">Order</div>
-          <button type="button" role="menuitemradio" :disabled="!$store.wb.sort[0]" :aria-checked="($store.wb.sort[0] !== '' && $store.wb.sort[1] === 'asc').toString()"
-                  @click="sortBy($store.wb.sort[0], 'asc'); open = false">Ascending ↑</button>
-          <button type="button" role="menuitemradio" :disabled="!$store.wb.sort[0]" :aria-checked="($store.wb.sort[0] !== '' && $store.wb.sort[1] === 'desc').toString()"
-                  @click="sortBy($store.wb.sort[0], 'desc'); open = false">Descending ↓</button>
+          <button type="button" role="menuitemradio" :aria-checked="(sortDir() === 'asc').toString()"
+                  @click="sortBy(sortKey(), 'asc'); open = false">Ascending ↑</button>
+          <button type="button" role="menuitemradio" :aria-checked="(sortDir() === 'desc').toString()"
+                  @click="sortBy(sortKey(), 'desc'); open = false">Descending ↓</button>
         </div>
       </div>
       <div class="searchfield" x-data='{ q: {{ view.q|tojson }}, open: false }' :class="(open || q) && 'is-open'"

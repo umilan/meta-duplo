@@ -455,7 +455,14 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .wbt thead th:is([data-filtered], [aria-sort]) { box-shadow: inset 2px 0 0 var(--edge), inset -2px 0 0 var(--edge), inset 0 2px 0 var(--edge); }
 .wbt tbody:last-of-type tr:last-child > td:is([data-filtered], [data-sorted]) { box-shadow: inset 2px 0 0 var(--edge), inset -2px 0 0 var(--edge), inset 0 -2px 0 var(--edge); }
 /* sorted and filtered: orange outside, cyan inside */
-.wbt [data-filtered]:is([data-sorted], [aria-sort]) { box-shadow: inset 2px 0 0 var(--filter-c), inset -2px 0 0 var(--filter-c), inset 4px 0 0 var(--sort-c), inset -4px 0 0 var(--sort-c); }
+/* filtered and sorted: both edges dashed orange / cyan (8 px steps, so the dashes run on across 32 px rows) */
+.wbt [data-filtered]:is([data-sorted], [aria-sort]) { box-shadow: none; }
+.wbt [data-filtered]:is([data-sorted], [aria-sort])::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  --dash: repeating-linear-gradient(to bottom, var(--filter-c) 0 var(--space-100), var(--sort-c) var(--space-100) var(--space-200));
+  background: var(--dash) left / 2px 100% no-repeat, var(--dash) right / 2px 100% no-repeat; }
+.wbt thead th[data-filtered][aria-sort]::after {
+  background: var(--dash) left / 2px 100% no-repeat, var(--dash) right / 2px 100% no-repeat,
+    repeating-linear-gradient(to right, var(--filter-c) 0 var(--space-100), var(--sort-c) var(--space-100) var(--space-200)) top / 100% 2px no-repeat; }
 .wbg__head td { background: var(--group-bg); font-weight: 400; cursor: pointer; border-top: 1px solid var(--line); }
 .wbg__head td.wbg__label { font-weight: 600; }  /* the group title stays bold; other group cells are regular */
 .wbg__label .chev { margin-right: var(--space-050); }

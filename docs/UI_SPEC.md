@@ -308,7 +308,10 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   each badge.
 - **Sorted column:** its header label and its cells are bold; cells keep their red / green; it has a 2 px **cyan**
   outline (header arrow cyan too), and the *Sort by* picker gets a 2 px cyan border while a column is sorted. A column
-  that is both gets orange outside, cyan inside. Group rows are
+  that is both filtered and sorted gets dashed edges, orange and cyan in turn (8 px dashes). The *Sort by* picker
+  always names a column by its header label: with none chosen it reads *Path ↑* (the table runs by path, then file
+  name, the kept copy first in a duplicate set) and Path is the ticked choice; a sorted column that is not shown is
+  listed first. There is no "Default" entry. Group rows are
   regular weight except the group title and the sorted column.
 - **Row colours:** ticked rows are light grey (a little darker than *Shade odd rows*); the row shown in the preview is a darker blue. Clicking a row or
   ticking its checkbox shows it in the preview panel (and opens the panel).
