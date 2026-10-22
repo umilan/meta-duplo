@@ -171,8 +171,9 @@
         <div class="wbsheet__title" :title="menu.value"><span x-text="menu.label"></span>: <span class="muted" x-text="menu.value || '—'"></span></div>
         <button type="button" role="menuitem" @click="cellAct('cell_filter')">Filter this column by this value</button>
         <div class="wbsheet__section">Change</div>
-        <button type="button" role="menuitem" :disabled="!menu.target" :title="menu.target ? '' : 'Only date, place and device values can be changed (plans write those)'"
-                @click="openCellEdit()">Edit this value…</button>
+        <button type="button" role="menuitem" :disabled="!menu.target && !menu.isName"
+                :title="menu.target || menu.isName ? '' : 'Only date, place, device and file names can be changed (plans write those)'"
+                @click="openCellEdit()" x-text="menu.isName ? 'Rename with a pattern…' : 'Edit this value…'">Edit this value…</button>
         <button type="button" role="menuitem" disabled title="Not yet: plans cannot clear a metadata value">Remove this value</button>
         <button type="button" role="menuitem" :disabled="!menu.target" @click="cellAct('cell_apply', { scope: 'group' })">Apply this value to its group
           <span class="pick__hint">a purple column next to this one previews the new values</span></button>

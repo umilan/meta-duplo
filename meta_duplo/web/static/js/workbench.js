@@ -426,6 +426,7 @@
         const th = tr.closest("table").tHead.rows[0].cells[td.cellIndex];
         const value = [...td.childNodes].filter((n) => n !== btn && !n.classList?.contains("srclink")).map((n) => n.textContent).join("").trim();
         this.menu = { cell: true, btn, td, key: th.dataset.key, label: th.dataset.label || th.dataset.key, target: th.dataset.target,
+                      isName: ["filename", "edit:filename"].includes(th.dataset.key),  // edited through the naming pattern
                       fid: tr.dataset.rowid, value: value === "—" ? "" : value, isRef: tr.classList.contains("wbr--userref"),
                       x: Math.max(8, Math.min(r.right - 304, window.innerWidth - 312)), y: r.bottom + 4 };
       },

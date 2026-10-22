@@ -331,7 +331,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   columns); it, or a right-click on the cell, opens a sheet titled with the column and the value:
   - *Filter this column by this value* (an empty cell filters on “is empty”);
   - *Change* — only date, place and device values can be changed, because plans write only those (other columns
-    show these items disabled): *Edit this value…* (a dialog; the value applies to this file only),
+    show these items disabled): *Edit this value…* (a dialog; the value applies to this file only; in Filename / New filename it reads *Rename with a pattern…* and opens the naming-pattern dialog),
     *Remove this value* (disabled: plans cannot clear a metadata value yet), *Apply this value to its group /
     the selection (n) / all rows*. Each fills the purple edit column of that field, inserted right of the clicked
     column, as a preview; nothing changes until *Save edits* and a plan. A value typed for one file wins over a
