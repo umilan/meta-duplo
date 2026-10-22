@@ -295,7 +295,7 @@
         <template x-for="(p, i) in parts" :key="i">
           <span class="namer__part">
             <template x-if="p.t === 'text'">
-              <input class="namer__text" x-model="p.v" :size="Math.max(p.v.length, 1)" spellcheck="false" :data-i="i"
+              <input class="namer__text" x-model="p.v" :style="`width: ${p.v.length ? p.v.length + 'ch' : '2px'}`" spellcheck="false" :data-i="i"
                      @focus="caret(i, $event); picking = -1" @keyup="caret(i, $event)" @click="caret(i, $event)" @input="caret(i, $event)"
                      @keydown="textKey(i, $event)" aria-label="Text">
             </template>

@@ -615,7 +615,7 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
   background: var(--surface); font-family: var(--font-mono); font-size: var(--text-md); line-height: var(--line-md); cursor: text; }
 .namer__edit:focus-within { border-color: var(--accent); }
 .namer__part { display: inline-flex; align-items: center; }
-.namer__edit .namer__text { width: auto; min-width: var(--space-050); min-height: 0; height: var(--line-md); padding: 0; border: 0;
+.namer__edit .namer__text { width: auto; min-width: 0; box-sizing: content-box; min-height: 0; height: var(--line-md); padding: 0; border: 0;
   background: none; font: inherit; color: var(--text); outline: none; }
 .namer__tok { padding: 0 var(--space-025); border: 0; border-radius: var(--radius-sm); background: none; font: inherit;
   color: var(--edit-text); text-decoration: underline; text-underline-offset: var(--space-050); cursor: pointer; }
