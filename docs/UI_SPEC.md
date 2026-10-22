@@ -196,13 +196,20 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   its context); *No grouping* filters rows.
 - **Edit columns** (light purple, inserted right of the source column) exist **only on demand**: none by default,
   *Edit…* in a header's ⋯ sheet opens the rule dialog and adds one.
-  - **Filename:** the **Naming pattern** dialog. The pattern shows as underlined parameter chips (`<Date>`,
-    `<Place>`, …) with editable literal text between them; clicking a chip opens a searchable list to replace it
-    or *Remove* it; *+ Add new parameter* inserts one at the text cursor. *Tech names / Preview* switches the chips
-    between parameter names and the values of the previewed (or first) file; the full new name shows below.
+  - **Filename:** the **Naming pattern** dialog (also *Actions → File name pattern…* and a double-click on any
+    file name). The name is typed text with parameter chips (purple, underlined) in a resizable field. Under it a
+    hint, a search field (with ×) and the parameter list, always open: *Recommended values* (date and time, date,
+    year … sec, place, country, device, original filename, extension; they follow the New date / place / device
+    columns), *Columns in this table*, then every field by category (EXIF / XMP / IPTC tags included,
+    `{tag:KEY}`). Clicking a tag inserts it at the text cursor (the cursor moves after it, so clicks add tags in
+    order; Enter in the search takes the first match). Clicking a chip selects it: the next tag replaces it, or
+    *Remove it* / *Keep it*. *Tech names / Preview* switches chips between their names (a column tag by its key,
+    e.g. `EXIF:DateTimeOriginal`) and the values of the previewed (or first) file; the full new name shows below.
+    A red warning shows while the name does not end with `.<Extension>`. Empty parts are tidied like an empty
+    place; `{tag:KEY|%Y-%m-%d}` formats a date tag. Rename plans use the same values the table shows.
     **Presets** (picker in the header): load, *Save this pattern as a preset…*, Rename, Delete; stored in the
     library setting `name_presets`, with a built-in *Default* that can't be changed. *Apply* sets the rule and adds
-    the New filename column. It uses the New date / place / device columns when present.
+    the New filename column.
   - **Date:** recommended value; copy from another column (taken, digitized, modified, file date, GPS date,
     date in filename, recommended); **shift** a date by ± h:m:s (wrong camera clock, time zone); fixed value.
   - **Place, Device:** recommended; copy from any column; fixed value.

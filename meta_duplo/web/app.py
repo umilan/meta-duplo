@@ -437,7 +437,10 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 "field_label": lambda k: (wb.field_for(k).label if wb.field_for(k) else k),
                 "conf_label": wb.conf_label, "conf_parts": wb.conf_parts, "value": wb.value, "checks_meta": wb.CHECKS, "key_fields": wb.KEY_FIELDS,
                 "tokens": harmonize.TOKENS_HELP, "name_tokens": harmonize.NAME_TOKENS,
-                "name_labels": {tok: label for _g, label, tok in harmonize.NAME_TOKENS}, "pattern": lib.setting("filename_pattern"),
+                "name_fields": (name_fields := wb.name_fields(catalog, [k for k, _w in view["columns"]])),
+                "name_labels": {tok: label for _g, label, tok in harmonize.NAME_TOKENS + name_fields},
+                # the picker: the recommended values first (they follow the New date / place / device edits)
+                "name_options": [("Recommended values", label, tok) for _g, label, tok in harmonize.NAME_TOKENS] + name_fields, "pattern": lib.setting("filename_pattern"),
                 "name_pattern": (view["edits"].get("filename", {}).get("pattern")
                                  or lib.setting("filename_pattern") or harmonize.DEFAULT_PATTERN)}
 
@@ -473,7 +476,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         values = {"capture_time": e.get("date", eff.get("capture_time") or v["date"]),
                   "location_name": e.get("place", eff.get("location_name") or v["place"]),
                   "device_name": e.get("device", eff.get("device_name") or v["device"]),
-                  "country": eff.get("country") or v["country"]}
+                  "country": eff.get("country") or v["country"], "tags": v}
         each = {}
         for m in harmonize.TOKEN.finditer(pattern):
             tok = m.group(0)

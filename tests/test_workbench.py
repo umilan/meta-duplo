@@ -191,3 +191,18 @@ def test_view_undo_redo(tmp_path):
     assert wb.history_step(lib, "redo")["label"] == "sorting" and wb.load_view(lib)["sort"] == ["file_date", "asc"]
     wb.history_push(lib, wb.load_view(lib), "q")  # a new change ends the redo line
     assert wb.history_step(lib, "redo") is None
+
+
+def test_name_pattern_with_column_tags(lib):
+    # the renderer: any field, an optional date format, empty parts tidied
+    vals = {"capture_time": "2019-05-18 11:47:10", "tags": {"make": "Apple", "file_date": "2020-01-02 03:04:05", "lens": ""}}
+    assert harmonize.render_name("{tag:make} {tag:file_date|%Y} ({tag:lens}) - {original_filename}.{ext}",
+                                 vals, "IMG_1.JPG", "JPG") == "Apple 2020 - IMG_1.jpg"
+    assert harmonize.render_name("{tag:make}.{ext}", {"capture_time": ""}, "a.jpg", "jpg") is None  # no tag values: keep
+
+    # plans: the core asks the table for the values (registered by the workbench module)
+    lib.set_setting("filename_pattern", "{tag:make}_{tag:date|%Y}_{original_filename}.{ext}")
+    rows, _ = wb.build_rows(lib)
+    r = next(x for x in rows if x["v"]["make"] and x["v"]["date"])
+    new = {p["file_id"]: p["new"] for p in harmonize.rename_preview(lib)}[r["id"]]
+    assert new.startswith(f"{r['v']['make']}_{r['v']['date'][:4]}_")

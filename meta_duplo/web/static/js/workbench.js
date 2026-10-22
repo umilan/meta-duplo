@@ -123,6 +123,11 @@
     const td = e.target.closest && e.target.closest(".wbt tbody tr.wbr > td");
     if (!td || e.target.closest("button, input")) return;
     const th = td.closest("table").tHead.rows[0].cells[td.cellIndex];
+    if (th && th.dataset.key === "filename") {  // a file name: open the naming pattern
+      window.getSelection()?.removeAllRanges();
+      window.dispatchEvent(new CustomEvent("wb-edit", { detail: { target: "filename" } }));
+      return;
+    }
     if (!th || !th.classList.contains("wbh-cell--edit")) return;
     window.getSelection()?.removeAllRanges();  // the double-click selected a word
     const btn = cellButton();
@@ -522,7 +527,7 @@
     // Naming-pattern dialog: tokens as chips (click: replace / remove), text between them editable,
     // "Add new parameter" inserts at the text cursor; Tech names / Preview; presets kept in the library.
     Alpine.data("namer", (labels = {}) => ({
-      parts: [], mode: "tech", picking: null, q: "", at: { i: 0, pos: 0 }, vals: {}, name: "", file: "",
+      parts: [], mode: "tech", picking: -1, q: "", at: { i: 0, pos: 0 }, vals: {}, name: "", file: "",  // picking: the selected parameter (-1: none)
       presets: [], preset: "",
       init() {
         window.addEventListener("wb-naming", () => this.start());
@@ -537,26 +542,35 @@
       },
       start() {
         const current = document.querySelector("#wb-table")?.dataset.pattern || "";
-        this.parts = this.parse(current); this.preset = ""; this.mode = "tech"; this.picking = null; this.refresh();
+        this.parts = this.parse(current); this.preset = ""; this.mode = "tech"; this.picking = -1; this.q = ""; this.refresh();
       },
       load(p) { this.parts = this.parse(p.pattern); this.preset = p.name; },
-      techName(tok) { return labels[tok] ? `<${labels[tok]}>` : tok.slice(1, -1); },  // unknown tokens as typed
+      // Tech names: a column tag by its key (EXIF:DateTimeOriginal, file_date…), a recommended value by its name
+      techName(tok) {
+        const tag = /^\{tag:(?:exif:)?([^|}]+)/.exec(tok);
+        if (tag) return tag[1];
+        return labels[tok] ? `<${labels[tok]}>` : tok.slice(1, -1);  // unknown tokens as typed
+      },
+      label(tok) { return labels[tok] || tok; },
       caret(i, ev) { this.at = { i, pos: ev.target.selectionStart ?? ev.target.value.length }; },
       focusEnd() { const ins = this.$el.querySelectorAll(".namer__text"); ins[ins.length - 1]?.focus(); },
-      openPicker(i) { this.picking = i; this.q = ""; this.$nextTick(() => this.$refs.pq.focus()); },
+      match(text) { const q = this.q.trim().toLowerCase(); return !q || q.split(/\s+/).every((w) => text.includes(w)); },
+      anyMatch() { return [...this.$root.querySelectorAll(".namer__opt")].some((b) => this.match(b.dataset.q)); },
+      pickFirst() { const b = [...this.$root.querySelectorAll(".namer__opt")].find((x) => this.match(x.dataset.q)); if (b) this.choose(b.dataset.tok); },
       choose(tok) {
         if (this.picking >= 0) { this.parts[this.picking].v = tok; }
         else {  // insert at the remembered text cursor
           const { i, pos } = this.at, p = this.parts[i] && this.parts[i].t === "text" ? this.parts[i] : this.parts[this.parts.length - 1];
           const idx = this.parts.indexOf(p), cut = Math.min(pos, p.v.length);
           this.parts.splice(idx, 1, { t: "text", v: p.v.slice(0, cut) }, { t: "tok", v: tok }, { t: "text", v: p.v.slice(cut) });
+          this.at = { i: idx + 2, pos: 0 };  // the cursor moves after the new tag, so clicks add tags in order
         }
-        this.picking = null; this.preset = "";
+        this.picking = -1; this.preset = "";
       },
       removeTok() {
         const i = this.picking;
         const merged = { t: "text", v: (this.parts[i - 1]?.v || "") + (this.parts[i + 1]?.v || "") };
-        this.parts.splice(i - 1, 3, merged); this.picking = null; this.preset = "";
+        this.parts.splice(i - 1, 3, merged); this.picking = -1; this.preset = "";
       },
       refresh() {
         const body = new URLSearchParams({ pattern: this.pattern(), fid: String(Alpine.store("wb").active || "") });

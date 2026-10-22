@@ -608,7 +608,7 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .wbt td.wbt__tree.is-userref { color: var(--accent); font-size: var(--text-md); }
 
 /* ───────── naming-pattern dialog (Filename → Edit) ───────── */
-.modal__box--wide.namer { width: min(720px, 94vw); }
+.modal__box--wide.namer { width: min(880px, 94vw); }
 .namer__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); }
 .namer__edit { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-025) 0; min-height: var(--control-h);
   padding: var(--space-050) var(--space-100); border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
@@ -620,9 +620,23 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .namer__tok { padding: 0 var(--space-025); border: 0; border-radius: var(--radius-sm); background: none; font: inherit;
   color: var(--edit-text); text-decoration: underline; text-underline-offset: var(--space-050); cursor: pointer; }
 .namer__tok:hover, .namer__tok.is-open { background: var(--edit-bg); }
-.wbsheet.namer__picker { position: static; width: auto; max-height: 256px; overflow-y: auto; }
-.namer__picker input[type="search"] { margin-bottom: var(--space-050); }
-.wbsheet .namer__remove { color: var(--conflict); border-bottom: 1px solid var(--line); border-radius: 0; }
+/* the parameter list sits under the name field, always open (search + scrolling list) */
+.namer__edit { resize: vertical; overflow: auto; min-height: var(--space-800); align-content: flex-start; }
+.namer__hint { margin: 0; }
+.namer__warn { margin: 0; color: var(--conflict); }
+.namer__sel { color: var(--edit-text); }
+.namer__hint .namer__del { color: var(--conflict); }
+.namer__picker { display: grid; gap: var(--space-050); }
+.namer__search { position: relative; }
+.namer__search input[type="search"] { width: 100%; padding-right: var(--space-400); }
+.namer__search input[type="search"]::-webkit-search-cancel-button { display: none; }
+.namer__clear { position: absolute; right: var(--space-050); top: 50%; transform: translateY(-50%); display: inline-grid; place-items: center;
+  width: var(--control-h-sm); height: var(--control-h-sm); padding: 0; border: 0; border-radius: var(--radius-sm); background: none; color: var(--muted); cursor: pointer; }
+.namer__clear:hover { background: var(--surface-2); color: var(--text); }
+.wbsheet.namer__list { position: static; width: auto; box-shadow: none; max-height: 320px; overflow-y: auto; }
+.wbsheet button.namer__opt { flex-direction: row; justify-content: space-between; align-items: center; gap: var(--space-200); padding-top: 0; padding-bottom: 0; color: var(--edit-text); }
+.wbsheet button.namer__opt .pick__hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; font-family: var(--font-mono); }
+.namer__none { margin: var(--space-100); }
 .wbsheet.namer__presets { width: 304px; }
 .wbsheet > .namer__preset { display: flex; align-items: center; gap: var(--space-100); }
 .wbsheet .namer__presetname { flex: 1; font-weight: 600; }

@@ -285,6 +285,16 @@ def insert_column(columns: list, key: str, width: int) -> None:
     columns.insert(at, [key, width])
 
 
+def name_fields(catalog_: dict[str, list[Field]], shown: list[str]) -> list[tuple[str, str, str]]:
+    """Naming-pattern parameters from the table: (group, label, token). The columns shown come first."""
+    def ok(f: Field | None) -> bool:
+        return bool(f) and f.kind != "special" and not f.key.startswith("edit:")
+    out = [("Columns in this table", f.label, f"{{tag:{f.key}}}") for f in map(field_for, shown) if ok(f)]
+    for g, fs in catalog_.items():
+        out += [(g, f.label, f"{{tag:{f.key}}}") for f in fs if ok(f)]
+    return out
+
+
 def catalog(exif_keys: list[str]) -> dict[str, list[Field]]:
     """Every column the user can add, grouped; dates, location, device and author first."""
     out: dict[str, list[Field]] = defaultdict(list)
@@ -502,6 +512,7 @@ def apply_edits(rows: list[dict], edits: dict) -> None:
                 "device_name": e.get("device", eff.get("device_name") or v["device"]),
                 "country": eff.get("country") or v["country"],
             }
+            values["tags"] = v  # {tag:KEY}: any column of this row
             new = harmonize.render_name(pattern, values, r["original_name"], r["ext_raw"])
             e["filename"] = new if new is not None else ""
             src["filename"] = sources["filename"]
@@ -817,3 +828,7 @@ def groups_for(lib: Library, ids: set[int]) -> list[int]:
         return [r["group_id"] for r in con.execute(
             f"SELECT DISTINCT gm.group_id FROM group_members gm JOIN groups g ON g.id = gm.group_id "
             f"WHERE g.status = 'open' AND g.step IN (1, 2, 4) AND gm.file_id IN ({marks})", list(ids))]
+
+
+# file names may use any column ({tag:KEY}); plans get the values the table shows
+harmonize.set_tag_source(lambda lib: {r["id"]: r["v"] for r in build_rows(lib)[0]})

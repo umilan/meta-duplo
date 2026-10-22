@@ -263,7 +263,6 @@
           <button type="button" role="radio" :aria-checked="(mode === 'tech').toString()" @click="mode = 'tech'">Tech names</button>
           <button type="button" role="radio" :aria-checked="(mode === 'preview').toString()" @click="mode = 'preview'; refresh()">Preview</button>
         </div>
-        <button type="button" class="btn" @click="openPicker(-1)">+ Add new parameter (at the cursor)</button>
       </div>
       <label class="small muted">New filename</label>
       <div class="namer__edit" @click.self="focusEnd()">
@@ -274,20 +273,38 @@
                      @focus="caret(i, $event)" @keyup="caret(i, $event)" @click="caret(i, $event)" @input="caret(i, $event)" aria-label="Text">
             </template>
             <template x-if="p.t === 'tok'">
-              <button type="button" class="namer__tok" :class="picking === i && 'is-open'" @click="openPicker(i)"
-                      :title="p.v" x-text="mode === 'preview' ? (vals[p.v] || '∅') : techName(p.v)"></button>
+              <button type="button" class="namer__tok" :class="picking === i && 'is-open'" @click="picking = picking === i ? -1 : i"
+                      :title="label(p.v) + ' — ' + p.v" x-text="mode === 'preview' ? (vals[p.v] || '∅') : techName(p.v)"></button>
             </template>
           </span>
         </template>
       </div>
-      <div class="namer__picker wbsheet" x-show="picking !== null" x-cloak @click.outside="picking = null">
-        <input type="search" placeholder="Search…" x-model="q" x-ref="pq" aria-label="Search parameters">
-        <button type="button" class="namer__remove" x-show="picking !== null && picking >= 0" @click="removeTok()">Remove</button>
-        {% for group, items in name_tokens|groupby(0) %}
-        <div class="wbsheet__section">{{ group }}</div>
-        {% for g, label, tok in items %}
-        <button type="button" role="menuitem" x-show="!q || '{{ label|lower }}'.includes(q.toLowerCase())" @click="choose('{{ tok }}')">&lt;{{ label }}&gt; <span class="muted small">{{ tok }}</span></button>
-        {% endfor %}{% endfor %}
+      <p class="small namer__warn" x-show="!/\.\{(ext|EXT)\}$/.test(pattern())" x-cloak role="alert">
+        ⚠ The name does not end with <code>.&lt;Extension&gt;</code>: files would lose or change their extension.</p>
+      {# the parameter list, always open: a click inserts at the text cursor, or replaces the selected parameter #}
+      <p class="small muted namer__hint">
+        <template x-if="picking < 0">
+          <span>Click a tag to add it at your text cursor; click a parameter in the name to replace or remove it.</span></template>
+        <template x-if="picking >= 0">
+          <span>Click a tag to replace <strong class="namer__sel" x-text="techName(parts[picking]?.v || '')"></strong> ·
+            <button type="button" class="linkbtn namer__del" @click="removeTok()">Remove it</button> ·
+            <button type="button" class="linkbtn" @click="picking = -1">Keep it</button></span></template>
+      </p>
+      <div class="namer__picker" @keydown.escape.stop="picking = -1">
+        <div class="namer__search">
+          <input type="search" placeholder="Search…" x-model="q" x-ref="pq" aria-label="Search parameters"
+                 @keydown.enter.prevent="pickFirst()">
+          <button type="button" class="namer__clear" x-show="q" @click="q = ''; $refs.pq.focus()" aria-label="Clear search">×</button>
+        </div>
+        <div class="namer__list wbsheet">
+          {% set ns = namespace(group=none) %}
+          {% for g, label, tok in name_options %}
+          {% if g != ns.group %}{% set ns.group = g %}<div class="wbsheet__section namer__group">{{ g }}</div>{% endif %}
+          <button type="button" role="menuitem" class="namer__opt" data-tok="{{ tok }}" data-q="{{ (label ~ ' ' ~ tok)|lower }}"
+                  x-show="match($el.dataset.q)" @mousedown.prevent @click="choose($el.dataset.tok)">&lt;{{ label }}&gt;<span class="pick__hint">{{ tok[1:-1] }}</span></button>
+          {% endfor %}
+          <p class="small muted namer__none" x-show="q && !anyMatch()">No parameter matches.</p>
+        </div>
       </div>
       <p class="small"><span class="muted" x-text="'Preview for ' + (file || 'the first file') + ':'"></span> <strong class="mono" x-text="name"></strong></p>
       <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button>

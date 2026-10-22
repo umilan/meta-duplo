@@ -12,6 +12,7 @@ import unicodedata
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import PurePosixPath
+from typing import Callable
 
 from . import geo
 from .db import Library, tx
@@ -199,6 +200,7 @@ TOKENS_HELP = {
     "{device_name}": "camera or phone",
     "{original_filename}": "first name the file was seen with, without extension",
     "{ext} / {EXT}": "extension, lower / upper case",
+    "{tag:KEY} / {tag:KEY|%Y}": "any Workbench column, e.g. {tag:exif:EXIF:DateTimeOriginal|%Y-%m-%d} (optional date format)",
 }
 
 
@@ -213,13 +215,49 @@ NAME_TOKENS = [
 ]
 
 
+# {tag:KEY} or {tag:KEY|%Y-%m-%d}: any field of the Workbench table (core columns, EXIF / XMP / IPTC tags…),
+# as that file shows it. The values come from a provider the web layer registers (`set_tag_source`), so the
+# core needs no copy of the table logic; without one, a pattern with tags renders nothing (names are kept).
+_tag_source: Callable[[Library], dict[int, dict]] | None = None
+
+
+def set_tag_source(fn: Callable[[Library], dict[int, dict]]) -> None:
+    global _tag_source
+    _tag_source = fn
+
+
+def has_tags(pattern: str) -> bool:
+    return "{tag:" in (pattern or "")
+
+
+def tag_values(lib: Library) -> dict[int, dict] | None:
+    return _tag_source(lib) if _tag_source else None
+
+
+def _tag(raw, fmt: str) -> str:
+    val = "" if raw is None else str(raw)
+    if fmt and val:
+        for f in (TIME_FMT, "%Y:%m:%d %H:%M:%S"):  # table dates, raw EXIF dates
+            try:
+                return datetime.strptime(val[:19], f).strftime(fmt)
+            except ValueError:
+                pass
+    return val
+
+
 def render_name(pattern: str, values: dict, original_name: str, ext: str) -> str | None:
-    """Render a file name; None when the pattern needs a date the capture does not have."""
+    """Render a file name; None when the pattern needs a date the capture does not have,
+    or tags ({tag:…}) and no tag values were given (values["tags"])."""
     t = values.get("capture_time") or ""
     stem = PurePosixPath(original_name).stem
 
     def sub(m: re.Match) -> str:
         key, fmt = m.group(1), m.group(2)
+        if key == "tag":
+            if values.get("tags") is None:
+                raise LookupError("no tag values")
+            field, _, tfmt = (fmt or "").partition("|")
+            return _tag(values["tags"].get(field), tfmt)
         if key == "date":
             if not t:
                 raise LookupError("no date")
@@ -253,6 +291,7 @@ def render_name(pattern: str, values: dict, original_name: str, ext: str) -> str
 def rename_preview(lib: Library, pattern: str | None = None, limit: int | None = None) -> list[dict]:
     """New names for every present file, collision-free by construction."""
     pattern = pattern or lib.setting("filename_pattern")
+    tags = tag_values(lib) if has_tags(pattern) else None
     with lib.connect() as con:
         values = effective_values(con)
         rows = con.execute(
@@ -268,7 +307,10 @@ def rename_preview(lib: Library, pattern: str | None = None, limit: int | None =
     out = []
     for r in rows:
         parent = str(PurePosixPath(r["rel_path"]).parent)
-        new = render_name(pattern, values.get(r["capture_id"], {}), r["original_name"], r["ext"] or "")
+        vals = values.get(r["capture_id"], {})
+        if tags is not None:
+            vals = {**vals, "tags": tags.get(r["id"], {})}
+        new = render_name(pattern, vals, r["original_name"], r["ext"] or "")
         status = "ok"
         if r["excluded"]:
             new, status = r["name"], "excluded"
