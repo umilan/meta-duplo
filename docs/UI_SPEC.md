@@ -307,7 +307,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   Third in *Dates* comes *Date from file name* (a date read from the file's name, e.g. `IMG_20190518_114710`); it
   carries a yellow magic-wand badge (a guess from the name, not metadata), in the table and in the column picker.
   Fourth comes *Recommended date*, with the same yellow badge (worked out from all dates of the file and its copies,
-  not read from one tag).
+  not read from one tag). Hovering or selecting a Recommended date cell outlines, in blue, the cell its value came
+  from (Date taken, Date from file name or File date of this file or of another copy of the photo).
 - **All dates shown by default:** every column of the *Dates* category (the built-in dates and every date tag found
   in the files) is ticked the first time it is offered; one that no file has a value in shows slim. The view keeps
   `dates_seen`, so a date the user unticks stays hidden and only newly found date tags are added (once).

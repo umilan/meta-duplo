@@ -284,3 +284,13 @@ def test_cells_action_on_several_cells(lib):
     client.post("/wb/view", data={"action": "cells", "op": "apply", "scope": "group", "cells": json.dumps([[a["id"], "digitized"]])})
     rule = wb.load_view(lib)["edits"]["date"]
     assert all(rule["override_from"][str(r["id"])] == {"fid": a["id"], "key": "digitized"} for r in g.rows)
+
+
+def test_recommended_date_points_at_its_source_cell(lib):
+    harmonize.build_proposals(lib)
+    rows, _ = wb.build_rows(lib)
+    wa = next(r for r in rows if r["v"]["filename"] == "IMG-20190515-WA0003.jpg")
+    src = wa["rec_src"]
+    assert src and src["rid"] != wa["id"] and src["key"] == "date"  # from the original's EXIF, in another row
+    orig = next(r for r in rows if r["id"] == src["rid"])
+    assert orig["v"]["date"] == wa["v"]["rec_date"]

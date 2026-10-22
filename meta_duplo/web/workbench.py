@@ -434,7 +434,27 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
             "effective": effective.get(f["capture_id"], {}) if f["capture_id"] is not None else {},
             "v": v, "tags": tags, "pattern": pattern, "meta_counts": meta_counts(tags),
         })
+    _rec_date_sources(rows)
     return rows, sorted(exif_keys, key=_exif_rank)
+
+
+_REC_DATE_COLS = ("date", "name_date", "file_date")  # what the recommendation reads: camera / name / file date
+
+
+def _rec_date_sources(rows: list[dict]) -> None:
+    """Where each recommended date came from: the first cell, in this file and then in the other copies of the same
+    photo, whose value equals it (r["rec_src"] = {"rid", "key"}); none when the date was typed or edited."""
+    by_capture: dict = defaultdict(list)
+    for r in rows:
+        if r["capture"] is not None:
+            by_capture[r["capture"]].append(r)
+    for r in rows:
+        rec = r["v"].get("rec_date")
+        if not rec or r["capture"] is None:
+            continue
+        mates = [r] + [m for m in by_capture[r["capture"]] if m is not r]
+        r["rec_src"] = next(({"rid": m["id"], "key": k} for k in _REC_DATE_COLS for m in mates
+                             if str(m["v"].get(k) or "")[:19] == rec[:19]), None)
 
 
 def _readable_date(raw) -> str:

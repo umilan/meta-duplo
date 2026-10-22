@@ -80,7 +80,18 @@
     document.querySelectorAll(".wbt .is-hrow, .wbt .is-hcell").forEach((el) => el.classList.remove("is-hrow", "is-hcell"));
     hover.td = null;
   };
+  // a Recommended date cell under the highlight outlines the cell its value came from (blue)
+  const recSource = (td) => {
+    document.querySelectorAll(".wbt .is-recsrc").forEach((c) => c.classList.remove("is-recsrc"));
+    const ref = td && td.dataset && td.dataset.recsrc;
+    if (!ref) return;
+    const [rid, key] = ref.split("|"), table = td.closest("table");
+    const th = table.querySelector(`thead th[data-key="${CSS.escape(key)}"]`);
+    const tr = table.querySelector(`tr.wbr[data-rowid="${CSS.escape(rid)}"]`);
+    if (th && tr && tr.cells[th.cellIndex]) tr.cells[th.cellIndex].classList.add("is-recsrc");
+  };
   const highlight = (td) => {  // td: a table cell (body or header); null clears
+    recSource(td);
     if (!td) { clearColumn(); clearCell(); return; }
     const table = td.closest("table"), idx = td.cellIndex;
     if (table !== hover.table || idx !== hover.idx) {
@@ -186,6 +197,7 @@
     const table = e.target.closest && e.target.closest(".wbt");
     if (table && !hover.locked && !(e.relatedTarget && table.contains(e.relatedTarget))) {
       highlight(null);
+      recSource(cursorCell());  // the selected cell keeps showing where its recommended date came from
       document.getElementById("wb-cellbtn")?.remove();
     }
   });

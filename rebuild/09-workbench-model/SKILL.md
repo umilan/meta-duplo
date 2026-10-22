@@ -567,3 +567,8 @@ With grouping `none`, `table()` sets `r["rowcmp"] = row_date_states(r, _row_date
 ## Row date comparison: votes (update)
 
 `_row_date_keys` also drops `rec_date` (derived). `row_date_states` counts one vote per (tag, value) with `_SAME_TAG` = {`exif:IFD0:DateTime`→`modify`, `key_dto`/`exif:ExifIFD:DateTimeOriginal`→`date`, `exif:ExifIFD:DateTimeDigitized`→`digitized`}; only values outside the single most common one are `diff`; a tie returns `{}` (nothing red).
+
+
+## Recommended date source (update)
+
+`build_rows` ends with `_rec_date_sources(rows)`: for each row with a `rec_date`, the first cell among `date`, `name_date`, `file_date` — in that row, then in the other rows of the same capture — whose value equals it becomes `r["rec_src"] = {"rid", "key"}` (none for a typed value). The template puts `data-recsrc="rid|key"` on the Recommended date cell; `highlight()` → `recSource()` outlines that cell (`td.is-recsrc`, 2 px accent), and the keyboard cursor keeps it when the pointer leaves. Test: `test_recommended_date_points_at_its_source_cell`.
