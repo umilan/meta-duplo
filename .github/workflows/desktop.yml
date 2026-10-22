@@ -73,6 +73,19 @@ jobs:
           npm ci
           npx tauri build --target ${{ matrix.target }}
 
+      - name: Smoke test the server inside the signed app
+        # the bundle step re-signs the sidecar; a signature macOS will not load Python under (hardened runtime with an
+        # ad-hoc identity) only shows here, not in the test of the bare binary above
+        run: |
+          APP=desktop/src-tauri/target/${{ matrix.target }}/release/bundle/macos/Filomena.app
+          codesign -dv --verbose=2 "$APP/Contents/MacOS/meta-duplo-server" 2>&1 | grep -E "flags|Signature|Identifier" || true
+          export HOME="$RUNNER_TEMP/home2"; mkdir -p "$HOME"
+          META_DUPLO_PORT=8798 META_DUPLO_TOKEN=ci "$APP/Contents/MacOS/meta-duplo-server" serve > app-server.log 2>&1 &
+          for i in $(seq 1 90); do curl -fs -o /dev/null "http://127.0.0.1:8798/?token=ci" && break; sleep 1; done
+          curl -fs -c jar2 -o /dev/null "http://127.0.0.1:8798/?token=ci" || { cat app-server.log; exit 1; }
+          curl -fsL -b jar2 "http://127.0.0.1:8798/" | grep -q Filomena
+          kill %1; cat app-server.log
+
       - name: Collect
         run: |
           OUT=desktop/src-tauri/target/${{ matrix.target }}/release/bundle

@@ -21,13 +21,20 @@ GitHub → **Actions** → **desktop** → the latest run → **Artifacts**:
 
 Each one holds a `.dmg` and a zipped `.app`. When a `v*` tag is pushed, the same files are attached to a release.
 
-**First start:** the app is not signed with an Apple Developer ID yet, so macOS warns about it the first time.
-Right-click `Filomena.app` and choose **Open**, then **Open** again. If macOS still refuses (or says the app is
-"damaged"), run this once:
+**Download:** Chrome may block the file as "dangerous" (it is not signed). Download it with Safari instead.
+
+**First start:** the app is not signed with an Apple Developer ID yet, so macOS blocks it the first time.
+On macOS 15 (Sequoia) and later: open it once, click **Done**, then go to **System Settings → Privacy & Security**
+and click **Open Anyway** under *Security* (and confirm). On older macOS: right-click `Filomena.app` → **Open** →
+**Open**. If macOS says the app is "damaged", clear the download flag on the `.dmg` *before* copying the app
+(Terminal may not change apps already in /Applications):
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/Filomena.app
+xattr -d com.apple.quarantine ~/Downloads/Filomena-arm64.dmg
 ```
+
+**If it stays on "Starting the library…"** or shows *The library could not start*: the server's output is in
+`~/Library/Logs/Filomena/server.log`, and the last lines are on the start page.
 
 **Videos:** dates and devices of videos come from `ffprobe`, which is not bundled yet. Install it with
 `brew install ffmpeg`. Photos work without it.

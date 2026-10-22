@@ -18,13 +18,34 @@
     .bar::after { content: ""; display: block; width: 40%; height: 100%; border-radius: inherit; background: var(--accent);
                   animation: slide 1.2s ease-in-out infinite; }
     @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+    /* when the server could not start: what happened, and its last output */
+    .error { display: none; max-width: 640px; gap: 8px; justify-items: start; }
+    body.failed .error { display: grid; }
+    body.failed .bar, body.failed #starting { display: none; }
+    .error strong { color: #d13b3b; }
+    pre { margin: 0; max-height: 240px; width: 100%; box-sizing: border-box; overflow: auto; padding: 8px; border: 1px solid var(--line);
+          border-radius: 8px; font: 12px/16px ui-monospace, Menlo, monospace; color: var(--muted); white-space: pre-wrap; }
   </style>
 </head>
 <body>
   <main>
     <h1>Filomena</h1>
     <div class="bar" role="progressbar" aria-label="Starting"></div>
-    <p>Starting the library…</p>
+    <p id="starting">Starting the library…</p>
+    <div class="error" role="alert">
+      <strong>The library could not start.</strong>
+      <p id="error-text"></p>
+      <pre id="error-log"></pre>
+      <p>Quit Filomena (⌘Q) and open it again. If it keeps happening, send the text above.</p>
+    </div>
   </main>
+  <script>
+    // called by the app (src/main.rs) when the server stops before it answers, or does not answer in time
+    window.showError = (text, log) => {
+      document.getElementById("error-text").textContent = text;
+      document.getElementById("error-log").textContent = log || "(no output)";
+      document.body.classList.add("failed");
+    };
+  </script>
 </body>
 </html>

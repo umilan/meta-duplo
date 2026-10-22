@@ -246,20 +246,26 @@ The macOS app (ADR-019) has three parts. Build them after the web app works.
   unix):
   - `tauri.conf.json`: productName `Filomena`, identifier `app.metaduplo.filomena`, `frontendDist ../dist`,
     window `main` 1440×900 (min 960×600), `externalBin ["binaries/meta-duplo-server"]`, macOS minimum 11.0,
-    `signingIdentity "-"` (ad-hoc).
+    `signingIdentity "-"` (ad-hoc), `hardenedRuntime false`. With Tauri's default (hardened runtime on) an
+    ad-hoc signed sidecar cannot load the Python libraries it unpacks (library validation), and the server dies
+    at start.
   - `dist/index.html` is the "Starting the library…" page.
   - `src/main.rs` does the following:
     1. Picks a free port (bind `127.0.0.1:0`) and a 128-bit hex token from `/dev/urandom`.
     2. Spawns the sidecar `serve` with `META_DUPLO_HOST/PORT/TOKEN/PARENT_PID`, and prints its output prefixed
        `server:`.
     3. A thread polls the TCP port for up to 90 s, then calls `run_on_main_thread` → `window.navigate(http://127.0.0.1:<port>/?token=<token>)`.
-    4. `RunEvent::Exit` sends SIGTERM to the sidecar (`libc::kill`). Do not use `CommandChild::kill`: its
+    4. The server's output goes to stderr, to `~/Library/Logs/Filomena/server.log` (rewritten at each start) and to
+       a 40-line tail. If the server stops before it answers, or does not answer in 90 s, the shell calls
+       `window.showError(text, tail)` on the start page (`dist/index.html`), which replaces the progress bar.
+    5. `RunEvent::Exit` sends SIGTERM to the sidecar (`libc::kill`). Do not use `CommandChild::kill`: its
        SIGKILL leaves the one-file binary's Python child running.
   - The sidecar file must be named `src-tauri/binaries/meta-duplo-server-<target triple>`.
   - Icons come from `npm run icons` (`app-icon.png`, 1024 px).
 - **`.github/workflows/desktop.yml`** runs on `macos-15` (aarch64) and `macos-15-intel` (x86_64). It builds the
   server, then smoke-tests the binary (demo, scan, serve; a token link and a cookie request must reach a page
-  containing "Filomena"). Then it runs `npm ci` and `npx tauri build --target <triple>`, and uploads
+  containing "Filomena"). Then it runs `npm ci` and `npx tauri build --target <triple>`, smoke-tests the server again
+  from inside the signed `.app` (the bundle step re-signs it), and uploads
   `Filomena-<arch>.dmg` and `.app.zip`. On `v*` tags it attaches them to a release.
 
 ## 7. Job runner (`scan.Runner`)

@@ -3,10 +3,13 @@
 // is stopped when the app quits. The UI itself is the same HTML the browser version serves (ADR-008).
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::fs::File;
-use std::io::Read;
+use std::collections::VecDeque;
+use std::fs::{self, File, OpenOptions};
+use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::sync::Mutex;
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -49,6 +52,22 @@ fn stop(child: CommandChild) {
     let _ = child.kill();
 }
 
+/// The server's output also goes to ~/Library/Logs/Filomena/server.log (kept small: rewritten at each start).
+fn log_file() -> Option<File> {
+    let dir = PathBuf::from(std::env::var_os("HOME")?).join("Library/Logs/Filomena");
+    fs::create_dir_all(&dir).ok()?;
+    OpenOptions::new().create(true).write(true).truncate(true).open(dir.join("server.log")).ok()
+}
+
+/// Replace the start page's progress with the reason and the server's last lines (dist/index.html: showError).
+fn show_error(handle: &tauri::AppHandle, text: &str, tail: &Arc<Mutex<VecDeque<String>>>) {
+    let log = tail.lock().unwrap().iter().cloned().collect::<Vec<_>>().join("\n");
+    let js = format!("window.showError && window.showError({:?}, {:?})", text, log);
+    if let Some(window) = handle.get_webview_window("main") {
+        let _ = window.eval(&js);
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -67,15 +86,37 @@ fn main() {
                 .spawn()?;
             *app.state::<Server>().0.lock().unwrap() = Some(child);
 
-            // pass the server's own output on (visible when the app is started from a terminal)
+            // the server's output: to the terminal (when started from one), the log file, and the last 40 lines kept
+            // for the start page should it fail
+            let ready = Arc::new(AtomicBool::new(false));
+            let tail: Arc<Mutex<VecDeque<String>>> = Arc::new(Mutex::new(VecDeque::new()));
+            let (out_tail, out_ready, out_handle) = (tail.clone(), ready.clone(), app.handle().clone());
             tauri::async_runtime::spawn(async move {
+                let mut file = log_file();
                 while let Some(event) = events.recv().await {
-                    match event {
-                        CommandEvent::Stdout(line) | CommandEvent::Stderr(line) => {
-                            eprintln!("server: {}", String::from_utf8_lossy(&line).trim_end());
+                    let line = match event {
+                        CommandEvent::Stdout(line) | CommandEvent::Stderr(line) => String::from_utf8_lossy(&line).trim_end().to_string(),
+                        CommandEvent::Terminated(status) => {
+                            let msg = format!("server stopped: {status:?}");
+                            eprintln!("{msg}");
+                            if let Some(f) = file.as_mut() {
+                                let _ = writeln!(f, "{msg}");
+                            }
+                            if !out_ready.load(Ordering::SeqCst) {
+                                show_error(&out_handle, "The server stopped while starting.", &out_tail);
+                            }
+                            continue;
                         }
-                        CommandEvent::Terminated(status) => eprintln!("server stopped: {status:?}"),
-                        _ => {}
+                        _ => continue,
+                    };
+                    eprintln!("server: {line}");
+                    if let Some(f) = file.as_mut() {
+                        let _ = writeln!(f, "{line}");
+                    }
+                    let mut t = out_tail.lock().unwrap();
+                    t.push_back(line);
+                    if t.len() > 40 {
+                        t.pop_front();
                     }
                 }
             });
@@ -87,10 +128,12 @@ fn main() {
                 while TcpStream::connect(("127.0.0.1", port)).is_err() {
                     if started.elapsed() > Duration::from_secs(90) {
                         eprintln!("server did not start within 90 s");
+                        show_error(&handle, "The server did not answer within 90 seconds.", &tail);
                         return;
                     }
                     thread::sleep(Duration::from_millis(200));
                 }
+                ready.store(true, Ordering::SeqCst);
                 let url: Url = format!("http://127.0.0.1:{port}/?token={token}").parse().expect("server URL");
                 let window_handle = handle.clone();
                 let _ = handle.run_on_main_thread(move || {
