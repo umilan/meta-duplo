@@ -531,7 +531,7 @@ _RELOAD_KEYS = ("group", "q", "sources_off", "colors")   # rendered outside the 
    singles last).
 8. Implement `commit` (pattern setting, one write per capture/field, `only`), `preset_ids`, `groups_for`.
 9. Implement `history_push` / `history_step` with `HISTORY_LABELS` and `_RELOAD_KEYS`.
-10. Implement `name_fields`.
+10. Implement `show_new_dates(view, catalog)` (every Dates column not yet in `view["dates_seen"]` is inserted once, then the user's choice holds; called by `wb_ctx`, which saves the view and re-runs `table`), `name_fields`.
 11. Run `uv run pytest tests/test_workbench.py`.
 
 ## Verify

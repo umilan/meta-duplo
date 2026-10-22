@@ -389,6 +389,9 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
     def wb_ctx(offset: int = 0) -> dict:
         view = wb.load_view(lib)
         groups, exif_keys, nrows = wb.table(lib, view)
+        if wb.show_new_dates(view, wb.catalog(exif_keys)):  # every date column is on by default (empty ones slim)
+            wb.save_view(lib, view)
+            groups, exif_keys, nrows = wb.table(lib, view)
         tree = None
         if view["group"] in wb.GROUP_COLUMN:
             label, name_col = wb.GROUP_COLUMN[view["group"]]

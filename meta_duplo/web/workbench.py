@@ -100,6 +100,7 @@ DEFAULT_VIEW = {
     "slim": {},               # column key → True (collapsed to 40px) / False (kept wide); unset: slim when empty
     "ref_ids": [],            # files chosen as the reference row of their group (red / green compare against them)
     "pinned": [],             # columns kept at the left while scrolling sideways (the thumbnail is, while first)
+    "dates_seen": [],         # date columns already offered: each is shown once by default, then the user's choice holds
     "q": "",
     "colors": True,
 }
@@ -284,6 +285,21 @@ def insert_column(columns: list, key: str, width: int) -> None:
     rank = column_rank(key)
     at = next((i for i, (k, _) in enumerate(columns) if column_rank(k) > rank), len(columns))
     columns.insert(at, [key, width])
+
+
+def show_new_dates(view: dict, catalog_: dict[str, list[Field]]) -> bool:
+    """Show every Dates column not offered before (core dates and date tags found in the files); a date the user
+    hid stays hidden. Columns without a value in any file render slim. True when the view changed."""
+    seen = set(view.get("dates_seen", []))
+    new = [f for f in catalog_.get("Dates", []) if f.key not in seen]
+    if not new:
+        return False
+    shown = {c[0] for c in view["columns"]}
+    for f in new:
+        if f.key not in shown:
+            insert_column(view["columns"], f.key, f.width)
+    view["dates_seen"] = sorted(seen | {f.key for f in new})
+    return True
 
 
 def name_fields(catalog_: dict[str, list[Field]], shown: list[str]) -> list[tuple[str, str, str]]:

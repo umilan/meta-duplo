@@ -287,6 +287,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   DateCreated since `RAW_VERSION = 3`; saved views are brought in line once (`VIEW_VERSION = 5`). They are shown
   only, not yet weighed as capture-time candidates.
   Third in *Dates* comes *Date from file name* (a date read from the file's name, e.g. `IMG_20190518_114710`).
+- **All dates shown by default:** every column of the *Dates* category (the built-in dates and every date tag found
+  in the files) is ticked the first time it is offered; one that no file has a value in shows slim. The view keeps
+  `dates_seen`, so a date the user unticks stays hidden and only newly found date tags are added (once).
 - **Slim columns:** a shown column is never dropped, not even when no file has a value in it: an empty column is
   collapsed to 40 px (as wide as the checkbox column). Double-clicking any header collapses or expands it (the
   choice is kept per column in the view, `slim`); a single click still sorts (it waits a moment, so a double-click

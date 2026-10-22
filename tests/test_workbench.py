@@ -206,3 +206,16 @@ def test_name_pattern_with_column_tags(lib):
     r = next(x for x in rows if x["v"]["make"] and x["v"]["date"])
     new = {p["file_id"]: p["new"] for p in harmonize.rename_preview(lib)}[r["id"]]
     assert new.startswith(f"{r['v']['make']}_{r['v']['date'][:4]}_")
+
+
+def test_all_date_columns_shown_once_by_default(lib):
+    view = wb.load_view(lib)
+    _, exif_keys, _ = wb.table(lib, view)
+    cat = wb.catalog(exif_keys)
+    dates = [f.key for f in cat["Dates"]]
+    assert wb.show_new_dates(view, cat)
+    shown = [c[0] for c in view["columns"]]
+    assert all(k in shown for k in dates)
+    assert [k for k in shown if k in dates] == dates  # in catalog order
+    view["columns"] = [c for c in view["columns"] if c[0] != "file_date"]  # the user hides one
+    assert not wb.show_new_dates(view, cat) and "file_date" not in [c[0] for c in view["columns"]]
