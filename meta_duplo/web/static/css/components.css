@@ -638,7 +638,8 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .wbsheet.namer__list { position: static; width: auto; box-shadow: none; max-height: 320px; overflow-y: auto; }
 .wbsheet button.namer__opt { flex-direction: row; justify-content: space-between; align-items: center; gap: var(--space-200); padding-top: 0; padding-bottom: 0; color: var(--edit-text); }
 .wbsheet button.namer__opt.is-current { background: var(--edit-bg); box-shadow: inset 2px 0 0 var(--edit-text); font-weight: 600; }
-.wbsheet button.namer__opt .pick__hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; font-family: var(--font-mono); }
+.wbsheet button.namer__opt .pick__hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; font-family: var(--font-mono); color: var(--text); }
+.wbsheet button.namer__opt .namer__val.is-empty { color: var(--muted); }  /* this file has no value for the tag */
 .namer__none { margin: var(--space-100); }
 
 /* source links in edit columns: [🔗A] = where the new value comes from (a rule, a column, a cell, typed);

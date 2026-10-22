@@ -326,7 +326,8 @@
           {% if g != ns.group %}{% set ns.group = g %}<div class="wbsheet__section namer__group">{{ g }}</div>{% endif %}
           <button type="button" role="menuitem" class="namer__opt" data-tok="{{ tok }}" data-q="{{ (label ~ ' ' ~ tok)|lower }}"
                   :class="picking >= 0 && parts[picking] && parts[picking].v === $el.dataset.tok && 'is-current'"
-                  x-show="match($el.dataset.q)" @mousedown.prevent @click="choose($el.dataset.tok)">&lt;{{ label }}&gt;<span class="pick__hint">{{ tok[1:-1] }}</span></button>
+                  x-show="match($el.dataset.q)" @mousedown.prevent @click="choose($el.dataset.tok)" title="{{ tok }}">&lt;{{ label }}&gt;<span class="pick__hint namer__val"
+                  :class="!optVal($el.parentElement.dataset.tok) && 'is-empty'" x-text="optVal($el.parentElement.dataset.tok) || '—'"></span></button>
           {% endfor %}
           <p class="small muted namer__none" x-show="q && !anyMatch()">No parameter matches.</p>
         </div>

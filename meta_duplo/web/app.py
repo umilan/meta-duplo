@@ -465,7 +465,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
 
     # Naming-pattern dialog: preview values for one file, and the user's saved patterns (presets)
     @app.post("/wb/name-preview")
-    def wb_name_preview(pattern: str = Form(""), fid: str = Form("")):
+    def wb_name_preview(pattern: str = Form(""), fid: str = Form(""), options: str = Form("")):
         view = wb.load_view(lib)
         rows, _ = wb.build_rows(lib)
         wb.apply_edits(rows, {k: v for k, v in view["edits"].items() if k != "filename"})
@@ -477,14 +477,18 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                   "location_name": e.get("place", eff.get("location_name") or v["place"]),
                   "device_name": e.get("device", eff.get("device_name") or v["device"]),
                   "country": eff.get("country") or v["country"], "tags": v}
-        each = {}
-        for m in harmonize.TOKEN.finditer(pattern):
-            tok = m.group(0)
-            out = harmonize.render_name(tok + ".x", values, r["original_name"], r["ext_raw"])  # a token on its own
-            each[tok] = "" if out is None else out[:-2] if out.endswith(".x") else out
+        def alone(tok: str) -> str:  # a token on its own, as it would read in the name
+            out = harmonize.render_name(tok + ".x", values, r["original_name"], r["ext_raw"])
+            return "" if out is None else out[:-2] if out.endswith(".x") else out
+
+        each = {m.group(0): alone(m.group(0)) for m in harmonize.TOKEN.finditer(pattern)}
         name = harmonize.render_name(pattern, values, r["original_name"], r["ext_raw"])
-        return {"name": name if name is not None else "(no date for this file: it keeps its name)", "values": each,
-                "file": r["v"]["filename"]}
+        out = {"name": name if name is not None else "(no date for this file: it keeps its name)", "values": each,
+               "file": r["v"]["filename"]}
+        if options:  # the parameter list: every recommended value and every column of this file
+            toks = [t for _g, _l, t in harmonize.NAME_TOKENS] + [f"{{tag:{k}}}" for k in v]
+            out["options"] = {t: alone(t) for t in toks}
+        return out
 
     def _presets() -> list[dict]:
         try:

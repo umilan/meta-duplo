@@ -528,7 +528,7 @@
     // Naming-pattern dialog: tokens as chips (click: replace / remove), text between them editable,
     // "Add new parameter" inserts at the text cursor; Tech names / Preview; presets kept in the library.
     Alpine.data("namer", (labels = {}) => ({
-      parts: [], mode: "tech", picking: -1, q: "", at: { i: 0, pos: 0 }, vals: {}, name: "", file: "",  // picking: the selected parameter (-1: none)
+      parts: [], mode: "tech", picking: -1, q: "", at: { i: 0, pos: 0 }, vals: {}, optVals: {}, name: "", file: "",  // picking: the selected parameter (-1: none)
       presets: [], preset: "", loaded: "", renaming: null, renameTo: "", adding: false, newName: "", err: "",
       init() {
         window.addEventListener("wb-naming", () => this.start());
@@ -547,7 +547,7 @@
         this.loadPresets().then(() => {  // mark the preset this pattern comes from, if any
           const p = this.presets.find((x) => x.pattern === current); this.preset = p ? p.name : ""; this.loaded = p ? p.pattern : "";
         });
-        this.refresh();
+        this.refresh(true);
       },
       load(p) { this.parts = this.parse(p.pattern); this.preset = p.name; this.loaded = p.pattern; this.err = ""; },
       activePreset() { return this.presets.find((p) => p.name === this.preset) || null; },
@@ -613,11 +613,15 @@
         const merged = { t: "text", v: (this.parts[i - 1]?.v || "") + (this.parts[i + 1]?.v || "") };
         this.parts.splice(i - 1, 3, merged); this.textAt(i - 1, join);  // the caret where the parameter was
       },
-      refresh() {
-        const body = new URLSearchParams({ pattern: this.pattern(), fid: String(Alpine.store("wb").active || "") });
+      refresh(options = false) {  // options: also every tag's value for the list (once per opening)
+        const body = new URLSearchParams({ pattern: this.pattern(), fid: String(Alpine.store("wb").active || ""), options: options ? "1" : "" });
         fetch("/wb/name-preview", { method: "POST", headers: { "X-Meta-Duplo-Token": token() }, body })
-          .then((r) => r.json()).then((d) => { this.vals = d.values; this.name = d.name; this.file = d.file; });
+          .then((r) => r.json()).then((d) => {
+            this.vals = d.values; this.name = d.name; this.file = d.file;
+            if (d.options) this.optVals = d.options;
+          });
       },
+      optVal(tok) { return this.optVals[tok] ?? ""; },
       apply() {
         const t = document.querySelector("#wb-table");
         if (t) t.dataset.pattern = this.pattern();  // the table reloads inside this element, which stays
