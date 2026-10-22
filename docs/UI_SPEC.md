@@ -382,13 +382,13 @@ SSE (meta-duplo ARCHITECTURE §6) replaces polling once jobs are long enough for
 - Only **CSS custom properties** for colours, spacing, sizes, radius and type, in `static/css/tokens.css`.
   Dark values live in one block applied by `prefers-color-scheme` unless `<html data-theme="light">`, and by
   `data-theme="dark"`. The **settings button** (⚙, top right of every page) opens a dropdown sheet:
+  - Page items first, under the page's name: on the Workbench (*Filomena*), the *Preview panel* checkbox,
+    *Columns…* (opens the column picker) and *Reset view* (keeps Text colours).
   - *Appearance*: Light / Dark (light is the default; sets `data-theme`), *Text colours* (Workbench only: green/red
     for same/different, saved in the view), *Cell borders* (on by default), *Shade odd rows* (off by default) and
     *Compact view* (slimmer table rows and tighter spacing and type everywhere). Theme, borders, shading and density
     are per-viewer preferences in `localStorage`, applied as `data-theme`, `data-borders`, `data-zebra` and
     `data-density` on `<html>` before the first paint (`static/js/theme.js`).
-  - Page items: on the Workbench, the *Preview panel* checkbox, *Columns…* (opens the column picker) and *Reset view*
-    (keeps Text colours).
   - *All settings…*. Esc or a click outside closes the sheet.
 - Files: `base.css` (elements), `layout.css` (app shell, grids), `components.css` (cards, badges, tables, fields).
 - Semantic class names (`.card`, `.member--keeper`, `.badge--high`, `.field--accepted`), BEM-style.

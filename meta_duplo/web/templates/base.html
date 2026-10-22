@@ -45,6 +45,7 @@
           <svg viewBox="0 0 20 20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M8.6 2.5h2.8l.4 2.1 1.5.9 2-.8 1.4 2.4-1.6 1.4v1.8l1.6 1.4-1.4 2.4-2-.8-1.5.9-.4 2.1H8.6l-.4-2.1-1.5-.9-2 .8-1.4-2.4 1.6-1.4V8.5L3.3 7.1l1.4-2.4 2 .8 1.5-.9z"/><circle cx="10" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
         </button>
         <div class="setsheet" x-show="open" x-cloak x-transition.opacity>
+          {% block settings_menu %}{% endblock %}{# the page's own items first (Filomena), then Appearance #}
           <div class="setsheet__section">Appearance</div>
           <div class="themeswitch" role="radiogroup" aria-label="Colour theme">
             <button type="button" role="radio" :aria-checked="(p.theme === 'light').toString()" @click="set('theme', 'light')">
@@ -59,7 +60,6 @@
                  @change="set('zebra', $event.target.checked ? 'on' : 'off')"> Shade odd rows</label>
           <label class="setsheet__item setsheet__check"><input type="checkbox" :checked="p.density === 'compact'"
                  @change="set('density', $event.target.checked ? 'compact' : 'normal')"> Compact view</label>
-          {% block settings_menu %}{% endblock %}
           <a class="setsheet__item" href="/settings">All settings…</a>
         </div>
       </div>
