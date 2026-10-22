@@ -198,7 +198,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   *Edit…* in a header's ⋯ sheet opens the rule dialog and adds one.
   - **Filename:** the **Naming pattern** dialog (also *Actions → File name pattern…* and a double-click on any
     file name). At the top, the preview: *Preview for <file>* above the new name it would get. The name is typed text with parameter chips (purple, underlined) in a resizable field. Under it a
-    hint, a search field (with ×) and the parameter list, always open: *Recommended values* (date and time, date,
+    hint, then one bordered box holding a search field (with ×, a line under it, staying on top) and the parameter list, which scrolls under it, always open: *Recommended values* (date and time, date,
     year … sec, place, country, device, original filename, extension; they follow the New date / place / device
     columns), *Columns in this table*, then every field by category (EXIF / XMP / IPTC tags included,
     `{tag:KEY}`). Each tag shows, on the right, its value for the previewed (or first) file as it would read in

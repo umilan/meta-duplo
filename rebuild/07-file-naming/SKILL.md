@@ -258,7 +258,7 @@ sources. A clash with such a file on disk surfaces at apply time (`PlanError("ta
 │      label "New filename"; .namer__edit (resizable, wraps): parts = text inputs + chip buttons
 │      p.namer__warn (red, role=alert) while !/\.\{(ext|EXT)\}$/.test(pattern())
 │      p.namer__hint  (two variants, see below)
-│      .namer__picker: search (× clear) + .namer__list.wbsheet (max-height 320px, always open)
+│      .namer__picker (one bordered box): search (× clear, line under it, stays on top) + .namer__list.wbsheet (max-height 320px, scrolls, always open)
 └─ .modal__actions: [Cancel] [Apply]
 ```
 
