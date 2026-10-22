@@ -237,7 +237,7 @@ def test_same_only_when_every_file_agrees(lib):
 def test_select_filled_or_empty(lib):
     view = wb.load_view(lib)
     groups, _, n = wb.table(lib, view)
-    filled, empty = wb.filled_ids(lib, view, "date", True), wb.filled_ids(lib, view, "date", False)
+    filled, empty = wb.filled_ids(lib, view, ["date"], True), wb.filled_ids(lib, view, ["date"], False)
     assert filled and empty and not set(filled) & set(empty) and len(filled) + len(empty) == n
 
 
@@ -251,3 +251,27 @@ def test_row_dates_compared_without_grouping():
     assert set(wb.row_date_states(r, keys).values()) == {"same"}  # all agree (empty ignored): green
     r["v"].update(key_dto="2020-01-01 00:00:00", date="2020-01-01 00:00:00")
     assert set(wb.row_date_states(r, keys).values()) == {"diff"}  # 2 against 2: no majority, all red
+
+
+def test_cells_action_on_several_cells(lib):
+    import json
+    from fastapi.testclient import TestClient
+    from meta_duplo.web.app import create_app
+    client = TestClient(create_app(lib))
+    groups, _, _ = wb.table(lib, wb.load_view(lib))
+    g = _group_with(groups, "Copy of IMG_0003.JPG")
+    a, b = g.rows[0], next(r for r in g.rows if r["v"]["filename"] == "Copy of IMG_0003.JPG")
+    cells = json.dumps([[a["id"], "filename"], [b["id"], "filename"]])
+    client.post("/wb/view", data={"action": "cells", "op": "filter", "cells": cells})
+    flt = wb.load_view(lib)["filters"][-1]
+    assert flt["op"] == "in" and set(flt["value"].split(wb.IN_SEP)) == {a["v"]["filename"], "Copy of IMG_0003.JPG"}
+    groups, _, _ = wb.table(lib, wb.load_view(lib))
+    assert {r["v"]["filename"] for g in groups for r in g.rows} >= {"Copy of IMG_0003.JPG"}
+    # one value typed for two cells, then each cell's value applied to its own group (copied, with its source)
+    client.post("/wb/view", data={"action": "cells", "op": "set", "value": "2001-02-03 04:05:06",
+                                  "cells": json.dumps([[a["id"], "date"], [b["id"], "date"]])})
+    rule = wb.load_view(lib)["edits"]["date"]
+    assert rule["overrides"][str(a["id"])] == rule["overrides"][str(b["id"])] == "2001-02-03 04:05:06"
+    client.post("/wb/view", data={"action": "cells", "op": "apply", "scope": "group", "cells": json.dumps([[a["id"], "digitized"]])})
+    rule = wb.load_view(lib)["edits"]["date"]
+    assert all(rule["override_from"][str(r["id"])] == {"fid": a["id"], "key": "digitized"} for r in g.rows)

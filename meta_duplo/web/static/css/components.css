@@ -735,3 +735,11 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .wbsheet.wbsheet--sub.is-left { left: auto; right: calc(100% + var(--space-050)); }
 .applycol__scope { display: grid; gap: var(--space-050); margin: 0; padding: 0; border: 0; }
 .applycol__scope label { display: flex; align-items: center; gap: var(--space-100); }
+
+/* several selected cells, and the "n cells ⋯" pill that opens their cell sheet */
+.wbt tbody td.is-csel { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)), linear-gradient(var(--tint-cell), var(--tint-cell));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 64%, transparent); }
+.cselpill { position: fixed; z-index: 45; display: inline-flex; align-items: center; height: var(--control-h-sm); padding: 0 var(--space-100);
+  border: 0; border-radius: var(--radius-full); background: var(--accent); color: var(--on-accent); font: inherit; font-size: var(--text-sm);
+  font-weight: 600; box-shadow: var(--shadow-pop); cursor: pointer; }
+.cselpill[hidden] { display: none; }

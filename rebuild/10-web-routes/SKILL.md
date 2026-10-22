@@ -352,3 +352,8 @@ There are no HTTP-level tests; the routes are thin wrappers, verified through th
 ## Use this for another column (update)
 
 Header menu → *Use this for another column…* (`openUseFor(menu)`, disabled for edit and special columns) reuses the `applycol` dialog in `mode: "column"` (no scope) and posts `edit_set target=<date|place|device> kind=column column=<key>`; `edit_set` refuses a `column` whose `wb.apply_targets(column)` does not contain the target (toast "That column cannot feed this field"). `apply_edits` tidies a copied date with `_readable_date(raw)[:19]`.
+
+
+## `cells` action (update)
+
+`POST /wb/view action=cells`, `cells` = JSON `[[fid, key], …]`: `op=filter` adds one filter per column (`equals`, `in` with values joined by `wb.IN_SEP` " | ", or `empty`); `op=set` writes `value` into `overrides` for each editable cell (clears its `override_from`); `op=apply` with `scope=group` (each cell's own group), `selection` (`ids` ∪ the cell) or `all`, optional `target` (checked by `apply_targets`), writes the cell's value into `overrides` and `override_from = {fid, key}` for every target file (sources then read "Copied from <column> of <file>"); `op=ref` adds the rows to `ref_ids` (removes them when all already are). `GET /wb/ids?which=filled&key=` accepts several keys joined by newlines (filled = a value in each; empty = in none). New filter op `in` ("is one of").

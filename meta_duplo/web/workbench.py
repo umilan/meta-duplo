@@ -74,9 +74,10 @@ EDIT_LABELS = {"filename": "New filename", "date": "New date", "place": "New pla
 EDIT_BASE = {"filename": "filename", "date": "date", "place": "place", "device": "device"}
 GROUPS = {"none": "None", "dups": "Duplicates", "capture": "Photo (all copies)", "folder": "Path / Folders",
           "day": "Day", "device": "Device", "place": "Place", "author": "Author"}
-OPS = {"contains": "contains", "equals": "is", "not_equals": "is not", "empty": "is empty",
+OPS = {"contains": "contains", "equals": "is", "in": "is one of", "not_equals": "is not", "empty": "is empty",
        "not_empty": "is not empty", "gte": "≥", "lte": "≤", "diff": "differs in group", "same": "same in group"}
 NO_VALUE_OPS = {"empty", "not_empty", "diff", "same"}
+IN_SEP = " | "  # "is one of": the values, joined (a filter made from several selected cells)
 DATE_SOURCES = ["date", "digitized", "modify", "file_date", "gps_date", "name_date", "rec_date"]
 VERDICT_TEXT = {"identical": "exact", "same_pixels": "diff meta", "same_photo": "same photo", "edited": "edited",
                 "same_video": "same video", "likely": "likely", "similar_shot": "similar shot"}
@@ -172,7 +173,7 @@ HISTORY_LABELS = {"sort": "sorting", "group": "grouping", "filter_add": "filter"
                   "col_move": "column order", "col_slim": "column width", "col_width": "column width",
                   "edit_set": "edit rule", "edit_clear": "edit rule", "edit_remove": "edit column",
                   "cell_set": "edited value", "cell_apply": "applied value", "cell_filter": "filter",
-                  "cell_ref": "reference row", "col_pin": "pinned column"}
+                  "cell_ref": "reference row", "col_pin": "pinned column", "cells": "selected cells"}
 _RELOAD_KEYS = ("group", "q", "sources_off", "colors")  # rendered outside the table: the page reloads for these
 
 
@@ -498,6 +499,7 @@ def apply_edits(rows: list[dict], edits: dict) -> None:
     sources = {t: _rule_source(t, rule, names) for t, rule in edits.items() if t in EDIT_BASE}
     keep = {t: _rule_source(t, {"kind": "keep"}, names) for t in EDIT_BASE}
     typed_src = {"id": "typed", "label": "Typed for this file", "typed": True}
+    copied: dict[tuple, dict] = {}  # per-file values copied from a cell ("override_from"): one source per cell
     letters: dict[str, dict[str, str]] = {t: {} for t in EDIT_BASE}  # per column: source id → A, B, C… (first seen)
     for r in rows:
         v, e, src = r["v"], {}, {}
@@ -540,7 +542,15 @@ def apply_edits(rows: list[dict], edits: dict) -> None:
             typed = (rule.get("overrides") or {}).get(str(r["id"]))
             if typed is not None:
                 e[target] = typed
-                src[target] = typed_src
+                frm = (rule.get("override_from") or {}).get(str(r["id"]))
+                if frm:
+                    k = (frm["fid"], frm["key"])
+                    copied.setdefault(k, {"id": f"cell:{k[0]}:{k[1]}", "label": f"Copied from {_label(k[1])} of "
+                                                                                   f"{names.get(int(k[0]), 'file ' + str(k[0]))}",
+                                          "key": k[1], "rid": int(k[0])})
+                    src[target] = copied[k]
+                else:
+                    src[target] = typed_src
         for target, s in src.items():
             seen = letters[target]
             seen.setdefault(s["id"], chr(65 + len(seen)) if len(seen) < 26 else "*")
@@ -611,6 +621,8 @@ def _match(val, op: str, arg: str, differs: bool) -> bool:
         return arg.lower() in s.lower()
     if op == "equals":
         return s.lower() == arg.lower()
+    if op == "in":
+        return s.lower() in {a.strip().lower() for a in arg.split(IN_SEP.strip())}
     if op == "not_equals":
         return s.lower() != arg.lower()
     if op in ("gte", "lte"):
@@ -854,10 +866,11 @@ def _richness(r: dict) -> int:
     return sum(1 for v in r["tags"].values() if v not in ("", None)) + sum(1 for k in core if r["v"].get(k))
 
 
-def filled_ids(lib: Library, view: dict, key: str, filled: bool) -> list[int]:
-    """Files of the view (filters apply, all groups) with / without a value in a column."""
+def filled_ids(lib: Library, view: dict, keys: list[str], filled: bool) -> list[int]:
+    """Files of the view (filters apply, all groups) with a value in every one of the columns (filled), or with
+    none in any of them (not filled)."""
     groups, _, _ = table(lib, view)
-    return [r["id"] for g in groups for r in g.rows if (value(r, key) not in ("", None)) == filled]
+    return [r["id"] for g in groups for r in g.rows if all((value(r, k) not in ("", None)) == filled for k in keys)]
 
 
 def preset_ids(lib: Library, view: dict, preset: str) -> list[int]:

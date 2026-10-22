@@ -17,7 +17,7 @@
 {% block content %}
 <div class="wb" x-data="wbPage" :class="panel && 'wb--panel'"
      @wb-filter.window="openFilter($event.detail, $event.detail.op || 'contains')" @wb-edit.window="openEdit($event.detail)"
-     @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true" @wb-panel.window="panel = $event.detail.on" @wb-reset.window="post({ action: 'reset' })" @wb-colors.window="post({ action: 'colors' })" @wb-cellmenu.window="openCellMenu($event.detail.btn)"
+     @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true" @wb-panel.window="panel = $event.detail.on" @wb-reset.window="post({ action: 'reset' })" @wb-colors.window="post({ action: 'colors' })" @wb-cellmenu.window="openCellMenu($event.detail.btn)" @wb-cellsmenu.window="openCellsMenu($event.detail)"
      @wb-celledit.window="openCellMenu($event.detail.btn); openCellEdit()">
   <div class="wb-main">
     <div class="wbbar wb-pad">
@@ -179,42 +179,42 @@
        @mousedown.outside="menu = null" @keydown.escape.window="menu = null" @resize.window="menu = null">
     <template x-if="menu && menu.cell">
       <div>
-        <div class="wbsheet__title" :title="menu.value"><span x-text="menu.label"></span>: <span class="muted" x-text="menu.value || '—'"></span></div>
-        <button type="button" role="menuitem" @click="cellAct('cell_filter')">Filter this column by this value</button>
+        <div class="wbsheet__title" :title="menu.value"><span x-text="menu.label"></span><template x-if="!menu.multi"><span>: <span class="muted" x-text="menu.value || '—'"></span></span></template></div>
+        <button type="button" role="menuitem" @click="cellAct('cell_filter')" x-text="menu.multi ? 'Filter by these values' : 'Filter this column by this value'">Filter this column by this value</button>
         <div class="wbsheet__subwrap" @mouseenter="subSel = true" @mouseleave="subSel = false">
           <button type="button" role="menuitem" class="wbsheet__subbtn" aria-haspopup="menu" :aria-expanded="subSel.toString()"
                   @click="subSel = true" @keydown.arrow-right.prevent="subSel = true">Select all
             <span class="wbsheet__chev" aria-hidden="true">›</span></button>
           <div class="wbsheet wbsheet--sub" role="menu" x-show="subSel" x-cloak :class="menu.x > innerWidth - 640 && 'is-left'">
-            <button type="button" role="menuitem" @click="selectWhere(menu.key, true)">Non-empty
+            <button type="button" role="menuitem" @click="selectWhere(menu.multi ? menu.keys.join('\n') : menu.key, true)">Non-empty
               <span class="pick__hint">tick every file with a value in this column</span></button>
-            <button type="button" role="menuitem" @click="selectWhere(menu.key, false)">Empty
+            <button type="button" role="menuitem" @click="selectWhere(menu.multi ? menu.keys.join('\n') : menu.key, false)">Empty
               <span class="pick__hint">tick every file without one</span></button>
           </div>
         </div>
         <div class="wbsheet__divider" role="separator"></div>
         <button type="button" role="menuitem" :disabled="!menu.target && !menu.isName"
                 :title="menu.target || menu.isName ? '' : 'Only date, place, device and file names can be changed (plans write those)'"
-                @click="openCellEdit()" x-text="menu.isName ? 'Rename with a pattern…' : 'Edit this value…'">Edit this value…</button>
+                @click="openCellEdit()" x-text="menu.isName ? 'Rename with a pattern…' : menu.multi ? 'Edit these values…' : 'Edit this value…'">Edit this value…</button>
         <button type="button" role="menuitem" disabled title="Not yet: plans cannot clear a metadata value">Remove this value</button>
         {# Apply this value ›: a submenu (opens on hover or click; to the left near the window's right edge) #}
         <div class="wbsheet__subwrap" @mouseenter="sub = true" @mouseleave="sub = false">
           <button type="button" role="menuitem" class="wbsheet__subbtn" aria-haspopup="menu" :aria-expanded="sub.toString()"
-                  :disabled="!menu.value" @click="sub = true" @keydown.arrow-right.prevent="sub = true">Apply this value
+                  :disabled="menu.multi ? !menu.target : !menu.value" @click="sub = true" @keydown.arrow-right.prevent="sub = true" x-text="menu.multi ? 'Apply these values' : 'Apply this value'">Apply this value
             <span class="wbsheet__chev" aria-hidden="true">›</span></button>
           <div class="wbsheet wbsheet--sub" role="menu" x-show="sub" x-cloak :class="menu.x > innerWidth - 640 && 'is-left'">
             <button type="button" role="menuitem" :disabled="!menu.target" @click="cellAct('cell_apply', { scope: 'group' })">To its group
               <span class="pick__hint">the purple column of this field previews the new values</span></button>
-            <button type="button" role="menuitem" :disabled="!menu.target || !$store.wb.count" @click="cellAct('cell_apply', { scope: 'selection', ids: $store.wb.csv() })"
+            <button type="button" role="menuitem" :disabled="!menu.target || !$store.wb.count || (menu.multi && menu.distinct !== 1)" :title="menu.multi && menu.distinct !== 1 ? 'The selected cells hold different values' : ''" @click="cellAct('cell_apply', { scope: 'selection', ids: $store.wb.csv() })"
                     x-text="'To the selection (' + $store.wb.count + ')'">To the selection</button>
-            <button type="button" role="menuitem" :disabled="!menu.target" @click="cellAct('cell_apply', { scope: 'all' })">To all rows</button>
+            <button type="button" role="menuitem" :disabled="!menu.target || (menu.multi && menu.distinct !== 1)" :title="menu.multi && menu.distinct !== 1 ? 'The selected cells hold different values' : ''" @click="cellAct('cell_apply', { scope: 'all' })">To all rows</button>
             <button type="button" role="menuitem" @click="openApplyCol()">To column…
               <span class="pick__hint">choose which field gets it, then group, selection or all</span></button>
           </div>
         </div>
         <div class="wbsheet__divider" role="separator"></div>
         <button type="button" role="menuitem" @click="cellAct('cell_ref')"
-                x-text="menu.isRef ? 'Stop using this row as the reference' : 'Use this row as the reference of its group'"></button>
+                x-text="menu.multi ? 'Use these rows as the references of their groups' : menu.isRef ? 'Stop using this row as the reference' : 'Use this row as the reference of its group'"></button>
       </div>
     </template>
     <template x-if="menu && !menu.cell">
@@ -251,9 +251,9 @@
                   @click="subSel = true" @keydown.arrow-right.prevent="subSel = true">Select all
             <span class="wbsheet__chev" aria-hidden="true">›</span></button>
           <div class="wbsheet wbsheet--sub" role="menu" x-show="subSel" x-cloak :class="menu.x > innerWidth - 640 && 'is-left'">
-            <button type="button" role="menuitem" @click="selectWhere(menu.key, true)">Non-empty
+            <button type="button" role="menuitem" @click="selectWhere(menu.multi ? menu.keys.join('\n') : menu.key, true)">Non-empty
               <span class="pick__hint">tick every file with a value in this column</span></button>
-            <button type="button" role="menuitem" @click="selectWhere(menu.key, false)">Empty
+            <button type="button" role="menuitem" @click="selectWhere(menu.multi ? menu.keys.join('\n') : menu.key, false)">Empty
               <span class="pick__hint">tick every file without one</span></button>
           </div>
         </div>

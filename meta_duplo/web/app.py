@@ -639,7 +639,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             elif kind == "shift":
                 secs = int(f.get("hh") or 0) * 3600 + int(f.get("mm") or 0) * 60 + int(f.get("ss") or 0)
                 rule.update(column=f.get("shift_column") or "date", seconds=-secs if f.get("sign") == "-" else secs)
-            view["edits"][t] = {**rule, "overrides": view["edits"].get(t, {}).get("overrides", {})}
+            view["edits"][t] = {**rule, "overrides": view["edits"].get(t, {}).get("overrides", {}),
+                                        "override_from": view["edits"].get(t, {}).get("override_from", {})}
             add_edit_column(t)
         elif act in ("cell_filter", "cell_ref", "cell_apply", "cell_set") and f.get("fid", "").isdigit():
             fid, key = int(f["fid"]), f.get("key", "")
@@ -673,7 +674,61 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                     else:
                         ids = None
                     view["edits"][t] = {"kind": "fixed", "value": wb.cell_value(r, key), "ids": ids, "from": {"fid": fid, "key": key},
-                                        "overrides": view["edits"].get(t, {}).get("overrides", {})}
+                                        "overrides": view["edits"].get(t, {}).get("overrides", {}),
+                                        "override_from": view["edits"].get(t, {}).get("override_from", {})}
+                    add_edit_column(t, key)
+        elif act == "cells":  # the cell sheet for several selected cells: the same actions, for each cell
+            try:
+                cells = [(int(c[0]), str(c[1])) for c in json.loads(f.get("cells", "[]")) if wb.field_for(str(c[1]))]
+            except (ValueError, TypeError, IndexError):
+                cells = []
+            op = f.get("op", "")
+            rows, _ = wb.build_rows(lib)
+            wb.apply_edits(rows, view["edits"])
+            by_id = {r["id"]: r for r in rows}
+            cells = [(fid, key) for fid, key in cells if fid in by_id]
+            if op == "filter":  # one filter per column: "is" / "is one of" / "is empty"
+                per: dict[str, set] = {}
+                for fid, key in cells:
+                    v = wb.value(by_id[fid], key)
+                    per.setdefault(key, set()).add("" if v in ("", None) else str(v))
+                for key, vals in per.items():
+                    filled_vals = sorted(v for v in vals if v)
+                    if not filled_vals:
+                        view["filters"].append({"key": key, "op": "empty", "value": ""})
+                    elif len(filled_vals) == 1 and len(vals) == 1:
+                        view["filters"].append({"key": key, "op": "equals", "value": filled_vals[0]})
+                    else:
+                        view["filters"].append({"key": key, "op": "in", "value": wb.IN_SEP.join(filled_vals)})
+            elif op == "ref":  # these rows become references (or stop being, when all already are)
+                refs, fids = set(view.get("ref_ids") or []), {fid for fid, _ in cells}
+                view["ref_ids"] = sorted(refs - fids if fids <= refs else refs | fids)
+            elif op in ("set", "apply"):
+                groups = None
+                for fid, key in cells:
+                    t = f.get("target") if op == "apply" and f.get("target") else wb.edit_target(key)
+                    if op == "apply" and f.get("target") and t not in wb.apply_targets(key):
+                        continue
+                    if not t or t == "filename":
+                        continue
+                    rule = view["edits"].setdefault(t, {"kind": "keep"})
+                    over, frm = rule.setdefault("overrides", {}), rule.setdefault("override_from", {})
+                    if op == "set":
+                        over[str(fid)], _ = f.get("value", "").strip(), frm.pop(str(fid), None)
+                    else:  # this cell's value for its group / the ticked rows / every row
+                        scope = f.get("scope")
+                        if scope == "group":
+                            if groups is None:
+                                groups, _, _ = wb.table(lib, view)
+                            ids = next(([x["id"] for x in g.rows] for g in groups if any(x["id"] == fid for x in g.rows)), [fid])
+                        elif scope == "selection":
+                            ids = sorted(_ids(f.get("ids", "")) | {fid})
+                        else:
+                            ids = list(by_id)
+                        val = wb.cell_value(by_id[fid], key)
+                        for i in ids:
+                            over[str(i)] = val
+                            frm[str(i)] = {"fid": fid, "key": key}
                     add_edit_column(t, key)
         elif act == "edit_clear" and f.get("target") in wb.EDIT_LABELS:  # every row back to "= current value"
             view["edits"][f["target"]] = {"kind": "keep"} | ({"pattern": ""} if f["target"] == "filename" else {})
@@ -799,10 +854,11 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
     def wb_ids(which: str = "nonkeepers", key: str = "", filled: int = 1):
         """Selection presets over the whole current view, also the groups not loaded yet;
         which=filled: the files with (filled=1) or without (0) a value in column `key`."""
-        if which == "filled":
-            if not wb.field_for(key):
+        if which == "filled":  # key: one column, or several joined by newlines (a multi-cell selection)
+            keys = [k for k in key.split("\n") if k]
+            if not keys or not all(wb.field_for(k) for k in keys):
                 raise HTTPException(400, "unknown column")
-            return {"ids": wb.filled_ids(lib, wb.load_view(lib), key, bool(filled))}
+            return {"ids": wb.filled_ids(lib, wb.load_view(lib), keys, bool(filled))}
         if which not in wb.SELECTION_PRESETS:
             raise HTTPException(400, "unknown selection preset")
         return {"ids": wb.preset_ids(lib, wb.load_view(lib), which)}

@@ -270,13 +270,22 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   ← → between columns; the first arrow starts at the top. *Enter* ticks or unticks the row (a group row: the whole
   group); *Space* toggles the preview panel for the file (a group row: folds or unfolds it); while the panel is open it
   follows the cursor as you move; *⌥/Ctrl/⌘ + Enter* opens
-  the cell's ⋯ menu; *Shift + ↑ / ↓* ticks file rows while moving (group rows are passed, not ticked); *X* ticks or
-  unticks the row and moves down; *⌘ / Ctrl + A* ticks every row of the view (Selection → All); *Esc* closes an open
-  menu first, then leaves the cursor. Clicking a cell moves the cursor there;
-  after a reload it returns to the same file. Keys typed in fields, menus and dialogs are left alone.
+  the cell's ⋯ menu (for several selected cells: their sheet); *Shift + arrows* select a range of cells from where
+  the selection started; *X* ticks or unticks the row and moves down (*Shift + X*: up); *⌘ / Ctrl + A* ticks every
+  row of the view (Selection → All); *Esc* clears a cell selection, closes an open menu, then leaves the cursor.
+  Clicking a cell moves the cursor there; *Shift + click* selects the range from the cursor to that cell; *Ctrl / ⌘ +
+  click* adds or removes one cell; a plain click clears the cell selection. After a reload the cursor returns to the
+  same file.
+- **Several cells:** selected cells are tinted and framed; with two or more, a small accent pill *n cells ⋯* sits
+  above the last one. It (or a right-click, or ⋯, on a selected cell) opens the cell sheet for all of them: *Filter
+  by these values* (one filter per column: *is*, *is one of*, or *is empty*), *Select all › Non-empty / Empty* (a
+  value in every selected column / in none), *Edit these values…* (one value typed for every editable cell), *Apply
+  these values › To its group* (each cell's value to its own group; *To the selection / To all rows* only when the
+  cells hold one value; *To column…*), *Use these rows as the references of their groups*. Copied values keep their
+  🔗 source (the cell they came from). Keys typed in fields, menus and dialogs are left alone.
 - **Undo / redo:** *⌘ / Ctrl + Z* undoes, *⇧⌘Z / Ctrl + Shift + Z / Ctrl + Y* redoes; the ↶ ↷ buttons right of
   the *Filomena* title do the same (greyed when there is nothing). One ordered history covers selection changes (ticking,
-  presets, Shift+↑/↓; a burst within 250 ms is one step) and every view change: sorting, grouping, filters, search,
+  presets, X; a burst within 250 ms is one step) and every view change: sorting, grouping, filters, search,
   columns (add, remove, move, width, slim), edit rules and typed or applied values, the reference row, folders
   shown, reset. A toast names what was undone. Up to 100 steps; a new change clears the redo steps; the history
   survives page reloads in the same tab. Not in it: saving edits as decisions, plans (they have their own undo on the

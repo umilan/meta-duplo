@@ -507,3 +507,8 @@ Any body cell resizes columns: a `mousemove` listener adds `td.is-edge` (cursor 
 ## Menu dividers and Select all (update)
 
 The column and cell menus use `.wbsheet__divider` (1 px `--line`, `role=separator`) instead of section headings. Both have *Select all ›* (`subSel`, same submenu pattern as *Apply this value ›*) with *Non-empty* / *Empty* → `selectWhere(key, filled)` → `GET /wb/ids?which=filled&key=…&filled=1|0` (`wb.filled_ids`), which replaces the selection (`clear`, `add`, `edited`), so it is one undo step.
+
+
+## Multi-cell selection (update)
+
+Module state `csel = {cells: Set<td>, anchor: {row, col}}` in `workbench.js`. Shift+click / Shift+arrows → `cselRange` (rectangle over visible file rows and data columns); Ctrl/⌘+click toggles a cell (adding the cursor cell first); a plain click or plain arrow clears. `td.is-csel` marks them; with ≥ 2 a fixed `#wb-cselpill` ("n cells ⋯") follows the last cell and opens the sheet (`wb-cellsmenu` → `wbPage.openCellsMenu`, `menu.multi = true`, `menu.cells = [{fid, key, label, target, isName, value}]`, `distinct` = number of different values among editable cells). Right-click / ⋯ / Alt|Ctrl|⌘+Enter on a selected cell open the same. Actions post `/wb/view action=cells op=filter|set|apply|ref cells=[[fid,key],…]` (+ `value`, `scope`, `target`, `ids`); *Select all* sends the selected columns joined by newlines to `/wb/ids?which=filled`. Row ticking moved from Shift+↑↓ to X / Shift+X.

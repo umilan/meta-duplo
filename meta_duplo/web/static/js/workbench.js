@@ -108,6 +108,7 @@
       btn.title = "Cell menu"; btn.setAttribute("aria-label", "Cell menu");
       btn.addEventListener("click", (ev) => {  // never let it reach the row (that opens the preview)
         ev.stopPropagation();
+        if (csel.cells.size > 1 && csel.cells.has(btn.parentElement)) { openCellsMenu(cselPill()); return; }
         window.dispatchEvent(new CustomEvent("wb-cellmenu", { detail: { btn } }));
       });
     }
@@ -160,6 +161,7 @@
     const key = headerKey(td.closest("table"), td.cellIndex);
     if (!key || key === "thumb") return;
     e.preventDefault();
+    if (csel.cells.size > 1 && csel.cells.has(td)) { openCellsMenu(cselPill()); return; }
     const btn = cellButton();
     if (btn.parentElement !== td) td.appendChild(btn);
     window.dispatchEvent(new CustomEvent("wb-cellmenu", { detail: { btn } }));
@@ -231,6 +233,60 @@
       clearTimeout(kb.pv); kb.pv = setTimeout(() => showPreview(target), 120);
     }
   };
+  // Several cells: Shift+click / Shift+arrows select a range from the anchor, Ctrl/⌘+click adds or removes one cell.
+  // A small "n cells ⋯" pill (and right-click or ⋯ on a selected cell) opens the cell sheet for all of them.
+  const csel = { cells: new Set(), anchor: null };  // selected <td>s; anchor: { row, col } where the range starts
+  const isDataCell = (td) => {
+    if (!td || td.tagName !== "TD" || !td.parentElement.classList.contains("wbr")) return false;
+    const th = td.closest("table").tHead.rows[0].cells[td.cellIndex];
+    return !!(th && th.dataset.key && th.dataset.key !== "thumb");
+  };
+  const cellInfo = (td) => {
+    const th = td.closest("table").tHead.rows[0].cells[td.cellIndex];
+    const raw = [...td.childNodes].filter((n) => n.id !== "wb-cellbtn" && !n.classList?.contains("srclink"))
+      .map((n) => n.textContent).join("").trim().replace(/^[→=]\s*/, "");
+    return { fid: td.parentElement.dataset.rowid, key: th.dataset.key, label: th.dataset.label || th.dataset.key,
+             target: th.dataset.target, isName: ["filename", "edit:filename"].includes(th.dataset.key), value: raw === "—" ? "" : raw };
+  };
+  const cselPill = () => {
+    let el = document.getElementById("wb-cselpill");
+    if (!el) {
+      el = document.createElement("button");
+      el.id = "wb-cselpill"; el.type = "button"; el.className = "cselpill"; el.hidden = true;
+      el.title = "Actions for the selected cells"; el.addEventListener("click", (ev) => { ev.stopPropagation(); openCellsMenu(el); });
+      document.body.appendChild(el);
+    }
+    return el;
+  };
+  const cselPaint = () => {
+    document.querySelectorAll(".wbt td.is-csel").forEach((c) => { if (!csel.cells.has(c)) c.classList.remove("is-csel"); });
+    csel.cells.forEach((c) => (c.isConnected ? c.classList.add("is-csel") : csel.cells.delete(c)));
+    const pill = cselPill();
+    if (csel.cells.size < 2) { pill.hidden = true; return; }
+    const last = [...csel.cells].pop(), r = last.getBoundingClientRect();
+    pill.textContent = `${csel.cells.size} cells ⋯`; pill.hidden = false;
+    pill.style.left = `${Math.round(Math.max(8, Math.min(r.right + 4, innerWidth - pill.offsetWidth - 8)))}px`;
+    pill.style.top = `${Math.round(Math.max(8, r.top - pill.offsetHeight - 4))}px`;
+  };
+  const cselClear = () => { if (csel.cells.size || csel.anchor) { csel.cells.clear(); csel.anchor = null; cselPaint(); } };
+  const cselRange = (tr, col) => {  // the rectangle from the anchor to (tr, col), file rows and data columns only
+    const all = visibleRows(), a = all.indexOf(csel.anchor.row), b = all.indexOf(tr);
+    csel.cells.clear();
+    if (a < 0 || b < 0) return;
+    const rows = all.slice(Math.min(a, b), Math.max(a, b) + 1).filter((r) => r.classList.contains("wbr"));
+    const c0 = Math.min(csel.anchor.col, col), c1 = Math.max(csel.anchor.col, col);
+    rows.forEach((r) => { for (let c = c0; c <= c1; c++) if (isDataCell(r.cells[c])) csel.cells.add(r.cells[c]); });
+  };
+  const openCellsMenu = (el) => {
+    cselPaint();
+    window.dispatchEvent(new CustomEvent("wb-cellsmenu", { detail: { el, cells: [...csel.cells].map(cellInfo) } }));
+  };
+  window.addEventListener("wb-csel-clear", cselClear);
+  document.addEventListener("scroll", () => { if (csel.cells.size > 1) cselPaint(); }, true);
+  document.addEventListener("htmx:afterSwap", (e) => { if (e.detail.target && e.detail.target.id === "wb-table") cselClear(); });
+  document.addEventListener("mousedown", (e) => {  // Shift / Ctrl / ⌘ + click must not select text
+    if ((e.shiftKey || e.metaKey || e.ctrlKey) && isDataCell(e.target.closest && e.target.closest(".wbt tbody td"))) e.preventDefault();
+  });
   const typing = (el) => el && (el.closest("input, select, textarea, [contenteditable], .modal") !== null);
   document.addEventListener("keydown", (e) => {
     if (!document.querySelector("#wb-table .wbt") || typing(e.target)) return;
@@ -255,28 +311,34 @@
     if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "a") {  // ⌘/Ctrl+A: every row of the view
       e.preventDefault(); store.selectAll(true); return;
     }
-    if (e.shiftKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) {  // extend the ticks while moving
+    if (e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.startsWith("Arrow")) {  // extend the cell selection
       e.preventDefault();
-      if (!has) { first(); tick(rows[0]); return; }
-      tick(kb.row);
-      const next = rows[e.key === "ArrowDown" ? Math.min(i + 1, rows.length - 1) : Math.max(i - 1, 0)];
-      setCursor(next, kb.col); tick(next); return;
+      if (!has) { first(); return; }
+      if (!csel.anchor) csel.anchor = { row: kb.row, col: kb.col };
+      if (e.key === "ArrowDown") setCursor(rows[Math.min(i + 1, rows.length - 1)], kb.col);
+      else if (e.key === "ArrowUp") setCursor(rows[Math.max(i - 1, 0)], kb.col);
+      else setCursor(kb.row, kb.col + (e.key === "ArrowRight" ? 1 : -1));
+      cselRange(kb.row, kb.col); cselPaint(); return;
     }
-    if (e.key.toLowerCase() === "x" && !e.metaKey && !e.ctrlKey && !e.altKey) {  // tick / untick, then next row
+    if (e.key.toLowerCase() === "x" && !e.metaKey && !e.ctrlKey && !e.altKey) {  // tick / untick, then next row (Shift: previous)
       e.preventDefault();
       if (!has) { first(); return; }
       kb.row.querySelector("td.wbt__check input")?.click();
-      setCursor(rows[Math.min(i + 1, rows.length - 1)], kb.col); return;
+      setCursor(rows[e.shiftKey ? Math.max(i - 1, 0) : Math.min(i + 1, rows.length - 1)], kb.col); return;
     }
+    if (e.key.startsWith("Arrow")) cselClear();  // moving on without Shift drops the cell selection
     switch (e.key) {
       case "ArrowDown": e.preventDefault(); has ? setCursor(rows[Math.min(i + 1, rows.length - 1)], kb.col) : first(); return;
       case "ArrowUp": e.preventDefault(); has ? setCursor(rows[Math.max(i - 1, 0)], kb.col) : first(); return;
       case "ArrowRight": e.preventDefault(); has ? setCursor(kb.row, kb.col + 1) : first(); return;
       case "ArrowLeft": e.preventDefault(); has ? setCursor(kb.row, kb.col - 1) : first(); return;
-      case "Escape": if (has) { kb.row = null; paint(); } return;
+      case "Escape": if (csel.cells.size) { cselClear(); return; } if (has) { kb.row = null; paint(); } return;
     }
     if (!has) return;
     const tr = kb.row, td = cursorCell();
+    if (e.key === "Enter" && (e.altKey || e.ctrlKey || e.metaKey) && csel.cells.size > 1) {  // the selected cells' menu
+      e.preventDefault(); openCellsMenu(cselPill()); return;
+    }
     if (e.key === "Enter" && (e.altKey || e.ctrlKey || e.metaKey)) {  // the cell's ⋯ menu
       e.preventDefault();
       const head = tr.closest("table").tHead.rows[0].cells[kb.col];
@@ -298,6 +360,21 @@
   // a click puts the cursor on that cell; after a reload the cursor finds its row again
   document.addEventListener("click", (e) => {
     const td = e.target.closest && e.target.closest(".wbt tbody td");
+    if (td && isDataCell(td) && (e.shiftKey || e.metaKey || e.ctrlKey) && !e.target.closest("#wb-cellbtn, .srclink, input")) {
+      const cur = cursorCell();
+      if (e.shiftKey) {  // a range from the cursor (or the anchor) to here
+        if (!csel.anchor) csel.anchor = cur && isDataCell(cur) ? { row: kb.row, col: kb.col } : { row: td.parentElement, col: td.cellIndex };
+        cselRange(td.parentElement, td.cellIndex);
+      } else {  // Ctrl / ⌘: add or remove this one cell
+        if (!csel.cells.size && cur && isDataCell(cur) && cur !== td) csel.cells.add(cur);
+        csel.cells.has(td) ? csel.cells.delete(td) : csel.cells.add(td);
+        csel.anchor = { row: td.parentElement, col: td.cellIndex };
+      }
+      const keep = csel.anchor;
+      setCursor(td.parentElement, td.cellIndex);
+      csel.anchor = keep; cselPaint(); return;
+    }
+    if (td && !e.target.closest("#wb-cellbtn, .srclink")) cselClear();
     if (td && td.parentElement.matches(".wbr, .wbg__head")) setCursor(td.parentElement, td.cellIndex);
     // a click on a group row's cell also opens the preview of the group's first file (like a click on a file row)
     if (td && td.parentElement.matches(".wbg__head") && !td.matches(".wbt__check, .wbg__exp, .wbg__label")) {
@@ -527,7 +604,24 @@
       // cell actions (⋯ or right-click): filter by the value, apply it to group / selection / all, reference row
       cellAct(action, extra = {}) {
         const m = this.menu; this.menu = null;
+        if (m.multi) {  // the same action for every selected cell
+          postView({ action: "cells", op: { cell_filter: "filter", cell_apply: "apply", cell_ref: "ref" }[action], cells: this.cellsJson(m), ...extra });
+          window.dispatchEvent(new CustomEvent("wb-csel-clear")); return;
+        }
         postView({ action, fid: m.fid, key: m.key, ...extra });
+      },
+      cellsJson(m) { return JSON.stringify(m.cells.map((c) => [c.fid, c.key])); },
+      // the cell sheet for several selected cells (the "n cells ⋯" pill, or right-click / ⋯ on one of them)
+      openCellsMenu(d) {
+        const r = d.el.getBoundingClientRect(), cells = d.cells;
+        const keys = [...new Set(cells.map((c) => c.key))], withTarget = cells.filter((c) => c.target);
+        const distinct = [...new Set(withTarget.map((c) => c.value))];
+        this.sub = false; this.subSel = false;
+        this.menu = { cell: true, multi: true, cells, keys, key: keys[0], fid: cells[0].fid, td: null,
+                      label: `${cells.length} cells${keys.length > 1 ? ` in ${keys.length} columns` : ""}`,
+                      target: withTarget.length ? withTarget[0].target : "", isName: cells.every((c) => c.isName),
+                      value: distinct.length === 1 ? distinct[0] : "", distinct: distinct.length, isRef: false,
+                      x: Math.max(8, Math.min(r.left, window.innerWidth - 312)), y: r.bottom + 4 };
       },
       // "Apply this value › To column…": the user picks the field it feeds (a date: the capture date; else place / device)
       sub: false,
@@ -543,8 +637,9 @@
       targetName(t) { return { date: "New date (capture date)", place: "New place", device: "New device" }[t] || t; },
       openApplyCol() {
         const m = this.menu; this.menu = null;
-        const targets = m.target === "date" ? ["date"] : ["place", "device"];
-        this.ac = { mode: "cell", fid: m.fid, key: m.key, label: m.label, value: m.value.replace(/^[→=]\s*/, ""), targets,
+        const dates = m.multi ? m.cells.map((c) => c.target === "date") : [m.target === "date"];
+        const targets = dates.every(Boolean) ? ["date"] : dates.some(Boolean) ? ["date", "place", "device"] : ["place", "device"];
+        this.ac = { mode: "cell", multi: !!m.multi, cells: m.cells || [], fid: m.fid, key: m.key, label: m.label, value: m.value.replace(/^[→=]\s*/, ""), targets,
                     target: targets.includes(m.target) ? m.target : targets[0], scope: "group" };
         this.dialog = "applycol";
       },
@@ -558,6 +653,11 @@
       saveApplyCol() {
         const a = this.ac;
         if (a.mode === "column") { postView({ action: "edit_set", target: a.target, kind: "column", column: a.key }); this.close(); return; }
+        if (a.multi) {
+          postView({ action: "cells", op: "apply", cells: this.cellsJson(a), target: a.target, scope: a.scope,
+                     ids: a.scope === "selection" ? Alpine.store("wb").csv() : "" });
+          window.dispatchEvent(new CustomEvent("wb-csel-clear")); this.close(); return;
+        }
         postView({ action: "cell_apply", fid: a.fid, key: a.key, target: a.target, scope: a.scope,
                    ids: a.scope === "selection" ? Alpine.store("wb").csv() : "" });
         this.close();
@@ -566,11 +666,19 @@
       openCellEdit() {
         const m = this.menu; this.menu = null;
         if (!m) return;
+        if (m.multi && m.target) {  // one value typed for every selected cell that can be edited
+          this.cellEdit = { multi: true, cells: m.cells, label: m.label, value: m.distinct === 1 ? m.value : "", fid: "", key: "" };
+          this.dialog = "celledit"; this.$nextTick(() => this.$refs.celledit && this.$refs.celledit.select()); return;
+        }
         if (!m.target) { this.openEdit({ target: "filename" }); return; }  // New filename: one pattern for all files
         this.cellEdit = { label: m.label, value: m.value.replace(/^[→=]\s*/, ""), fid: m.fid, key: m.key };  // "→ value" / "= value"
         this.dialog = "celledit"; this.$nextTick(() => this.$refs.celledit && this.$refs.celledit.select());
       },
       saveCellEdit() {
+        if (this.cellEdit.multi) {
+          postView({ action: "cells", op: "set", cells: this.cellsJson(this.cellEdit), value: this.cellEdit.value });
+          window.dispatchEvent(new CustomEvent("wb-csel-clear")); this.close(); return;
+        }
         postView({ action: "cell_set", fid: this.cellEdit.fid, key: this.cellEdit.key, value: this.cellEdit.value });
         this.close();
       },
