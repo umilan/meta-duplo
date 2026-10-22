@@ -238,6 +238,9 @@
         <div class="wbsheet__section">Change</div>
         <button type="button" role="menuitem" :disabled="!menu.target" :title="menu.target ? '' : 'Editing this field is not supported yet'"
                 @click="openEdit({ target: menu.target, kind: 'recommended' }); menu = null">Edit these values… <span class="muted small">(new purple column)</span></button>
+        <button type="button" role="menuitem" :disabled="menu.edit || menu.special" @click="openUseFor(menu)"
+                :title="menu.edit || menu.special ? 'Not for this column' : ''">Use this for another column…
+          <span class="pick__hint">each file's own value fills a purple column next to the one you pick</span></button>
         <template x-if="menu.groupable">
           <button type="button" role="menuitem" @click="post({ action: 'group', group: menu.groupable }); menu = null">Group by this</button>
         </template>
@@ -366,14 +369,15 @@
         <button type="button" class="btn btn--primary" @click="apply()">Apply</button></div>
     </div>
     <div class="modal__box" x-show="dialog === 'applycol'">
-      <div class="colpick-head"><h3>Apply to column</h3>
+      <div class="colpick-head"><h3 x-text="ac.mode === 'column' ? 'Use this for another column' : 'Apply to column'">Apply to column</h3>
         <button type="button" class="btn btn--icon btn--small modal__close" @click="close()" aria-label="Close">×</button></div>
-      <p class="small"><span class="muted" x-text="ac.label + ':'"></span> <strong class="mono" x-text="ac.value"></strong></p>
+      <p class="small" x-show="ac.mode === 'cell'"><span class="muted" x-text="ac.label + ':'"></span> <strong class="mono" x-text="ac.value"></strong></p>
+      <p class="small" x-show="ac.mode === 'column'">Each file takes its own <strong x-text="ac.label"></strong> value.</p>
       <label>Column
         <select x-model="ac.target">
           <template x-for="t in ac.targets" :key="t"><option :value="t" x-text="targetName(t)"></option></template>
         </select></label>
-      <fieldset class="applycol__scope"><legend class="small muted">For</legend>
+      <fieldset class="applycol__scope" x-show="ac.mode === 'cell'"><legend class="small muted">For</legend>
         <label><input type="radio" value="group" x-model="ac.scope"> Its group</label>
         <label><input type="radio" value="selection" x-model="ac.scope" :disabled="!$store.wb.count">
           <span x-text="'The selection (' + $store.wb.count + ')'"></span></label>

@@ -632,6 +632,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 rule = {"kind": "pattern", "pattern": f.get("pattern") or harmonize.DEFAULT_PATTERN}
             elif kind == "column":
                 rule["column"] = f.get("column", "")
+                if t not in wb.apply_targets(rule["column"]):  # "Use this for another column…": a date only into the date
+                    return Response(status_code=204, headers={"HX-Trigger": json.dumps({"toast": "That column cannot feed this field"})})
             elif kind == "fixed":
                 rule["value"] = f.get("value", "").strip()
             elif kind == "shift":

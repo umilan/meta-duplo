@@ -91,7 +91,7 @@
                 title="Filtered: {% for f in col_filters %}{{ ops[f.op] }}{% if f.op not in no_value_ops %} {{ f.value }}{% endif %}{{ '; ' if not loop.last }}{% endfor %}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3 1.5v-6z" fill="currentColor"/></svg></span>{% endif %}
           {% if c.key != 'thumb' %}<span class="wbh__sort {{ 'is-on' if sorted }}" aria-hidden="true">{% if sorted %}{{ '↑' if view.sort[1] == 'asc' else '↓' }}{% else %}{{ '↓' if c.kind == 'num' else '↑' }}{% endif %}</span>{% endif %}
           {% if c.key != 'thumb' %}<button type="button" class="wbh__act" aria-haspopup="menu" :class="menu && menu.key === '{{ c.key }}' && 'is-open'"
-              @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}', edit: {{ 'true' if c.edit else 'false' }}, pinned: {{ 'true' if c.pinned else 'false' }} }, $el)" title="Column menu: sort, filter, search, edit" aria-label="Column menu">⋯</button>{% endif %}
+              @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}', edit: {{ 'true' if c.edit else 'false' }}, pinned: {{ 'true' if c.pinned else 'false' }}, apply: '{{ c.apply_target }}', special: {{ 'true' if c.kind == 'special' else 'false' }} }, $el)" title="Column menu: sort, filter, search, edit" aria-label="Column menu">⋯</button>{% endif %}
           <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" @click.stop title="Drag to resize"></span>
         </div>
       </th>

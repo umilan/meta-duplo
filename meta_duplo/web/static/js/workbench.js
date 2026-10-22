@@ -531,17 +531,25 @@
       },
       // "Apply this value › To column…": the user picks the field it feeds (a date: the capture date; else place / device)
       sub: false,
-      ac: { fid: "", key: "", label: "", value: "", targets: [], target: "", scope: "group" },
+      ac: { mode: "cell", fid: "", key: "", label: "", value: "", targets: [], target: "", scope: "group" },
       targetName(t) { return { date: "New date (capture date)", place: "New place", device: "New device" }[t] || t; },
       openApplyCol() {
         const m = this.menu; this.menu = null;
         const targets = m.target === "date" ? ["date"] : ["place", "device"];
-        this.ac = { fid: m.fid, key: m.key, label: m.label, value: m.value.replace(/^[→=]\s*/, ""), targets,
+        this.ac = { mode: "cell", fid: m.fid, key: m.key, label: m.label, value: m.value.replace(/^[→=]\s*/, ""), targets,
                     target: targets.includes(m.target) ? m.target : targets[0], scope: "group" };
+        this.dialog = "applycol";
+      },
+      // header menu "Use this for another column…": a copy-from-column rule for the chosen field, all rows
+      openUseFor(m) {
+        this.menu = null;
+        const targets = m.apply === "date" ? ["date"] : ["place", "device"];
+        this.ac = { mode: "column", fid: "", key: m.key, label: m.label, value: "", targets, target: targets[0], scope: "all" };
         this.dialog = "applycol";
       },
       saveApplyCol() {
         const a = this.ac;
+        if (a.mode === "column") { postView({ action: "edit_set", target: a.target, kind: "column", column: a.key }); this.close(); return; }
         postView({ action: "cell_apply", fid: a.fid, key: a.key, target: a.target, scope: a.scope,
                    ids: a.scope === "selection" ? Alpine.store("wb").csv() : "" });
         this.close();

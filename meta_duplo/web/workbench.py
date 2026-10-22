@@ -513,8 +513,9 @@ def apply_edits(rows: list[dict], edits: dict) -> None:
                 src[target] = keep[target]
             elif kind == "recommended":
                 e[target] = rec
-            elif kind == "column":
-                e[target] = str(v.get(rule.get("column", ""), "") or "")
+            elif kind == "column":  # each file's own value of another column (a date: tidied to the table form)
+                raw = v.get(rule.get("column", ""), "")
+                e[target] = _readable_date(raw)[:19] if target == "date" else str(raw or "")
             elif kind == "fixed":
                 e[target] = rule.get("value", "")
             elif kind == "shift" and target == "date":
