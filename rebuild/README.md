@@ -34,6 +34,12 @@ Port the tests early (13): they are the acceptance criteria for 03–09.
 
 ## Ground rules for a rebuild (from CLAUDE.md)
 
+These are the target rules. Today's code does not meet all of them yet; skills 02–04 mark the gaps:
+ExifTool is not used yet (Pillow + pillow-heif and ffprobe read metadata, ADR-013), so there is no `SourceFile`
+keying; per-file errors go to `files.error` (no `file_errors` table); `RAW_VERSION` is the only stage version
+(no `STAGE_VERSION`); original path bytes are not stored. A rebuild may close these gaps, but must not
+silently change behaviour that the tests in 13 pin down.
+
 1. Never write to source folders except through `plans.apply_plan` / `undo_plan` with an approved plan; tests
    use temp copies of the demo disk.
 2. Key ExifTool results by `SourceFile`; keep the integrity checks.
