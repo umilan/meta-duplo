@@ -232,3 +232,10 @@ def test_same_only_when_every_file_agrees(lib):
     ref_parts = dict(g.ref["path_parts"]); wa_parts = dict(wa["path_parts"])
     assert ref_parts["disk"] == "same" and wa_parts["disk"] == "same"
     assert wa_parts["WhatsApp Images"] == "diff" and ref_parts["Camera"] == ""
+
+
+def test_select_filled_or_empty(lib):
+    view = wb.load_view(lib)
+    groups, _, n = wb.table(lib, view)
+    filled, empty = wb.filled_ids(lib, view, "date", True), wb.filled_ids(lib, view, "date", False)
+    assert filled and empty and not set(filled) & set(empty) and len(filled) + len(empty) == n

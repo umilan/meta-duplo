@@ -181,7 +181,18 @@
       <div>
         <div class="wbsheet__title" :title="menu.value"><span x-text="menu.label"></span>: <span class="muted" x-text="menu.value || '—'"></span></div>
         <button type="button" role="menuitem" @click="cellAct('cell_filter')">Filter this column by this value</button>
-        <div class="wbsheet__section">Change</div>
+        <div class="wbsheet__subwrap" @mouseenter="subSel = true" @mouseleave="subSel = false">
+          <button type="button" role="menuitem" class="wbsheet__subbtn" aria-haspopup="menu" :aria-expanded="subSel.toString()"
+                  @click="subSel = true" @keydown.arrow-right.prevent="subSel = true">Select all
+            <span class="wbsheet__chev" aria-hidden="true">›</span></button>
+          <div class="wbsheet wbsheet--sub" role="menu" x-show="subSel" x-cloak :class="menu.x > innerWidth - 640 && 'is-left'">
+            <button type="button" role="menuitem" @click="selectWhere(menu.key, true)">Non-empty
+              <span class="pick__hint">tick every file with a value in this column</span></button>
+            <button type="button" role="menuitem" @click="selectWhere(menu.key, false)">Empty
+              <span class="pick__hint">tick every file without one</span></button>
+          </div>
+        </div>
+        <div class="wbsheet__divider" role="separator"></div>
         <button type="button" role="menuitem" :disabled="!menu.target && !menu.isName"
                 :title="menu.target || menu.isName ? '' : 'Only date, place, device and file names can be changed (plans write those)'"
                 @click="openCellEdit()" x-text="menu.isName ? 'Rename with a pattern…' : 'Edit this value…'">Edit this value…</button>
@@ -201,7 +212,7 @@
               <span class="pick__hint">choose which field gets it, then group, selection or all</span></button>
           </div>
         </div>
-        <div class="wbsheet__section">Compare</div>
+        <div class="wbsheet__divider" role="separator"></div>
         <button type="button" role="menuitem" @click="cellAct('cell_ref')"
                 x-text="menu.isRef ? 'Stop using this row as the reference' : 'Use this row as the reference of its group'"></button>
       </div>
@@ -226,16 +237,27 @@
         <button type="button" role="menuitem" class="wbsheet__pinitem" @click="post({ action: 'col_pin', key: menu.key, on: menu.pinned ? '' : '1' }); menu = null"
                 x-text="menu.pinned ? 'Unpin column' : 'Pin to the left'"
                 :title="menu.pinned ? 'Let it scroll with the others again' : 'Keep this column at the left while you scroll sideways'">Pin to the left</button>
-        <div class="wbsheet__section">Sort by</div>
+        <div class="wbsheet__divider" role="separator"></div>
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'asc' }); menu = null">↑ Ascending (A → Z, old → new)</button>
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'desc' }); menu = null">↓ Descending (Z → A, new → old)</button>
-        <div class="wbsheet__section">Find</div>
+        <div class="wbsheet__divider" role="separator"></div>
         <button type="button" role="menuitem" @click="openValues(menu); menu = null">Filter by value…
           <span class="pick__hint">choose from the values in this column</span></button>
         <button type="button" role="menuitem" @click="openFilter(menu); menu = null">Filter…</button>
         <button type="button" role="menuitem" @click="openFilter(menu, 'contains'); menu = null">Search in this column…</button>
         <button type="button" role="menuitem" @click="openFilter(menu, 'diff'); menu = null">Show groups where it differs</button>
-        <div class="wbsheet__section">Change</div>
+        <div class="wbsheet__subwrap" @mouseenter="subSel = true" @mouseleave="subSel = false">
+          <button type="button" role="menuitem" class="wbsheet__subbtn" aria-haspopup="menu" :aria-expanded="subSel.toString()"
+                  @click="subSel = true" @keydown.arrow-right.prevent="subSel = true">Select all
+            <span class="wbsheet__chev" aria-hidden="true">›</span></button>
+          <div class="wbsheet wbsheet--sub" role="menu" x-show="subSel" x-cloak :class="menu.x > innerWidth - 640 && 'is-left'">
+            <button type="button" role="menuitem" @click="selectWhere(menu.key, true)">Non-empty
+              <span class="pick__hint">tick every file with a value in this column</span></button>
+            <button type="button" role="menuitem" @click="selectWhere(menu.key, false)">Empty
+              <span class="pick__hint">tick every file without one</span></button>
+          </div>
+        </div>
+        <div class="wbsheet__divider" role="separator"></div>
         <button type="button" role="menuitem" :disabled="!menu.target" :title="menu.target ? '' : 'Editing this field is not supported yet'"
                 @click="openEdit({ target: menu.target, kind: 'recommended' }); menu = null">Edit these values… <span class="muted small">(new purple column)</span></button>
         <button type="button" role="menuitem" :disabled="menu.edit || menu.special" @click="openUseFor(menu)"

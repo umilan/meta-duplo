@@ -796,8 +796,13 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                            "conf": wb.conf_label(x), "kept": x["keeper"]} for x in mates]}
 
     @app.get("/wb/ids")
-    def wb_ids(which: str = "nonkeepers"):
-        """Selection presets over the whole current view, also the groups not loaded yet."""
+    def wb_ids(which: str = "nonkeepers", key: str = "", filled: int = 1):
+        """Selection presets over the whole current view, also the groups not loaded yet;
+        which=filled: the files with (filled=1) or without (0) a value in column `key`."""
+        if which == "filled":
+            if not wb.field_for(key):
+                raise HTTPException(400, "unknown column")
+            return {"ids": wb.filled_ids(lib, wb.load_view(lib), key, bool(filled))}
         if which not in wb.SELECTION_PRESETS:
             raise HTTPException(400, "unknown selection preset")
         return {"ids": wb.preset_ids(lib, wb.load_view(lib), which)}

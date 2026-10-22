@@ -518,7 +518,7 @@
         const r = btn.getBoundingClientRect(), td = btn.parentElement, tr = td.parentElement;
         const th = tr.closest("table").tHead.rows[0].cells[td.cellIndex];
         const value = [...td.childNodes].filter((n) => n !== btn && !n.classList?.contains("srclink")).map((n) => n.textContent).join("").trim();
-        this.sub = false;
+        this.sub = false; this.subSel = false;
         this.menu = { cell: true, btn, td, key: th.dataset.key, label: th.dataset.label || th.dataset.key, target: th.dataset.target,
                       isName: ["filename", "edit:filename"].includes(th.dataset.key),  // edited through the naming pattern
                       fid: tr.dataset.rowid, value: value === "—" ? "" : value, isRef: tr.classList.contains("wbr--userref"),
@@ -531,6 +531,14 @@
       },
       // "Apply this value › To column…": the user picks the field it feeds (a date: the capture date; else place / device)
       sub: false,
+      subSel: false,         // the "Select all ›" submenu (header and cell menus)
+      // tick every file of the view with (or without) a value in a column; replaces the selection (undoable)
+      selectWhere(key, filled) {
+        this.menu = null;
+        fetch(`/wb/ids?which=filled&key=${encodeURIComponent(key)}&filled=${filled ? 1 : 0}`).then((r) => r.json()).then((d) => {
+          const w = Alpine.store("wb"); w.clear(); d.ids.forEach((id) => w.add(id)); w.edited();
+        });
+      },
       ac: { mode: "cell", fid: "", key: "", label: "", value: "", targets: [], target: "", scope: "group" },
       targetName(t) { return { date: "New date (capture date)", place: "New place", device: "New device" }[t] || t; },
       openApplyCol() {
@@ -578,6 +586,7 @@
         this.close();
       },
       openMenu(d, btn) {
+        this.subSel = false;
         if (this.menu && this.menu.key === d.key) { this.menu = null; return; }
         const r = btn.getBoundingClientRect();
         this.menu = { ...d, x: Math.max(8, Math.min(r.right - 304, window.innerWidth - 312)), y: r.bottom + 4 };

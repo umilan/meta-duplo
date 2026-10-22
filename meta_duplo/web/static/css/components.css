@@ -728,6 +728,7 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 
 /* cell menu: "Apply this value ›" opens a submenu beside the menu (to the left near the window's right edge) */
 .wbsheet__subwrap { position: relative; display: grid; }
+.wbsheet__divider { height: 1px; margin: var(--space-050) var(--space-100); background: var(--line); }  /* sections in the column / cell menus */
 .wbsheet .wbsheet__subbtn { justify-content: space-between; }
 .wbsheet__chev { color: var(--muted); font-size: var(--text-md); }
 .wbsheet.wbsheet--sub { position: absolute; top: calc(-1 * var(--space-050)); left: calc(100% + var(--space-050)); z-index: 41; }

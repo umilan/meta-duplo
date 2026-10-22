@@ -194,7 +194,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Header ⋯ button** (same look as the cell ⋯ button; shown only while hovering the header, while its menu is open or when focused) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Pin to the left* / *Unpin column* (a pinned column joins the block at the left and stays there while the table scrolls sideways, after the checkbox and group columns; a pin icon in its header, a 2 px line where the scrolling part starts; the thumbnail is pinned while it is the first column; saved in the view as `pinned`, undoable); *Sort by* ascending / descending; *Find*: Filter by value… (the column's
   values with counts, most frequent first, searchable; picking one adds an *is* filter), Filter…, Search in this
-  column… (*contains*), Show groups where it differs; *Change*: Edit these values… (new purple column), Use this for another column… (a dialog asks which field it feeds: a date column only *New date*, any other column *New place* or *New device*; a purple column next to that field then takes each file's own value of this column, for all rows; raw EXIF dates are tidied to the table form), Group by this (Path, Date, Device,
+  column… (*contains*), Show groups where it differs; Select all › (*Non-empty* / *Empty*: ticks every file of the view, also groups not loaded yet, with / without a value in this column; replaces the selection, undoable); *Change*: Edit these values… (new purple column), Use this for another column… (a dialog asks which field it feeds: a date column only *New date*, any other column *New place* or *New device*; a purple column next to that field then takes each file's own value of this column, for all rows; raw EXIF dates are tidied to the table form), Group by this (Path, Date, Device,
   Place, Dup.). *Remove* (top right, next to the column name) takes the column out of the table; section labels are a lighter grey than the items. Clicking the label toggles the sort; drag the label to move the column.
 - **Filters** (bar above the table; click a chip to edit it in the filter dialog, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
   differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
@@ -349,7 +349,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   cell menu is open, its cell keeps the highlight and the ⋯ even when the pointer moves onto the menu.
 - **Cell menu:** hovering a data cell shows **⋯** on its right (not in the checkbox, grouping └ or thumbnail
   columns); it, or a right-click on the cell, opens a sheet titled with the column and the value:
-  - *Filter this column by this value* (an empty cell filters on “is empty”);
+  - *Filter this column by this value* (an empty cell filters on “is empty”); *Select all ›* (*Non-empty* / *Empty*, as in the
+    column menu). The column and cell menus separate their sections with divider lines, not headings;
   - *Change* — only date, place and device values can be changed, because plans write only those (other columns
     show these items disabled): *Edit this value…* (a dialog; the value applies to this file only; in Filename / New filename it reads *Rename with a pattern…* and opens the naming-pattern dialog),
     *Remove this value* (disabled: plans cannot clear a metadata value yet), and *Apply this value ›*, a submenu

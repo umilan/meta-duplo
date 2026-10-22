@@ -822,6 +822,12 @@ def _richness(r: dict) -> int:
     return sum(1 for v in r["tags"].values() if v not in ("", None)) + sum(1 for k in core if r["v"].get(k))
 
 
+def filled_ids(lib: Library, view: dict, key: str, filled: bool) -> list[int]:
+    """Files of the view (filters apply, all groups) with / without a value in a column."""
+    groups, _, _ = table(lib, view)
+    return [r["id"] for g in groups for r in g.rows if (value(r, key) not in ("", None)) == filled]
+
+
 def preset_ids(lib: Library, view: dict, preset: str) -> list[int]:
     """Rows a selection preset ticks, within the current view (filters apply).
 

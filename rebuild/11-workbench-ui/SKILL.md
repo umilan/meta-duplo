@@ -502,3 +502,8 @@ Any body cell resizes columns: a `mousemove` listener adds `td.is-edge` (cursor 
 ## Empty columns (update)
 
 `th.is-empty` (from `c.empty`: no file in the view has a value) strikes through `.wbh__label` and `.wbh__abbr` (muted), in wide and slim widths.
+
+
+## Menu dividers and Select all (update)
+
+The column and cell menus use `.wbsheet__divider` (1 px `--line`, `role=separator`) instead of section headings. Both have *Select all ›* (`subSel`, same submenu pattern as *Apply this value ›*) with *Non-empty* / *Empty* → `selectWhere(key, filled)` → `GET /wb/ids?which=filled&key=…&filled=1|0` (`wb.filled_ids`), which replaces the selection (`clear`, `add`, `edited`), so it is one undo step.
