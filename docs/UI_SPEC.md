@@ -206,7 +206,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
     order; Enter in the search takes the first match). Clicking a chip selects it (framed, it takes the focus, so
     no text caret shows) and highlights its tag in the list, scrolled into view: the next tag replaces it (it stays
     selected), or *Remove it* / *Keep it*. **Keyboard:** ← → walk through the line, from the text over the chips
-    (a chip is one step); Backspace / Delete next to a chip select it, and again remove it; Esc leaves a chip. *Tech names / Preview* switches chips between their names (a column tag by its key,
+    (a chip is one step); ↑ ↓ on a selected chip swap it for the previous / next tag of the list (as filtered),
+    live, with the list following; Backspace / Delete next to a chip select it, and again remove it; Esc leaves a chip. *Tech names / Preview* switches chips between their names (a column tag by its key,
     e.g. `EXIF:DateTimeOriginal`) and the values of the previewed (or first) file; the full new name shows below.
     A red warning shows while the name does not end with `.<Extension>`. Empty parts are tidied like an empty
     place; `{tag:KEY|%Y-%m-%d}` formats a date tag. Rename plans use the same values the table shows.

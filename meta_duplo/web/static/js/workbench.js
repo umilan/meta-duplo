@@ -580,6 +580,15 @@
         });
       },
       leaveTok(i, dir) { if (i >= 0) this.textAt(i + dir, dir < 0 ? -1 : 0); },
+      // ↑ ↓ on a selected parameter: the previous / next tag of the list (as filtered) takes its place, live
+      stepTok(i, dir) {
+        const opts = [...this.$root.querySelectorAll(".namer__opt")].filter((b) => b.offsetParent !== null);
+        if (!opts.length) return;
+        const at = opts.findIndex((b) => b.dataset.tok === this.parts[i].v);
+        const next = opts[at < 0 ? (dir > 0 ? 0 : opts.length - 1) : Math.max(0, Math.min(opts.length - 1, at + dir))];
+        this.parts[i].v = next.dataset.tok; this.picking = i;
+        this.$nextTick(() => next.scrollIntoView({ block: "nearest" }));
+      },
       textKey(i, ev) {
         const el = ev.target, atStart = el.selectionStart === 0 && el.selectionEnd === 0;
         const atEnd = el.selectionStart === el.value.length && el.selectionEnd === el.value.length;
@@ -591,6 +600,7 @@
       tokKey(i, ev) {
         if (ev.key === "ArrowLeft") { ev.preventDefault(); this.textAt(i - 1, -1); }
         else if (ev.key === "ArrowRight") { ev.preventDefault(); this.textAt(i + 1, 0); }
+        else if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); this.stepTok(i, ev.key === "ArrowDown" ? 1 : -1); }
         else if (ev.key === "Backspace" || ev.key === "Delete") { ev.preventDefault(); this.removeTok(); }
         else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); this.leaveTok(i, 1); }
       },
