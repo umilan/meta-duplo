@@ -68,12 +68,38 @@
 
   // Hover: tint the row (CSS), the column (classes set here) and the cell, in the body and the header;
   // one ⋯ button follows the pointer over data cells (not the checkbox, grouping or thumbnail columns).
-  const hover = { table: null, idx: -1 };
+  // One highlight (row, column, cell) for the mouse and the keyboard cursor alike: whichever moved last wins.
+  // While a cell menu is open it stays on that cell (locked), wherever the pointer goes.
+  const hover = { table: null, idx: -1, td: null, locked: false };
   const headerKey = (table, idx) => table.tHead?.rows[0]?.cells[idx]?.dataset.key || "";
   const clearColumn = () => {
     document.querySelectorAll(".wbt .is-hcol").forEach((el) => el.classList.remove("is-hcol"));
     hover.table = null; hover.idx = -1;
   };
+  const clearCell = () => {
+    document.querySelectorAll(".wbt .is-hrow, .wbt .is-hcell").forEach((el) => el.classList.remove("is-hrow", "is-hcell"));
+    hover.td = null;
+  };
+  const highlight = (td) => {  // td: a table cell (body or header); null clears
+    if (!td) { clearColumn(); clearCell(); return; }
+    const table = td.closest("table"), idx = td.cellIndex;
+    if (table !== hover.table || idx !== hover.idx) {
+      clearColumn();
+      hover.table = table; hover.idx = idx;
+      if (idx > 0 && idx < td.parentElement.cells.length - 1) {
+        table.querySelectorAll(`tr > :nth-child(${idx + 1})`).forEach((c) => c.classList.add("is-hcol"));
+      }
+    }
+    if (td !== hover.td) {
+      clearCell();
+      if (td.tagName === "TD") { td.parentElement.classList.add("is-hrow"); td.classList.add("is-hcell"); hover.td = td; }
+    }
+  };
+  window.addEventListener("wb-hl-lock", (e) => { highlight(e.detail); hover.locked = true; });
+  window.addEventListener("wb-hl-unlock", () => {
+    hover.locked = false;
+    if (!document.querySelector(".wbt:hover")) { highlight(null); document.getElementById("wb-cellbtn")?.remove(); }  // pointer left meanwhile
+  });
   const cellButton = () => {
     let btn = document.getElementById("wb-cellbtn");
     if (!btn) {
@@ -88,16 +114,11 @@
     return btn;
   };
   document.addEventListener("mouseover", (e) => {
+    if (hover.locked) return;  // a cell menu is open: its cell keeps the highlight and the ⋯
     const td = e.target.closest && e.target.closest(".wbt tbody td, .wbt thead th");
     if (!td) return;
+    highlight(td);
     const table = td.closest("table"), idx = td.cellIndex;
-    if (table !== hover.table || idx !== hover.idx) {
-      clearColumn();
-      hover.table = table; hover.idx = idx;
-      if (idx > 0 && idx < td.parentElement.cells.length - 1) {
-        table.querySelectorAll(`tr > :nth-child(${idx + 1})`).forEach((c) => c.classList.add("is-hcol"));
-      }
-    }
     const key = headerKey(table, idx);
     const inCanvas = td.tagName === "TD" && key && key !== "thumb" && !td.closest("tbody.more");
     if (inCanvas) {
@@ -136,8 +157,8 @@
   });
   document.addEventListener("mouseout", (e) => {
     const table = e.target.closest && e.target.closest(".wbt");
-    if (table && !(e.relatedTarget && table.contains(e.relatedTarget))) {
-      clearColumn();
+    if (table && !hover.locked && !(e.relatedTarget && table.contains(e.relatedTarget))) {
+      highlight(null);
       document.getElementById("wb-cellbtn")?.remove();
     }
   });
@@ -155,6 +176,7 @@
     if (!td) return;
     kb.row.classList.add("is-cursor-row");
     td.classList.add("is-cursor");
+    if (!hover.locked) highlight(td);  // the keyboard takes over the hover highlight
     td.scrollIntoView({ block: "nearest", inline: "nearest" });
   };
   const showPreview = (tr) => {
@@ -420,6 +442,8 @@
     Alpine.data("wbPage", () => ({
       panel: false,
       init() {
+        // a cell menu keeps its cell highlighted while it is open
+        this.$watch("menu", (m) => window.dispatchEvent(m && m.cell ? new CustomEvent("wb-hl-lock", { detail: m.td }) : new CustomEvent("wb-hl-unlock")));
         this.$watch("panel", (on) => { Alpine.store("wb").panel = on; });
         let w = 0;
         try { w = Number(localStorage.getItem("meta-duplo-panel-w")) || 0; } catch { /* storage blocked */ }

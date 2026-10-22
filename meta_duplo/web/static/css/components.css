@@ -474,18 +474,17 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .wbt:not(.wbt--colors) .wbg__sum--same, .wbt:not(.wbt--colors) .wbg__sum--diff { color: var(--muted); }
 .wbr { cursor: pointer; }
 /* hover: row, column and cell tints are overlays, so they work on purple edit cells and group rows too */
-.wbt tbody tr:hover > td, .wbt thead tr:hover > th, .wbt .is-hcol { background-image: linear-gradient(var(--tint), var(--tint)); }
+.wbt tbody tr.is-hrow > td, .wbt thead tr:hover > th, .wbt .is-hcol { background-image: linear-gradient(var(--tint), var(--tint)); }
 .wbt thead tr:hover > th.is-hcol { background-image: linear-gradient(var(--tint), var(--tint)), linear-gradient(var(--tint), var(--tint)); }
 .wbt thead th:hover { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent); }
-.wbt tbody tr:hover > td.is-hcol { background-image: linear-gradient(var(--tint), var(--tint)), linear-gradient(var(--tint), var(--tint)); }
-.wbt tbody td:not(.wbt__check):hover { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent); }
+.wbt tbody tr.is-hrow > td.is-hcol { background-image: linear-gradient(var(--tint), var(--tint)), linear-gradient(var(--tint), var(--tint)); }
+.wbt tbody td.is-hcell:not(.wbt__check) { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent); }
 .wbt tbody td { position: relative; height: var(--row-h); }
 .wbt tbody td:has(> .cellbtn) { padding-right: var(--space-400); }
 .cellbtn { position: absolute; right: var(--space-050); top: 50%; transform: translateY(-50%); z-index: 1; }
 .wbt tbody .wbr--selected > td { background-color: var(--sel); }
 /* keyboard cursor: the row gets the hover tint, the cell a 2px accent frame */
-.wbt tbody tr.is-cursor-row > td { background-image: linear-gradient(var(--tint), var(--tint)); }
-.wbt tbody td.is-cursor { box-shadow: inset 0 0 0 2px var(--accent); }
+.wbt tbody td.is-cursor, .wbt tbody td.is-cursor.is-hcell:not(.wbt__check) { box-shadow: inset 0 0 0 2px var(--accent); }
 .wbt tbody .wbr--active > td { background-color: var(--sel-active); }
 .wbt--colors .is-diff { color: var(--differ); }
 .wbt--colors .is-same { color: var(--same); }

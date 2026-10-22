@@ -484,3 +484,8 @@ await expect(page.locator('.lightbox')).toBeHidden();
 const fit = await page.locator('.wb-scroll').evaluate(el => [parseInt(el.style.maxHeight, 10), Math.round(el.getBoundingClientRect().top)]);
 expect(Math.abs(fit[0] - Math.max(256, page.viewportSize().height - fit[1]))).toBeLessThanOrEqual(1);   // fitTable: max-height reaches the window bottom
 ```
+
+
+## Highlight model (update)
+
+Row and cell hover are classes, not CSS `:hover`: `highlight(td)` in `workbench.js` sets `tr.is-hrow`, `td.is-hcell` and `.is-hcol` on the column; the mouse (`mouseover`) and the keyboard cursor (`paint()`) both call it, so the last one used wins (the cursor keeps its own 2 px `is-cursor` frame). While a cell menu is open (`wbPage` watches `menu` and dispatches `wb-hl-lock` / `wb-hl-unlock`), the highlight and the ⋯ button stay on that cell; on close, if the pointer is no longer over the table, the highlight clears.

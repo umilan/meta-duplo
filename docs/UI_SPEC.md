@@ -337,7 +337,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   accent bar = this file); **all metadata tags** in a monospace list.
 - **Hover:** a light tint on the row and the column under the pointer, a stronger tint and outline on the cell; the
   column header lights up too. The same works on the header row: hovering a header tints the header row, the
-  column and that header cell. Tints are overlays, so they also work on purple and group rows.
+  column and that header cell. Tints are overlays, so they also work on purple and group rows. The arrow keys move
+  the same highlight (row, column, cell) with the cursor: whichever moved last, mouse or keyboard, owns it. While a
+  cell menu is open, its cell keeps the highlight and the ⋯ even when the pointer moves onto the menu.
 - **Cell menu:** hovering a data cell shows **⋯** on its right (not in the checkbox, grouping └ or thumbnail
   columns); it, or a right-click on the cell, opens a sheet titled with the column and the value:
   - *Filter this column by this value* (an empty cell filters on “is empty”);
