@@ -86,6 +86,7 @@
           {% if c.links %}<span class="srclink srclink--head" data-srctip="{{ c.links|length }} source{{ '' if c.links|length == 1 else 's' }}: {% for l in c.links %}{{ l.letter }} = {{ l.label }}{{ '; ' if not loop.last }}{% endfor %}" aria-label="{{ c.links|length }} sources">{% include "partials/link_icon.svg" %}({{ c.links|length }})</span>{% endif %}
           {% if c.pinned and c.key != 'thumb' %}<span class="wbh__pin" title="Pinned: stays at the left while you scroll" aria-label="Pinned"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h4l-.5 4 2.5 2.5V10H4V8.5L6.5 6zM8 10v4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg></span>{% endif %}
           {% if c.key in key_fields %}<span class="keybadge" title="{{ key_fields[c.key] }}">!</span>{% endif %}
+          {% if c.key in magic_fields %}<span class="keybadge keybadge--magic" title="{{ magic_fields[c.key] }}">{% include "partials/wand_icon.svg" %}</span>{% endif %}
           {% set col_filters = view.filters|selectattr("key", "equalto", c.key)|list %}
           {% if col_filters %}<span class="wbh__filter" role="img" aria-label="Filtered"
                 title="Filtered: {% for f in col_filters %}{{ ops[f.op] }}{% if f.op not in no_value_ops %} {{ f.value }}{% endif %}{{ '; ' if not loop.last }}{% endfor %}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3 1.5v-6z" fill="currentColor"/></svg></span>{% endif %}

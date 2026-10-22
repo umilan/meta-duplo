@@ -51,6 +51,7 @@
   --sel: #ececee; --sel-active: #c9dbfa;                                           /* ticked / previewed row */
   --filter-c: #e07a10; --sort-c: #0a9fbd;                                          /* filtered / sorted column */
   --backdrop: rgb(0 0 0 / 32%);
+  --magic-bg: #f2c230; --magic-text: #3d2e00;  /* yellow magic-wand badge (derived hints) */
   --job-bg: #14233f; --job-text: #f2f2f2; --job-muted: #a9b6cf; --job-bar: #6a9cf0; --job-track: rgb(255 255 255 / 16%);  /* progress stripe: inverted */
 }
 /* Compact view (settings sheet): one step down the same scale. */
@@ -71,6 +72,7 @@
     --tint: rgb(140 170 255 / 8%); --tint-cell: rgb(140 170 255 / 16%); --zebra: #262629; --group-bg: #2c2a20;
     --sel: #2c2c30; --sel-active: #27406b; --filter-c: #f0a050; --sort-c: #3cc8e0; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
     --job-bg: #dbe6fb; --job-text: #1d1d1f; --job-muted: #4a5670; --job-bar: #2f6fde; --job-track: rgb(0 0 0 / 12%);
+    --magic-bg: #e0b23a; --magic-text: #241b00;
   }
 }
 :root[data-theme="dark"] {
@@ -82,6 +84,7 @@
     --tint: rgb(140 170 255 / 8%); --tint-cell: rgb(140 170 255 / 16%); --zebra: #262629; --group-bg: #2c2a20;
     --sel: #2c2c30; --sel-active: #27406b; --filter-c: #f0a050; --sort-c: #3cc8e0; --shadow-pop: 0 8px 24px rgb(0 0 0 / 48%);
     --job-bg: #dbe6fb; --job-text: #1d1d1f; --job-muted: #4a5670; --job-bar: #2f6fde; --job-track: rgb(0 0 0 / 12%);
+    --magic-bg: #e0b23a; --magic-text: #241b00;
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }

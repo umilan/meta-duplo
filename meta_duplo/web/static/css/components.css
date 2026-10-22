@@ -56,6 +56,8 @@
 /* key capture-date fields (EXIF DateTimeOriginal, XMP / IPTC DateCreated): a small red "!" after the name */
 .keybadge { display: inline-grid; place-items: center; width: var(--space-200); height: var(--space-200); margin-left: var(--space-025);
   border-radius: 50%; background: var(--conflict); color: var(--on-accent); font-size: var(--text-sm); line-height: 1; font-weight: 700; vertical-align: middle; flex: none; }
+.keybadge--magic { background: var(--magic-bg); color: var(--magic-text); }
+.keybadge--magic svg { width: var(--space-200); height: var(--space-200); }  /* the wand fills the 16 px badge (padding is in its viewBox) */
 /* meta checks: in a narrow column the three badges keep their colour but drop the text (the tooltip names them) */
 .checks { container-type: inline-size; display: flex; align-items: center; min-width: 0; }
 .check__n { margin-left: var(--space-025); }

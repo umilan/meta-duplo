@@ -261,6 +261,9 @@ def meta_counts(tags: dict) -> dict[str, int]:
 
 # The capture-date fields that matter most: marked with a red "!", first among the dates in the picker and in the
 # table, shown by default. The raw tags they come from are not listed again.
+MAGIC_FIELDS = {  # derived (not metadata) but worth a look: a yellow magic-wand badge
+    "name_date": "Read from the file's name (e.g. IMG_20190518_114710): a guess from the name, not camera metadata",
+}
 KEY_FIELDS = {
     "key_dto": "EXIF DateTimeOriginal: when the camera took the photo",
     "key_created": "DateCreated from XMP (photoshop:DateCreated) or IPTC (2:55 + 2:60): the creation date photo apps write",

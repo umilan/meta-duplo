@@ -610,6 +610,12 @@
         }
         postView({ action, fid: m.fid, key: m.key, ...extra });
       },
+      // tick the row(s) of the cell(s) (the row selection used by plans and Save edits)
+      markRows() {
+        const m = this.menu; this.menu = null;
+        const ids = (m.multi ? m.cells.map((c) => c.fid) : [m.fid]).map(Number).filter(Boolean);
+        Alpine.store("wb").setMany([...new Set(ids)], true);
+      },
       cellsJson(m) { return JSON.stringify(m.cells.map((c) => [c.fid, c.key])); },
       // the cell sheet for several selected cells (the "n cells ⋯" pill, or right-click / ⋯ on one of them)
       openCellsMenu(d) {

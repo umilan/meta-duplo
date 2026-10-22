@@ -512,3 +512,8 @@ The column and cell menus use `.wbsheet__divider` (1 px `--line`, `role=separato
 ## Multi-cell selection (update)
 
 Module state `csel = {cells: Set<td>, anchor: {row, col}}` in `workbench.js`. Shift+click / Shift+arrows → `cselRange` (rectangle over visible file rows and data columns); Ctrl/⌘+click toggles a cell (adding the cursor cell first); a plain click or plain arrow clears. `td.is-csel` marks them; with ≥ 2 a fixed `#wb-cselpill` ("n cells ⋯") follows the last cell and opens the sheet (`wb-cellsmenu` → `wbPage.openCellsMenu`, `menu.multi = true`, `menu.cells = [{fid, key, label, target, isName, value}]`, `distinct` = number of different values among editable cells). Right-click / ⋯ / Alt|Ctrl|⌘+Enter on a selected cell open the same. Actions post `/wb/view action=cells op=filter|set|apply|ref cells=[[fid,key],…]` (+ `value`, `scope`, `target`, `ids`); *Select all* sends the selected columns joined by newlines to `/wb/ids?which=filled`. Row ticking moved from Shift+↑↓ to X / Shift+X.
+
+
+## Mark rows, magic badge (update)
+
+Every cell sheet starts with *Mark the row as selected* (`markRows()`: `store.setMany(ids, true)` for the cell's file, or every selected cell's file). `wb.MAGIC_FIELDS` (`name_date`) puts a yellow `.keybadge--magic` with `partials/wand_icon.svg` (tokens `--magic-bg` / `--magic-text`) next to the header label and in the column picker, like the red `!` of `KEY_FIELDS`.

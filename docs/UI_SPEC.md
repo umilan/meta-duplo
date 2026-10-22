@@ -303,7 +303,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   table. Both carry a red **!** badge. The raw tags they come from are not listed again. Extraction reads
   DateCreated since `RAW_VERSION = 3`; saved views are brought in line once (`VIEW_VERSION = 5`). They are shown
   only, not yet weighed as capture-time candidates.
-  Third in *Dates* comes *Date from file name* (a date read from the file's name, e.g. `IMG_20190518_114710`).
+  Third in *Dates* comes *Date from file name* (a date read from the file's name, e.g. `IMG_20190518_114710`); it
+  carries a yellow magic-wand badge (a guess from the name, not metadata), in the table and in the column picker.
 - **All dates shown by default:** every column of the *Dates* category (the built-in dates and every date tag found
   in the files) is ticked the first time it is offered; one that no file has a value in shows slim. The view keeps
   `dates_seen`, so a date the user unticks stays hidden and only newly found date tags are added (once).
@@ -361,6 +362,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   cell menu is open, its cell keeps the highlight and the ⋯ even when the pointer moves onto the menu.
 - **Cell menu:** hovering a data cell shows **⋯** on its right (not in the checkbox, grouping └ or thumbnail
   columns); it, or a right-click on the cell, opens a sheet titled with the column and the value:
+  - *Mark the row as selected* (ticks its row; for several cells *Mark the rows as selected*);
   - *Filter this column by this value* (an empty cell filters on “is empty”); *Select all ›* (*Non-empty* / *Empty*, as in the
     column menu). The column and cell menus separate their sections with divider lines, not headings;
   - *Change* — only date, place and device values can be changed, because plans write only those (other columns

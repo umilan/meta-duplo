@@ -180,6 +180,7 @@
     <template x-if="menu && menu.cell">
       <div>
         <div class="wbsheet__title" :title="menu.value"><span x-text="menu.label"></span><template x-if="!menu.multi"><span>: <span class="muted" x-text="menu.value || '—'"></span></span></template></div>
+        <button type="button" role="menuitem" @click="markRows()" x-text="menu.multi ? 'Mark the rows as selected' : 'Mark the row as selected'">Mark the row as selected</button>
         <button type="button" role="menuitem" @click="cellAct('cell_filter')" x-text="menu.multi ? 'Filter by these values' : 'Filter this column by this value'">Filter this column by this value</button>
         <div class="wbsheet__subwrap" @mouseenter="subSel = true" @mouseleave="subSel = false">
           <button type="button" role="menuitem" class="wbsheet__subbtn" aria-haspopup="menu" :aria-expanded="subSel.toString()"
@@ -509,7 +510,7 @@
           <label class="colcat__item" x-show="!colQuery || '{{ fl.label|lower }}'.includes(colQuery.toLowerCase())">
             <input type="checkbox" :checked="$store.wb.cols.includes('{{ fl.key }}')"
                    @change="post({ action: $event.target.checked ? 'col_add' : 'col_remove', key: '{{ fl.key }}' })">
-            <span>{{ fl.label }}{% if fl.key in key_fields %} <span class="keybadge" title="{{ key_fields[fl.key] }}">!</span>{% endif %}</span>
+            <span>{{ fl.label }}{% if fl.key in key_fields %} <span class="keybadge" title="{{ key_fields[fl.key] }}">!</span>{% endif %}{% if fl.key in magic_fields %} <span class="keybadge keybadge--magic" title="{{ magic_fields[fl.key] }}">{% include "partials/wand_icon.svg" %}</span>{% endif %}</span>
           </label>
           {% endfor %}
         </fieldset>

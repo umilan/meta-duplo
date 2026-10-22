@@ -447,7 +447,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 "group_names": wb.GROUPS, "ops": wb.OPS,
                 "no_value_ops": wb.NO_VALUE_OPS, "date_sources": wb.DATE_SOURCES,
                 "field_label": lambda k: (wb.field_for(k).label if wb.field_for(k) else k),
-                "conf_label": wb.conf_label, "conf_parts": wb.conf_parts, "value": wb.value, "checks_meta": wb.CHECKS, "key_fields": wb.KEY_FIELDS,
+                "conf_label": wb.conf_label, "conf_parts": wb.conf_parts, "value": wb.value, "checks_meta": wb.CHECKS, "key_fields": wb.KEY_FIELDS, "magic_fields": wb.MAGIC_FIELDS,
                 "tokens": harmonize.TOKENS_HELP, "name_tokens": harmonize.NAME_TOKENS,
                 "name_fields": (name_fields := wb.name_fields(catalog, [k for k, _w in view["columns"]])),
                 "name_labels": {tok: label for _g, label, tok in harmonize.NAME_TOKENS + name_fields},
