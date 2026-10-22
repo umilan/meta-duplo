@@ -497,3 +497,8 @@ The group row folds only from `td.wbg__exp` (chevron) and `td.wbg__label` (name)
 ## Cell-edge resizing and empty summaries (update)
 
 Any body cell resizes columns: a `mousemove` listener adds `td.is-edge` (cursor `col-resize`) within 4 px of a cell's right edge (its column) or left edge (the column before, `cellIndex > 0`), only for headers that have `.wbh__resize` and are not slim; a capturing `mousedown` there calls `Alpine.$data(th).resize({clientX, target: th})` (the header's own drag, 8 px snapping, `col_width` on release) and swallows the following click. Group-row summaries that the model calls `N/A` render as `–` (class `wbg__sum--na` kept, tooltip "No value in any file of the group").
+
+
+## Empty columns (update)
+
+`th.is-empty` (from `c.empty`: no file in the view has a value) strikes through `.wbh__label` and `.wbh__abbr` (muted), in wide and slim widths.

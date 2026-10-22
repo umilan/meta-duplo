@@ -295,6 +295,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **All dates shown by default:** every column of the *Dates* category (the built-in dates and every date tag found
   in the files) is ticked the first time it is offered; one that no file has a value in shows slim. The view keeps
   `dates_seen`, so a date the user unticks stays hidden and only newly found date tags are added (once).
+- **Empty columns:** when no file has a value in a column, its header name (or the slim acronym) is struck through.
 - **Slim columns:** a shown column is never dropped, not even when no file has a value in it: an empty column is
   collapsed to 40 px (as wide as the checkbox column). Double-clicking any header collapses or expands it (the
   choice is kept per column in the view, `slim`); a single click still sorts (it waits a moment, so a double-click
