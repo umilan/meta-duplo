@@ -318,7 +318,7 @@ hashes, fingerprints, files, sources`); nothing on disk. The job stripe then pol
 6. `wb_ctx` with every key listed (re-lettering, `src_cells`, pinned-first order, slim/empty, `cat_start`,
    `links`, `table_width`, `name_*`).
 7. `/workbench`, `/wb/table`, `/wb/more` (60 groups per chunk, `intersect once`).
-8. `/wb/view` with all 23 actions, `add_edit_column`, `reload=False` for widths, history push +
+8. `/wb/view` with all 22 actions, `add_edit_column`, `reload=False` for widths, history push +
    `X-Wb-History` only when the view changed; 204.
 9. `/wb/history`, `/wb/values`, `/wb/ids` (400 on unknown), `/wb/preview/{fid}`, `/wb/mates/{fid}`,
    `/wb/name-preview`, `/wb/presets` GET/POST, `/wb/commit`, `/wb/rename-plan`, `/wb/remove-plan`.
