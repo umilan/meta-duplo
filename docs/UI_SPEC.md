@@ -160,7 +160,7 @@ only the title, toolbar, filters and count above it are inset slightly.
 ```
 [☰] Workbench  Data input [3 folders · Found 32 235 files]  Grouping by [Duplicates ▾]  Sort by [Dup. ↓ ▾]  [🔍 Search…  ×]  [⚙]
 Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selection [None ▾]  Actions [Choose… ▾]
-┌─┬─────┬─────────────────────────⋯┬────────────────────⋯┬──New filename───────────⋯┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
+┌─┬─────┬─────────────────────────⋯┬────────────────────⋯┬──FileName ✎─────────────⋯┬Dup.┬Dup. confidence┬Meta checks─────┬Date taken──┬New date─┐
 │☐│[▣]  │ Diff                      │ Diff                 │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ –              │ Same       │ → …     │
 │☐│└ ▫  │ disk / Camera / DCIM /    │ IMG_0003.JPG (Keep)  │ → 2019-05-18 11-47-10 (…  │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │
 │☐│└ ▫  │ disk / Backup 2019 /      │ Copy of IMG_0003.JPG │ → …                       │3pcs│100 %          │ date loc device│ 2019-05-18 │ → …     │
@@ -170,8 +170,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Expander column:** when grouped, the second column is a 40 px expander column (as wide as the checkbox column):
   › on group rows (click the row to fold it), └ on file rows; its header › (shown on hover) collapses or expands all
   groups, and groups loaded later follow it. The group's name and file count (e.g. “Apple iPhone 12 (95)”) show in
-  the group row's cell of the matching data column: Filename for Duplicates and Photo, Path for Folder, Date taken
-  for Day, Device, Place, Author; the tooltip on › names it too.
+  the group row's cell of the matching data column: Filename for Duplicates and Photo, Path for Folder,
+  DateTimeOriginal (EXIF) for Day, Device, Place, Author; the tooltip on › names it too.
 - **Pinned columns:** checkbox, expander and, when it is the first column, the thumbnail stay on the left when the
   table scrolls sideways.
 - **Group by** sets the task: *Duplicates* (only files with copies; the kept copy is the reference row),
@@ -198,17 +198,24 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Header ⋯ button** (same look as the cell ⋯ button; shown only while hovering the header, while its menu is open or when focused) opens a **menu sheet** (page-level, positioned under the button, so the scrolling table never
   clips it; Esc, a click outside or scrolling closes it): *Pin to the left* / *Unpin column* (a pinned column joins the block at the left and stays there while the table scrolls sideways, after the checkbox and group columns; a pin icon in its header, a 2 px line where the scrolling part starts; the thumbnail is pinned while it is the first column; saved in the view as `pinned`, undoable); *Sort by* ascending / descending; *Find*: Filter by value… (the column's
   values with counts, most frequent first, searchable; picking one adds an *is* filter), Filter…, Search in this
-  column… (*contains*), Show groups where it differs; Select all › (*Non-empty* / *Empty*: ticks every file of the view, also groups not loaded yet, with / without a value in this column; replaces the selection, undoable); *Change*: Edit these values… (new purple column), Use this for another column… (a dialog asks which field it feeds: any other column *New place* or *New device*; a date column can only feed *New date*, so the dialog says “Goes to New date” instead of showing a one-item dropdown, and the same holds for Apply › To column…; a purple column next to that field then takes each file's own value of this column, for all rows; raw EXIF dates are tidied to the table form), Group by this (Path, Date, Device,
+  column… (*contains*), Show groups where it differs; Select all › (*Non-empty* / *Empty*: ticks every file of the view, also groups not loaded yet, with / without a value in this column; replaces the selection, undoable); *Change*: Edit these values… (new purple column), Use this for another column… (a dialog asks which field it feeds: any other column *Place ✎* or *Device ✎*; a date column can only feed *DateTimeOriginal (EXIF) ✎*, so the dialog says “Goes to DateTimeOriginal (EXIF) ✎” instead of showing a one-item dropdown, and the same holds for Apply › To column…; a purple column next to that field then takes each file's own value of this column, for all rows; raw EXIF dates are tidied to the table form), Group by this (Path, Date, Device,
   Place, Dup.). *Remove* (top right, next to the column name) takes the column out of the table; section labels are a lighter grey than the items. Clicking the label toggles the sort; drag the label to move the column.
 - **Filters** (bar above the table; click a chip to edit it in the filter dialog, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
   differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
   its context); *No grouping* filters rows.
-- **Edit columns** (light purple, always right after the field they edit: New date after Date taken, New place after Place, New device after Device, New filename after Filename, even when a value was copied from another column) exist **only on demand**: none by default,
+- **Column names:** every column is named after the real tag it shows, in ExifTool's spelling with its group
+  (*DateTimeOriginal (EXIF)*, *CreateDate (EXIF)*, *ModifyDate (EXIF)*, *FileModifyDate*, *GPSDateTime (UTC)*,
+  *GPSPosition*, *Make*, *Model*, *SerialNumber*, *LensModel*, *Artist*, *OwnerName*, *FileName*, *Directory*,
+  *FileSize*, *ImageSize*, *FileTypeExtension*). A raw tag a named column already shows is not offered a second
+  time. Columns the app works out itself carry the yellow magic-wand badge, which says how: *Date from file name*,
+  *Recommended date / place / device*, *Place*, *Country*, *Device*, *Kind*, *Dup.*, *Dup. confidence*,
+  *Meta checks*. There is no combined “Date taken” column (ADR-020).
+- **Edit columns** (light purple, always right after the column they edit and named after it with a pencil: *DateTimeOriginal (EXIF) ✎* after DateTimeOriginal (EXIF), *Place ✎* after Place, *Device ✎* after Device, *FileName ✎* after FileName, even when a value was copied from another column; the header tooltip says where a plan writes the values, e.g. the XMP sidecar) exist **only on demand**: none by default,
   *Edit…* in a header's ⋯ sheet opens the rule dialog and adds one.
   - **Filename:** the **Naming pattern** dialog (also *Actions → File name pattern…* and a double-click on any
     file name). At the top, the preview: *New file name preview for '<file>'* above the new name it would get. The name is typed text with parameter chips (purple, underlined) in a resizable field. Under it a
     hint, then one bordered box holding a search field (with ×, a line under it, staying on top) and the parameter list, which scrolls under it, always open: *Recommended values* (date and time, date,
-    year … sec, place, country, device, original filename, extension; they follow the New date / place / device
+    year … sec, place, country, device, original filename, extension; they follow the purple date / place / device
     columns), *Columns in this table*, then every field by category (EXIF / XMP / IPTC tags included,
     `{tag:KEY}`). Each tag shows, on the right, its value for the previewed (or first) file as it would read in
     the name (— when that file has none; the code is in the tooltip). Clicking a tag inserts it at the text cursor (the cursor moves after it, so clicks add tags in
@@ -226,7 +233,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
     confirm). At the bottom: *Update “name”* (only while the active saved preset is modified) and *+ Save as new
     preset* (inline name field; names must be unique). Reopening the dialog marks the preset the current pattern
     comes from. Stored in the library setting `name_presets`; the built-in *Default* can't be changed. *Apply* sets the rule and adds
-    the New filename column.
+    the FileName ✎ column.
   - **Date:** recommended value; copy from another column (taken, digitized, modified, file date, GPS date,
     date in filename, recommended); **shift** a date by ± h:m:s (wrong camera clock, time zone); fixed value.
   - **Place, Device:** recommended; copy from any column; fixed value.
@@ -247,7 +254,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   feeds, hovering outlines that column and row, and clicking opens the rule dialog. In group rows the value and badge are
   dimmed (50 %): the files below carry the real values.
   **Double-click** an edit cell to type a value for that one file (the *Edit this value…* dialog, prefilled without
-  the `=` / `→` mark); in New filename it opens the naming-pattern dialog (one pattern for all files).
+  the `=` / `→` mark); in FileName ✎ it opens the naming-pattern dialog (one pattern for all files).
 - **Duplicate confidence:**
   - 100 % = byte-identical;
   - 99 % = same pixels, different metadata;
@@ -308,7 +315,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   carries a yellow magic-wand badge (a guess from the name, not metadata), in the table and in the column picker.
   Fourth comes *Recommended date*, with the same yellow badge (worked out from all dates of the file and its copies,
   not read from one tag). Hovering or selecting a Recommended date cell outlines, in blue, the cell its value came
-  from, and its tooltip says it in words: “from Date taken of this file”, or “… of IMG_0002.JPG, another copy (in
+  from, and its tooltip says it in words: “from DateTimeOriginal (EXIF) of this file”, or “… of IMG_0002.JPG, another copy (in
   disk/Camera/DCIM)”, or “typed in step 3”. The source is the one the recommendation recorded (camera metadata, the
   file name or the file date of a named copy); when the file's own cell of that kind holds the same value, it is
   preferred.
@@ -373,13 +380,13 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   - *Filter this column by this value* (an empty cell filters on “is empty”); *Select all ›* (*Non-empty* / *Empty*, as in the
     column menu). The column and cell menus separate their sections with divider lines, not headings;
   - *Change* — only date, place and device values can be changed, because plans write only those (other columns
-    show these items disabled): *Edit this value…* (a dialog; the value applies to this file only; in Filename / New filename it reads *Rename with a pattern…* and opens the naming-pattern dialog),
+    show these items disabled): *Edit this value…* (a dialog; the value applies to this file only; in FileName / FileName ✎ it reads *Rename with a pattern…* and opens the naming-pattern dialog),
     *Remove this value* (disabled: plans cannot clear a metadata value yet), and *Apply this value ›*, a submenu
     (opens on hover or click, beside the menu; to its left near the window's right edge): *To its group / To the
     selection (n) / To all rows* (for date, place and device cells) and *To column…*, a small dialog to pick the field
-    it feeds (a date: *New date (capture date)* only; any other value, e.g. Model or Author: *New place* or *New device*)
+    it feeds (a date: only *DateTimeOriginal (EXIF) ✎*, so the dialog just says where it goes; any other value, e.g. Model or Artist: *Place ✎* or *Device ✎*)
     and the scope (its group / the selection / all rows). Each fills the purple edit column of that field (it sits after the field it edits,
-    e.g. New date after Date taken, not after the clicked column), as a preview; nothing changes until *Save edits* and a plan. A value typed for one file wins over a
+    e.g. DateTimeOriginal (EXIF) ✎ after DateTimeOriginal (EXIF), not after the clicked column), as a preview; nothing changes until *Save edits* and a plan. A value typed for one file wins over a
     rule; a rule limited to a group or a selection leaves the other files at their current value.
   - *Compare*: *Use this row as the reference of its group* (★ in the expander column; red / green and the
     confidence notes compare against it) or *Stop using this row as the reference*.

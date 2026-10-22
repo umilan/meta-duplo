@@ -19,7 +19,7 @@ plan (skill 08).
 |---|---|---|
 | `settings` | `filename_pattern` | The active rule. Default (`db.DEFAULT_SETTINGS`) equals `harmonize.DEFAULT_PATTERN`. Used by `rename_preview` and every rename plan. |
 | `settings` | `name_presets` | JSON list `[{"name": str, "pattern": str}, …]` of user presets (built-in *Default* is not stored). |
-| Workbench view (`wb.load_view`) | `view["edits"]["filename"]` | `{"kind": "pattern", "pattern": str, "overrides": {}}` – the purple *New filename* column. Becomes `filename_pattern` only on commit (`wb.commit`, see §8). |
+| Workbench view (`wb.load_view`) | `view["edits"]["filename"]` | `{"kind": "pattern", "pattern": str, "overrides": {}}` – the purple *FileName ✎* column. Becomes `filename_pattern` only on commit (`wb.commit`, see §8). |
 
 Setters: `POST /settings/pattern` (step 3, saves as you type; empty → `DEFAULT_PATTERN`; answers 204 +
 `HX-Trigger: grid-reload`) and `wb.commit(...)` (Workbench: `lib.set_setting("filename_pattern", edits.filename.pattern)`
@@ -232,7 +232,7 @@ sources. A clash with such a file on disk surfaces at apply time (`PlanError("ta
 ### Entry points (all end in `openEdit({target: "filename"})` → `dialog = "naming"` + `window` event `wb-naming` → `namer.start()`)
 
 1. **Header menu** (⋯ on a column header): *Edit these values…* on the Filename column (its `target` is
-   `filename`), *Edit all* on the purple *New filename* column.
+   `filename`), *Edit all* on the purple *FileName ✎* column.
 2. **Cell menu** (⋯ or right-click on a cell): on `filename` / `edit:filename` (`menu.isName`) the item reads
    **Rename with a pattern…**; header cells render `data-target=""` for filename, so `openCellEdit()` sees no
    target and opens the dialog.
@@ -240,7 +240,7 @@ sources. A clash with such a file on disk surfaces at apply time (`PlanError("ta
    `wb-edit {target: "filename"}`.
 4. **Actions → File name pattern…** (wb_table.html), hint "text and parameters from any column; a purple “New
    filename” column previews it".
-5. Also: clicking a source link (`.srclink`) in a *New filename* cell dispatches `wb-edit` for that target.
+5. Also: clicking a source link (`.srclink`) in a *FileName ✎* cell dispatches `wb-edit` for that target.
 
 ### Layout (workbench.html, inside `.modal`)
 
@@ -254,7 +254,7 @@ sources. A clash with such a file on disk surfaces at apply time (`PlanError("ta
 │  │   .namer__sidefoot: [Update “name”] (active, saved, modified) · [+ Save as new preset] · .namer__err
 │  └─ .namer__main
 │      .namer__preview: "New file name preview for '<file>'" (or "…for the first file") above <strong.mono> new name
-│      label "New filename"; .namer__edit (resizable, wraps): parts = text inputs + chip buttons
+│      label "FileName ✎" (`edit_labels.filename`); .namer__edit (resizable, wraps): parts = text inputs + chip buttons
 │      p.namer__warn (red, role=alert) while !/\.\{(ext|EXT)\}$/.test(pattern())
 │      p.namer__hint  (two variants, see below)
 │      .namer__picker (one bordered box): search (× clear, line under it, stays on top) + .namer__list.wbsheet (max-height 320px, scrolls, always open)
@@ -337,7 +337,7 @@ only). *+ Save as new preset* opens an inline name field (Enter saves, Esc cance
 2. Row = the one with `id == fid`, else the first row; none → `{"name": "", "values": {}, "file": ""}`.
 3. `values = {capture_time: e.date ?? (effective.capture_time or v.date), location_name: e.place ?? (effective
    or v.place), device_name: e.device ?? (effective or v.device), country: effective.country or v.country,
-   tags: v}` – the purple New date / place / device values win.
+   tags: v}` – the purple date / place / device values win (an empty one falls back to the accepted value).
 4. `alone(tok)` = `render_name(tok + ".x", …)` minus the trailing `.x` (`""` when None) – a token as it reads in
    a name.
 5. Response:
@@ -379,7 +379,7 @@ starts *Actions → Rename…* (`POST /wb/rename-plan`, which commits first; ski
 | The JS splits on `/\{[^}]+\}/`, Python matches `\{(\w+)(?::([^}]*))?\}` | `{foo bar}` shows as a chip in the dialog but stays literal text in the name |
 | Unknown tokens stay verbatim | `{foo}` ends up in the file name |
 | Collision check covers only captured, present files of the same source | a clash with a sidecar or "other" file fails at apply time (`target exists`) |
-| The tag provider uses current values (`v`) | `{tag:date}` ignores the purple New date; `{date}` follows it |
+| The tag provider uses current values (`v`) | `{tag:key_dto}` ignores the purple DateTimeOriginal (EXIF) ✎; `{date}` follows it |
 | step3.html hard-codes its chip list | `TOKENS_HELP` is passed as `tokens` but not rendered; no `{tag:…}` chips in step 3 |
 | The text parts size with a bound `:style` width | an inline style, against CLAUDE.md rule 7 |
 | `save` moves an updated preset to the end of the list | presets reorder when you click *Update* |
@@ -424,4 +424,4 @@ starts *Actions → Rename…* (`POST /wb/rename-plan`, which commits first; ski
 - Manual / Playwright (skill 13): open the dialog four ways; click tags (inserted in order at the caret); select
   a chip, ↓ swaps it live, Backspace removes; search "date time" keeps only phrase matches and hides empty
   sections; Enter picks the first; remove `.{ext}` → red warning; save, modify (•, Update), rename, delete a
-  preset; *Default* cannot be renamed or deleted; Apply adds the purple New filename column.
+  preset; *Default* cannot be renamed or deleted; Apply adds the purple FileName ✎ column.

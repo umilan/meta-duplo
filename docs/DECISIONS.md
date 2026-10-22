@@ -200,3 +200,18 @@ accepted ones. Supersede them with a new entry instead.
   videos get dates and devices only where Homebrew's `ffmpeg` is installed. The library stays in
   `~/MetaDuploLibraries/default`, shared with the command line. Start-up takes a few seconds while the one-file
   binary unpacks itself. A one-folder build would start faster, but it would need the bundle's resources folder.
+
+### ADR-020 Columns carry real tag names; purple columns are the column they edit
+- **Context:** the Workbench mixed real tags with invented names (*Date taken*, *Date digitized*, *File date*, *New
+  date*…). *Date taken* silently combined DateTimeOriginal, CreateDate and the QuickTime date, and the purple *New
+  date* column edited it, so it was unclear what a value was or where it would go.
+- **Decision:** every column is named after the tag it shows (ExifTool spelling and group). The app's own values
+  carry the yellow magic-wand badge. *Date taken* is gone: the purple date column edits DateTimeOriginal (EXIF),
+  sits next to it, and is named after it with a pencil (*DateTimeOriginal (EXIF) ✎*; likewise *FileName ✎*,
+  *Place ✎*, *Device ✎*). Its header tooltip says where a plan writes the values (XMP sidecar, file date). A raw
+  tag that a named column shows (IFD0:DateTime = ModifyDate) is not offered as a second column. Stored views
+  move to the new keys (`VIEW_VERSION` 7). Unchanged rows of a purple column show the edited column's own value
+  and never become decisions.
+- **Consequences:** a video without DateTimeOriginal shows "—" there; its date is in *creation_time (QuickTime)*,
+  and the file name still uses the accepted capture date. Purple columns for the other dates (CreateDate,
+  ModifyDate, FileModifyDate) come with ExifTool (ROADMAP, M1/M10).

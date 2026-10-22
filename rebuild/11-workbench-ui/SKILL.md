@@ -164,7 +164,7 @@ singles group), `@wb-fold.window="open = $event.detail"`.
 | `checks` | `div.checks` of `span.check.check--ok|--no|--na` > `span.check__name` + `span.check__n` (only counts below 208px via container query); `td.nil` "–" when not comparable |
 | edit (`edit:*`) | `td.wbt__edit[.wbt__edit--same]` > `span.wbt__ev` "= v" (unchanged, muted) / "→ v" / `.nil` "—" + `button.srclink` (`data-srctip`, `data-srckey`, `data-srcrow`, `data-typed`) |
 | `size` | `td.col-num[.is-diff]` formatted size |
-| other | `[.is-diff]` value or `span.nil` "—"; plus `button.srclink.srclink--origin` when values were copied from this cell (`data-srckey="edit:{target}"`, `data-srcrow`, `data-target`, tooltip "Source A of New date: copied to n files") |
+| other | `[.is-diff]` value or `span.nil` "—"; plus `button.srclink.srclink--origin` when values were copied from this cell (`data-srckey="edit:{target}"`, `data-srcrow`, `data-target`, tooltip "Source A of DateTimeOriginal (EXIF) ✎: copied to n files") |
 
 "Nothing to compare" (`nocmp`) = singles group or grouping None: no red/green, checks "–".
 Last cell of each row is an empty `td` under "+".
@@ -245,7 +245,7 @@ Column variant (`menu.cell` false):
 
 ## 6. Edit columns and source links
 
-- Purple columns `edit:filename|date|place|device` ("New filename" etc.) appear only on demand, inserted right after their base column (or the cell's column for `cell_set` / `cell_apply`), width 304 (filename) or 176.
+- Purple columns `edit:filename|date|place|device` (named after the column they edit with a pencil: "FileName ✎", "DateTimeOriginal (EXIF) ✎", "Place ✎", "Device ✎"; header tooltip `EDIT_WRITES`; `targetName(t)` reads these labels from `data-edit-labels` on `.wb`) appear only on demand, inserted right after their base column (or the cell's column for `cell_set` / `cell_apply`), width 304 (filename) or 176.
 - Cell text: `= value` unchanged (muted), `→ value` change, `—` no data.
 - **Source badges** `.srclink` (icon `partials/link_icon.svg` = `svg.srclink__icon` 16px + letter A, B, …; `*` after Z). Letters are assigned in table order per edit column. Inside cells: absolute at the right; `td:has(> .srclink)` padding-right 40px (64px with ⋯, which moves to right 40px). Header `srclink--head` sits after ⋯ (`order:2`, `cursor:help`).
 - **Hover** (`mouseover` on `.wbt .srclink`): `#wb-tip` shows `data-srctip`; the column `th[data-key=srckey]` gets `.is-srccol` on all its cells (2px `--edit-text` side edges + tint) and `tr.wbr[data-rowid=srcrow]` gets `.is-srcrow` (2px top/bottom edges + tint; the intersection cell a full 2px frame on `--edit-bg`). Cleared when the pointer leaves the link.
@@ -257,7 +257,7 @@ Column variant (`menu.cell` false):
 |---|---|
 | Header (`.wbh`) | toggle slim (no sort) |
 | `filename` data cell | clear text selection, dispatch `wb-edit {target:'filename'}` → naming dialog |
-| Edit-column data cell (`th.wbh-cell--edit`) | clear selection, move ⋯ in, dispatch `wb-celledit` → cell edit dialog (New filename → naming dialog via `openCellEdit` when no target) |
+| Edit-column data cell (`th.wbh-cell--edit`) | clear selection, move ⋯ in, dispatch `wb-celledit` → cell edit dialog (FileName ✎ → naming dialog via `openCellEdit` when no target) |
 | Lightbox image | 100 % at that point, or back to Fit |
 | Naming preset name | rename inline (not built-ins) |
 
@@ -446,8 +446,8 @@ Manual checks:
 - Double-click a header: it becomes 40px with an acronym; hover shows the tooltip immediately above it.
 - Drag a header label: the 4px accent drop line with round ends spans the table; drop moves the column; widths snap to 8px when resizing.
 - Pin a column from ⋯: it gets the pin icon, sticks left when scrolling horizontally, and a 2px line marks the pinned block's end.
-- Right-click a date cell → "Apply this value to its group": a purple "New date" column appears right of Date with `🔗A` badges; hovering a badge outlines the source column/row; the header shows `🔗(n)`; group rows show it dimmed.
-- Double-click a New date cell → cell edit dialog prefilled without `→`; double-click a file name → Naming pattern dialog.
+- Right-click a date cell → "Apply this value to its group": a purple "DateTimeOriginal (EXIF) ✎" column appears right of DateTimeOriginal (EXIF) with `🔗A` badges; hovering a badge outlines the source column/row; the header shows `🔗(n)`; group rows show it dimmed.
+- Double-click a DateTimeOriginal (EXIF) ✎ cell → cell edit dialog prefilled without `→`; double-click a file name → Naming pattern dialog.
 - Arrow keys show the 2px accent cursor; Shift+↓ ticks rows; X toggles and moves; ⌘A selects all ("All (n)"); ⌘Z then ⇧⌘Z show toasts "Undone: selection" / "Redone: selection"; undoing a sort says "Undone: sorting".
 - Space opens the preview; drag its left edge (256–720px); reload keeps the width. Click the image → lightbox; +, −, 0, 1, W, H work; Esc closes.
 - Start a scan from Sources: the 40px inverted stripe appears at the top with Cancel; Cancel shows "Cancelling…".

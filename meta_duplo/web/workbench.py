@@ -36,53 +36,60 @@ class Field:
 
 CORE = [
     Field("thumb", "Th.", "File", "special", width=64),
-    Field("path", "Path", "File", width=256),
-    Field("filename", "Filename", "File", editable="filename", width=192),
+    Field("path", "Directory", "File", width=256),
+    Field("filename", "FileName", "File", editable="filename", width=192),
     Field("dup_count", "Dup.", "Duplicates", "num", width=72),
     Field("dup_conf", "Dup. confidence", "Duplicates", "num", width=152),
     Field("checks", "Meta checks", "Duplicates", "special", width=240),
-    Field("key_dto", "DateTimeOriginal (EXIF)", "Dates", "date", width=168),
+    Field("key_dto", "DateTimeOriginal (EXIF)", "Dates", "date", editable="date", width=168),
     Field("key_created", "DateCreated (IPTC/XMP)", "Dates", "date", width=168),
     Field("name_date", "Date from file name", "Dates", "date", width=160),  # third: right after the two key dates
     Field("rec_date", "Recommended date", "Dates", "date", width=160),  # fourth: the other derived date
-    Field("date", "Date taken", "Dates", "date", editable="date", width=160),
-    Field("digitized", "Date digitized", "Dates", "date", width=160),
-    Field("modify", "Date modified (EXIF)", "Dates", "date", width=160),
-    Field("file_date", "File date", "Dates", "date", width=160),
-    Field("gps_date", "GPS date (UTC)", "Dates", "date", width=160),
+    Field("digitized", "CreateDate (EXIF)", "Dates", "date", width=160),
+    Field("modify", "ModifyDate (EXIF)", "Dates", "date", width=160),
+    Field("file_date", "FileModifyDate", "Dates", "date", width=160),
+    Field("gps_date", "GPSDateTime (UTC)", "Dates", "date", width=160),
     Field("place", "Place", "Location", editable="place", width=120),
     Field("rec_place", "Recommended place", "Location", width=128),
-    Field("gps", "GPS", "Location", width=152),
+    Field("gps", "GPSPosition", "Location", width=152),
     Field("country", "Country", "Location", width=80),
     Field("device", "Device", "Device", editable="device", width=152),
     Field("rec_device", "Recommended device", "Device", width=152),
     Field("make", "Make", "Device", width=112),
     Field("model", "Model", "Device", width=144),
-    Field("serial", "Serial number", "Device", width=120),
-    Field("lens", "Lens", "Device", width=144),
+    Field("serial", "SerialNumber", "Device", width=120),
+    Field("lens", "LensModel", "Device", width=144),
     Field("software", "Software", "Device", width=128),
-    Field("author", "Author", "Author", editable="", width=128),
+    Field("author", "Artist", "Author", editable="", width=128),
     Field("copyright", "Copyright", "Author", width=160),
-    Field("owner", "Camera owner", "Author", width=128),
-    Field("size", "Size", "File", "num", width=88),
-    Field("dims", "Dimensions", "File", width=96),
-    Field("ext", "Type", "File", width=64),
+    Field("owner", "OwnerName", "Author", width=128),
+    Field("size", "FileSize", "File", "num", width=88),
+    Field("dims", "ImageSize", "File", width=96),
+    Field("ext", "FileTypeExtension", "File", width=64),
     Field("kind", "Kind", "File", width=72),
 ]
 CORE_BY_KEY = {f.key: f for f in CORE}
-EDIT_LABELS = {"filename": "New filename", "date": "New date", "place": "New place", "device": "New device"}
-EDIT_BASE = {"filename": "filename", "date": "date", "place": "place", "device": "device"}
+# An edit (purple) column is the column it edits, with a pencil: it previews the new values next to the old ones.
+EDIT_BASE = {"filename": "filename", "date": "key_dto", "place": "place", "device": "device"}
+EDIT_LABELS = {t: CORE_BY_KEY[base].label + " ✎" for t, base in EDIT_BASE.items()}
+EDIT_WRITES = {  # where a plan writes an edit column's values (the purple header's tooltip)
+    "filename": "Applying a plan renames the file",
+    "date": "Applying a plan writes it to the XMP sidecar (DateTimeOriginal, CreateDate, DateCreated) and, if you "
+            "choose so, to FileModifyDate",
+    "place": "Applying a plan writes it to the XMP sidecar (City)",
+    "device": "Applying a plan writes it to the XMP sidecar (Model)",
+}
 GROUPS = {"none": "None", "dups": "Duplicates", "capture": "Photo (all copies)", "folder": "Path / Folders",
           "day": "Day", "device": "Device", "place": "Place", "author": "Author"}
 OPS = {"contains": "contains", "equals": "is", "in": "is one of", "not_equals": "is not", "empty": "is empty",
        "not_empty": "is not empty", "gte": "≥", "lte": "≤", "diff": "differs in group", "same": "same in group"}
 NO_VALUE_OPS = {"empty", "not_empty", "diff", "same"}
 IN_SEP = " | "  # "is one of": the values, joined (a filter made from several selected cells)
-DATE_SOURCES = ["date", "digitized", "modify", "file_date", "gps_date", "name_date", "rec_date"]
+DATE_SOURCES = ["key_dto", "key_created", "digitized", "modify", "file_date", "gps_date", "name_date", "rec_date"]
 VERDICT_TEXT = {"identical": "exact", "same_pixels": "diff meta", "same_photo": "same photo", "edited": "edited",
                 "same_video": "same video", "likely": "likely", "similar_shot": "similar shot"}
 
-VIEW_VERSION = 5
+VIEW_VERSION = 7
 # Duplicates grouping starts with this filter (a removable chip); without it, files that have no copy
 # show as one "No duplicates" group at the bottom.
 DUP_FILTER = {"key": "dup_count", "op": "gte", "value": "2", "auto": True}
@@ -90,7 +97,7 @@ SINGLES = "__singles__"  # group key of files without duplicates
 DEFAULT_VIEW = {
     "v": VIEW_VERSION,
     "columns": [["thumb", 48], ["path", 248], ["filename", 192], ["dup_count", 64], ["dup_conf", 144],
-                ["checks", 240], ["key_dto", 168], ["key_created", 168], ["date", 160], ["modify", 160], ["gps_date", 160], ["place", 112],
+                ["checks", 240], ["key_dto", 168], ["key_created", 168], ["digitized", 160], ["modify", 160], ["gps_date", 160], ["place", 112],
                 ["device", 152], ["author", 128]],
     "edits": {},              # purple edit columns appear only after "Edit…" in a header's Actions sheet
     "filters": [DUP_FILTER],
@@ -108,7 +115,7 @@ DEFAULT_VIEW = {
 # Grouping column (right after the checkbox): its label, and the regular column it replaces (shown only once).
 GROUP_COLUMN = {  # grouping → (its name, the data column whose group-row cell shows the group's name)
     "dups": ("Duplicate set", "filename"), "capture": ("Photo", "filename"), "folder": ("Folder", "path"),
-    "day": ("Day", "date"), "device": ("Device", "device"), "place": ("Place", "place"), "author": ("Author", "author"),
+    "day": ("Day", "key_dto"), "device": ("Device", "device"), "place": ("Place", "place"), "author": ("Author", "author"),
 }
 SLIM_WIDTH = 40  # a collapsed column: as narrow as the checkbox column
 TREE_WIDTH = 40  # the expander column (› on group rows, └ on file rows) is as narrow as the checkbox column
@@ -129,6 +136,34 @@ def load_view(lib: Library) -> dict:
     return load_view_from(v)
 
 
+def _drop_date_taken(v: dict) -> None:
+    """Point everything a stored view says about the old "date" column at "key_dto", and about a raw tag a core
+    column shows (exif:IFD0:DateTime) at that column (in place)."""
+    moved = {"date": "key_dto"} | {f"exif:{t}": k for t, k in CORE_SOURCE_TAGS.items()}
+    cols = v.get("columns") or []
+    for old, new in moved.items():
+        if any(c[0] == old for c in cols):
+            if not any(c[0] == new for c in cols):
+                cols[[c[0] for c in cols].index(old)][0] = new
+            cols[:] = [c for c in cols if c[0] != old]
+    for f in v.get("filters") or []:
+        f["key"] = moved.get(f.get("key"), f.get("key"))
+    if v.get("sort"):
+        v["sort"][0] = moved.get(v["sort"][0], v["sort"][0])
+    for rule in (v.get("edits") or {}).values():
+        if rule.get("column") in moved:
+            rule["column"] = moved[rule["column"]]
+        if (rule.get("from") or {}).get("key") in moved:
+            rule["from"]["key"] = moved[rule["from"]["key"]]
+        for frm in (rule.get("override_from") or {}).values():
+            frm["key"] = moved.get(frm.get("key"), frm.get("key"))
+    for key in ("pinned", "dates_seen"):
+        if v.get(key):
+            v[key] = list(dict.fromkeys(moved.get(k, k) for k in v[key]))
+    for old in moved:
+        (v.get("slim") or {}).pop(old, None)
+
+
 def load_view_from(v: dict) -> dict:
     """A stored view, upgraded to the current version and completed with defaults."""
     if v and v.get("v", 1) < 2:  # v1 opened with default edit columns: drop them once
@@ -142,6 +177,8 @@ def load_view_from(v: dict) -> dict:
         cols[:] = [c for c in cols if c[0] not in KEY_FIELDS]
         for key in KEY_FIELDS:
             insert_column(cols, key, widths.get(key, CORE_BY_KEY[key].width))
+    if v and v.get("v", 1) < 7:  # v6: no made-up "Date taken" (key "date"), DateTimeOriginal (EXIF) takes its place;
+        _drop_date_taken(v)      # v7: a raw tag a core column shows is that column (idempotent, so v6 views too)
     if v:
         v["v"] = VIEW_VERSION
     view = json.loads(json.dumps(DEFAULT_VIEW))
@@ -264,12 +301,28 @@ def meta_counts(tags: dict) -> dict[str, int]:
 MAGIC_FIELDS = {  # derived (not metadata) but worth a look: a yellow magic-wand badge
     "name_date": "Read from the file's name (e.g. IMG_20190518_114710): a guess from the name, not camera metadata",
     "rec_date": "Recommended: worked out from all the dates of the file and its copies (step 3), not read from one tag",
+    "dup_count": "Worked out by the app: how many copies this duplicate set has",
+    "dup_conf": "Worked out by the app: how sure the duplicate match is, and what differs from the kept copy",
+    "checks": "Worked out by the app: how many date, place, device and author tags the file has, against the kept copy",
+    "place": "Worked out by the app: the town at GPSPosition (offline gazetteer), not a tag in the file",
+    "rec_place": "Recommended: worked out from the places of the file and its copies (step 3), not read from one tag",
+    "country": "Worked out by the app: the country at GPSPosition (offline gazetteer), not a tag in the file",
+    "device": "Worked out by the app: Make and Model joined and tidied (\"Apple iPhone 12\"), not one tag",
+    "rec_device": "Recommended: worked out from the devices of the file and its copies (step 3), not read from one tag",
+    "kind": "Worked out by the app from the file type: image or video",
 }
 KEY_FIELDS = {
     "key_dto": "EXIF DateTimeOriginal: when the camera took the photo",
     "key_created": "DateCreated from XMP (photoshop:DateCreated) or IPTC (2:55 + 2:60): the creation date photo apps write",
 }
 KEY_SOURCE_TAGS = {"ExifIFD:DateTimeOriginal", "XMP:DateCreated", "IPTC:DateCreated"}
+# Raw tags a core column already shows under its tag name: not offered again as a second column of the same tag
+# (it would also vote twice in the row date check).
+CORE_SOURCE_TAGS = {"ExifIFD:DateTimeOriginal": "key_dto", "XMP:DateCreated": "key_created",
+                    "IPTC:DateCreated": "key_created", "ExifIFD:DateTimeDigitized": "digitized", "IFD0:DateTime": "modify",
+                    "IFD0:Make": "make", "IFD0:Model": "model", "IFD0:Software": "software", "IFD0:Artist": "author",
+                    "IFD0:Copyright": "copyright", "ExifIFD:CameraOwnerName": "owner",
+                    "ExifIFD:BodySerialNumber": "serial", "ExifIFD:LensModel": "lens"}
 
 
 def column_rank(key: str) -> tuple:
@@ -323,7 +376,7 @@ def catalog(exif_keys: list[str]) -> dict[str, list[Field]]:
     for f in CORE:
         out[f.group].append(f)
     for k in exif_keys:
-        if k not in KEY_SOURCE_TAGS:  # shown as the key date columns instead
+        if k not in CORE_SOURCE_TAGS:  # shown by a core column under the same tag name instead
             f = field_for(f"exif:{k}")
             out[f.group].append(f)
     return {g: out[g] for g in CATEGORY_ORDER if out.get(g)}
@@ -439,10 +492,10 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
     return rows, sorted(exif_keys, key=_exif_rank)
 
 
-_REC_DATE_COLS = ("date", "name_date", "file_date")  # what the recommendation reads: camera / name / file date
-
-
-_REC_SOURCE = (("metadata of ", "date"), ("file name ", "name_date"), ("file date of ", "file_date"))
+# what the recommendation reads, by the prefix of its recorded source → the columns that show such a value (first
+# holding it wins): the camera date (DateTimeOriginal, else CreateDate), the file name, the file date
+_REC_SOURCE = (("metadata of ", ("key_dto", "digitized")), ("file name ", ("name_date",)),
+               ("file date of ", ("file_date",)))
 
 
 def _rec_date_sources(rows: list[dict]) -> None:
@@ -453,7 +506,6 @@ def _rec_date_sources(rows: list[dict]) -> None:
     for r in rows:
         if r["capture"] is not None:
             by_capture[r["capture"]].append(r)
-    names = {"date": "Date taken", "name_date": "Date from file name", "file_date": "File date"}
     for r in rows:
         rec, frm = r["v"].get("rec_date"), r.get("rec_from") or {}
         if not rec or r["capture"] is None:
@@ -462,18 +514,22 @@ def _rec_date_sources(rows: list[dict]) -> None:
             r["rec_title"] = f"{rec} · typed in step 3"
             continue
         label = frm.get("source") or ""
-        prefix, key = next(((p, k) for p, k in _REC_SOURCE if label.startswith(p)), ("", ""))
-        name = label[len(prefix):].removesuffix(" (date only)") if key else ""
+        prefix, keys = next(((p, k) for p, k in _REC_SOURCE if label.startswith(p)), ("", ()))
+        name = label[len(prefix):].removesuffix(" (date only)") if keys else ""
         mates = [r] + [m for m in by_capture[r["capture"]] if m is not r]
-        same = (lambda m: str(m["v"].get(key) or "")[:19] == rec[:19]) if key else (lambda m: False)
+
+        def same(m: dict) -> str:  # the first of the columns whose value is the recommended one
+            return next((k for k in keys if str(m["v"].get(k) or "")[:19] == rec[:19]), "")
+
         # the file's own cell of that kind when it holds the value (copies tie on identical data), else the named copy
         src = r if same(r) else next((m for m in mates if name in (m["v"]["filename"], m["original_name"]) and same(m)), None)
         if src is None:
             r["rec_title"] = f"{rec} · {label}" if label else rec
             continue
+        key = same(src)
         r["rec_src"] = {"rid": src["id"], "key": key}
         who = "this file" if src is r else f"{src['v']['filename']}, another copy (in {src['v']['path']})"
-        r["rec_title"] = f"{rec} · from {names[key]} of {who}"
+        r["rec_title"] = f"{rec} · from {CORE_BY_KEY[key].label} of {who}"
 
 
 def _readable_date(raw) -> str:
@@ -520,7 +576,7 @@ def _rule_source(target: str, rule: dict, names: dict[int, str]) -> dict:
         col = rule.get("column", "")
         return {"id": f"col:{col}", "label": f"Copied from {_label(col)}", "key": col}
     if kind == "shift":
-        col = rule.get("column") or "date"
+        col = rule.get("column") or "key_dto"
         return {"id": "shift", "label": f"{_label(col)} shifted {_hms(int(rule.get('seconds') or 0))}", "key": col}
     if kind == "fixed" and rule.get("from"):
         fid, col = int(rule["from"]["fid"]), rule["from"]["key"]
@@ -554,7 +610,7 @@ def apply_edits(rows: list[dict], edits: dict) -> None:
             rec = v[f"rec_{target}"] or v[target]
             src[target] = sources[target]
             if kind == "keep" or (rule.get("ids") is not None and r["id"] not in rule["ids"]):
-                e[target] = v[target]
+                e[target] = v[EDIT_BASE[target]]  # unchanged: the value of the column it edits
                 src[target] = keep[target]
             elif kind == "recommended":
                 e[target] = rec
@@ -564,15 +620,15 @@ def apply_edits(rows: list[dict], edits: dict) -> None:
             elif kind == "fixed":
                 e[target] = rule.get("value", "")
             elif kind == "shift" and target == "date":
-                base = v.get(rule.get("column") or "date") or ""
+                base = v.get(rule.get("column") or "key_dto") or ""
                 e[target] = _shift(base, int(rule.get("seconds") or 0)) if base else ""
         if "filename" in edits:
             pattern = edits["filename"].get("pattern") or r["pattern"]
             eff = r["effective"]
             values = {
-                "capture_time": e.get("date", eff.get("capture_time") or v["date"]),
-                "location_name": e.get("place", eff.get("location_name") or v["place"]),
-                "device_name": e.get("device", eff.get("device_name") or v["device"]),
+                "capture_time": e.get("date") or eff.get("capture_time") or v["date"],
+                "location_name": e.get("place") or eff.get("location_name") or v["place"],
+                "device_name": e.get("device") or eff.get("device_name") or v["device"],
                 "country": eff.get("country") or v["country"],
             }
             values["tags"] = v  # {tag:KEY}: any column of this row
@@ -891,8 +947,8 @@ def commit(lib: Library, view: dict, ids: set[int], only: str | None = None) -> 
         if r["id"] not in ids or r["capture"] is None:
             continue
         for target, pfield in fields.items():
-            if target not in r["e"] or (r["capture"], pfield) in done:
-                continue
+            if target not in r["e"] or (r["capture"], pfield) in done or r["src"][target]["id"] == "keep":
+                continue  # an unchanged value is no decision
             new = r["e"][target]
             if new and new != r["v"][target]:
                 harmonize.set_status(lib, r["capture"], pfield, "edited", new)

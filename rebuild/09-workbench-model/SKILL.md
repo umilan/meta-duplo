@@ -34,53 +34,59 @@ class Field:
 
 | # | key | label | group | kind | editable | width |
 |---|---|---|---|---|---|---|
-| 0 | `thumb` | Th. | File | special | | 64 |
-| 1 | `path` | Path | File | text | | 256 |
-| 2 | `filename` | Filename | File | text | filename | 192 |
-| 3 | `dup_count` | Dup. | Duplicates | num | | 72 |
-| 4 | `dup_conf` | Dup. confidence | Duplicates | num | | 152 |
-| 5 | `checks` | Meta checks | Duplicates | special | | 240 |
-| 6 | `key_dto` | DateTimeOriginal (EXIF) | Dates | date | | 168 |
-| 7 | `key_created` | DateCreated (IPTC/XMP) | Dates | date | | 168 |
-| 8 | `date` | Date taken | Dates | date | date | 160 |
-| 9 | `digitized` | Date digitized | Dates | date | | 160 |
-| 10 | `modify` | Date modified (EXIF) | Dates | date | | 160 |
-| 11 | `file_date` | File date | Dates | date | | 160 |
-| 12 | `gps_date` | GPS date (UTC) | Dates | date | | 160 |
-| 13 | `name_date` | Date from file name (third in Dates, after the two key dates; `rec_date` Recommended date is fourth; both carry the yellow `MAGIC_FIELDS` badge) | Dates | date | | 160 |
-| 14 | `rec_date` | Recommended date | Dates | date | | 160 |
-| 15 | `place` | Place | Location | text | place | 120 |
-| 16 | `rec_place` | Recommended place | Location | text | | 128 |
-| 17 | `gps` | GPS | Location | text | | 152 |
-| 18 | `country` | Country | Location | text | | 80 |
-| 19 | `device` | Device | Device | text | device | 152 |
-| 20 | `rec_device` | Recommended device | Device | text | | 152 |
-| 21 | `make` | Make | Device | text | | 112 |
-| 22 | `model` | Model | Device | text | | 144 |
-| 23 | `serial` | Serial number | Device | text | | 120 |
-| 24 | `lens` | Lens | Device | text | | 144 |
-| 25 | `software` | Software | Device | text | | 128 |
-| 26 | `author` | Author | Author | text | "" | 128 |
-| 27 | `copyright` | Copyright | Author | text | | 160 |
-| 28 | `owner` | Camera owner | Author | text | | 128 |
-| 29 | `size` | Size | File | num | | 88 |
-| 30 | `dims` | Dimensions | File | text | | 96 |
-| 31 | `ext` | Type | File | text | | 64 |
-| 32 | `kind` | Kind | File | text | | 72 |
+| 0 | `thumb` | Th. | File | special | "" | 64 |
+| 1 | `path` | Directory | File | text | "" | 256 |
+| 2 | `filename` | FileName | File | text | filename | 192 |
+| 3 | `dup_count` | Dup. (magic badge) | Duplicates | num | "" | 72 |
+| 4 | `dup_conf` | Dup. confidence (magic badge) | Duplicates | num | "" | 152 |
+| 5 | `checks` | Meta checks (magic badge) | Duplicates | special | "" | 240 |
+| 6 | `key_dto` | DateTimeOriginal (EXIF) (key "!" badge) | Dates | date | date | 168 |
+| 7 | `key_created` | DateCreated (IPTC/XMP) (key "!" badge) | Dates | date | "" | 168 |
+| 8 | `name_date` | Date from file name (magic badge) | Dates | date | "" | 160 |
+| 9 | `rec_date` | Recommended date (magic badge) | Dates | date | "" | 160 |
+| 10 | `digitized` | CreateDate (EXIF) | Dates | date | "" | 160 |
+| 11 | `modify` | ModifyDate (EXIF) | Dates | date | "" | 160 |
+| 12 | `file_date` | FileModifyDate | Dates | date | "" | 160 |
+| 13 | `gps_date` | GPSDateTime (UTC) | Dates | date | "" | 160 |
+| 14 | `place` | Place (magic badge) | Location | text | place | 120 |
+| 15 | `rec_place` | Recommended place (magic badge) | Location | text | "" | 128 |
+| 16 | `gps` | GPSPosition | Location | text | "" | 152 |
+| 17 | `country` | Country (magic badge) | Location | text | "" | 80 |
+| 18 | `device` | Device (magic badge) | Device | text | device | 152 |
+| 19 | `rec_device` | Recommended device (magic badge) | Device | text | "" | 152 |
+| 20 | `make` | Make | Device | text | "" | 112 |
+| 21 | `model` | Model | Device | text | "" | 144 |
+| 22 | `serial` | SerialNumber | Device | text | "" | 120 |
+| 23 | `lens` | LensModel | Device | text | "" | 144 |
+| 24 | `software` | Software | Device | text | "" | 128 |
+| 25 | `author` | Artist | Author | text | "" | 128 |
+| 26 | `copyright` | Copyright | Author | text | "" | 160 |
+| 27 | `owner` | OwnerName | Author | text | "" | 128 |
+| 28 | `size` | FileSize | File | num | "" | 88 |
+| 29 | `dims` | ImageSize | File | text | "" | 96 |
+| 30 | `ext` | FileTypeExtension | File | text | "" | 64 |
+| 31 | `kind` | Kind (magic badge) | File | text | "" | 72 |
+
+Labels are the real tag names (ExifTool spelling, ADR-020); values the app works out carry the yellow
+`MAGIC_FIELDS` badge. There is no `date` ("Date taken") column: `v["date"]` (the extracted best date) stays internal,
+for grouping by day, duplicate explanations and file-name values. `CORE_SOURCE_TAGS` maps the raw tags that core
+columns show (`ExifIFD:DateTimeDigitized` → `digitized`, `IFD0:DateTime` → `modify`, `IFD0:Make` → `make`, …):
+`catalog` does not offer them again, and view v7 moves stored columns, filters, sort and rules to the core keys.
 
 `CORE_BY_KEY = {f.key: f for f in CORE}`.
 
 ### Edit and grouping constants
 
 ```python
-EDIT_LABELS = {"filename": "New filename", "date": "New date", "place": "New place", "device": "New device"}
-EDIT_BASE   = {"filename": "filename", "date": "date", "place": "place", "device": "device"}  # column an edit column follows
+EDIT_BASE   = {"filename": "filename", "date": "key_dto", "place": "place", "device": "device"}  # the column an edit column edits and follows
+EDIT_LABELS = {t: CORE_BY_KEY[base].label + " ✎" for t, base in EDIT_BASE.items()}  # "DateTimeOriginal (EXIF) ✎"
+EDIT_WRITES = {...}  # per target, where a plan writes it (purple header tooltip): XMP sidecar fields, rename, file date
 GROUPS = {"none": "None", "dups": "Duplicates", "capture": "Photo (all copies)", "folder": "Path / Folders",
           "day": "Day", "device": "Device", "place": "Place", "author": "Author"}
 OPS = {"contains": "contains", "equals": "is", "not_equals": "is not", "empty": "is empty",
        "not_empty": "is not empty", "gte": "≥", "lte": "≤", "diff": "differs in group", "same": "same in group"}
 NO_VALUE_OPS = {"empty", "not_empty", "diff", "same"}
-DATE_SOURCES = ["date", "digitized", "modify", "file_date", "gps_date", "name_date", "rec_date"]  # date rule "copy from"/"shift" choices
+DATE_SOURCES = ["key_dto", "key_created", "digitized", "modify", "file_date", "gps_date", "name_date", "rec_date"]  # date rule "copy from"/"shift" choices
 VERDICT_TEXT = {"identical": "exact", "same_pixels": "diff meta", "same_photo": "same photo", "edited": "edited",
                 "same_video": "same video", "likely": "likely", "similar_shot": "similar shot"}
 ```
@@ -141,7 +147,7 @@ dropping empty categories. `list(catalog([]))[:3] == ["File", "Duplicates", "Dat
 
 Drop ` (…)`; words = regex `[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+`; first letter of each, upper; fallback
 `name[:2].upper()`; return `letters[:3]` if ≥ 2 letters else `name[:3].upper()`.
-`"OffsetTimeDigitized (ExifIFD)" → "OTD"`, `"Date taken" → "DT"`.
+`"OffsetTimeDigitized (ExifIFD)" → "OTD"`, `"Date from file name" → "DFF"`.
 
 ### Meta checks
 
@@ -163,7 +169,7 @@ SINGLES = "__singles__"
 DEFAULT_VIEW = {
   "v": 5,
   "columns": [["thumb",48],["path",248],["filename",192],["dup_count",64],["dup_conf",144],["checks",240],
-              ["key_dto",168],["key_created",168],["date",160],["modify",160],["gps_date",160],["place",112],
+              ["key_dto",168],["key_created",168],["digitized",160],["modify",160],["gps_date",160],["place",112],
               ["device",152],["author",128]],
   "edits": {}, "filters": [DUP_FILTER], "group": "dups", "sources_off": [], "group_width": 232,
   "sort": ["", "asc"], "slim": {}, "ref_ids": [], "pinned": [], "q": "", "colors": True,
@@ -191,7 +197,7 @@ Constants: `SLIM_WIDTH = 40`, `TREE_WIDTH = 40`.
 ```python
 GROUP_COLUMN = {  # grouping → (tree column label, data column whose group-row cell shows the group's name)
   "dups": ("Duplicate set", "filename"), "capture": ("Photo", "filename"), "folder": ("Folder", "path"),
-  "day": ("Day", "date"), "device": ("Device", "device"), "place": ("Place", "place"), "author": ("Author", "author")}
+  "day": ("Day", "key_dto"), "device": ("Device", "device"), "place": ("Place", "place"), "author": ("Author", "author")}
 ```
 (`none` has no entry → no tree column.)
 
@@ -327,7 +333,7 @@ Algorithm per row:
    `src[t]` = the rule source, or the *keep* source when `kind == keep` or the row is outside `ids`.
 2. If `"filename"` in edits: render with `pattern = rule.get("pattern") or r["pattern"]` and
    ```python
-   values = {"capture_time": e.get("date", eff.get("capture_time") or v["date"]),
+   values = {"capture_time": e.get("date") or eff.get("capture_time") or v["date"],
              "location_name": e.get("place", eff.get("location_name") or v["place"]),
              "device_name": e.get("device", eff.get("device_name") or v["device"]),
              "country": eff.get("country") or v["country"], "tags": v}   # {tag:KEY} = any column of this row
@@ -450,7 +456,7 @@ their first row after row sorting). Mixed int/str values in one column (raw EXIF
 
 1. Fresh `build_rows` + `apply_edits(view["edits"])` (no filters: ids decide).
 2. If `only in (None, "filename")` and the filename rule has a `pattern` → `lib.set_setting("filename_pattern", pattern)`.
-3. `fields = {"date": "capture_time", "place": "location_name", "device": "device_name"}`, limited to `only`
+3. `fields = {"date": "capture_time", "place": "location_name", "device": "device_name"}`, limited to `only`; a value whose source is `keep` (unchanged: the edited column's own value) is skipped
    (so `only="filename"` writes no proposals and returns 0).
 4. For rows in `ids` with a capture: for each target present in `r["e"]`, skip if `(capture, field)` already
    done; if `new` is non-empty and `!= v[target]` → `harmonize.set_status(lib, capture, field, "edited", new)`
@@ -581,4 +587,4 @@ The `_SAME_TAG` de-duplication was dropped: every shown date cell votes once (it
 
 ## Recommended date source (revised)
 
-Rows carry `rec_from` = the capture_time proposal's `source` and `status`. `_rec_date_sources` maps the source label (`metadata of …` → `date`, `file name …` → `name_date`, `file date of …` → `file_date`) to a cell: the row's own cell of that kind when it holds the value, else the named copy's; `rec_title` describes it ("from Date taken of this file" / "… of <name>, another copy (in <path>)" / "typed in step 3" for edited proposals) and becomes the cell's tooltip.
+Rows carry `rec_from` = the capture_time proposal's `source` and `status`. `_rec_date_sources` maps the source label (`metadata of …` → the first of `key_dto`, `digitized` holding the value, `file name …` → `name_date`, `file date of …` → `file_date`) to a cell: the row's own cell of that kind when it holds the value, else the named copy's; `rec_title` describes it ("from DateTimeOriginal (EXIF) of this file" / "… of <name>, another copy (in <path>)" / "typed in step 3" for edited proposals) and becomes the cell's tooltip.

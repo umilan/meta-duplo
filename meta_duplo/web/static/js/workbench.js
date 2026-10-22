@@ -641,7 +641,7 @@
                       value: distinct.length === 1 ? distinct[0] : "", distinct: distinct.length, isRef: false,
                       x: Math.max(8, Math.min(r.left, window.innerWidth - 312)), y: r.bottom + 4 };
       },
-      // "Apply this value › To column…": the user picks the field it feeds (a date: the capture date; else place / device)
+      // "Apply this value › To column…": the user picks the field it feeds (a date: DateTimeOriginal; else place / device)
       sub: false,
       subSel: false,         // the "Select all ›" submenu (header and cell menus)
       // tick every file of the view with (or without) a value in a column; replaces the selection (undoable)
@@ -652,7 +652,7 @@
         });
       },
       ac: { mode: "cell", fid: "", key: "", label: "", value: "", targets: [], target: "", scope: "group" },
-      targetName(t) { return { date: "New date (capture date)", place: "New place", device: "New device" }[t] || t; },
+      targetName(t) { return JSON.parse(this.$root.dataset.editLabels || "{}")[t] || t; },  // the purple column's name
       openApplyCol() {
         const m = this.menu; this.menu = null;
         const dates = m.multi ? m.cells.map((c) => c.target === "date") : [m.target === "date"];
@@ -688,7 +688,7 @@
           this.cellEdit = { multi: true, cells: m.cells, label: m.label, value: m.distinct === 1 ? m.value : "", fid: "", key: "" };
           this.dialog = "celledit"; this.$nextTick(() => this.$refs.celledit && this.$refs.celledit.select()); return;
         }
-        if (!m.target) { this.openEdit({ target: "filename" }); return; }  // New filename: one pattern for all files
+        if (!m.target) { this.openEdit({ target: "filename" }); return; }  // FileName ✎: one pattern for all files
         this.cellEdit = { label: m.label, value: m.value.replace(/^[→=]\s*/, ""), fid: m.fid, key: m.key };  // "→ value" / "= value"
         this.dialog = "celledit"; this.$nextTick(() => this.$refs.celledit && this.$refs.celledit.select());
       },

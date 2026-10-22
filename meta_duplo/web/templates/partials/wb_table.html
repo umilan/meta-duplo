@@ -43,10 +43,10 @@
         <span class="pick__hint">rename by the file name rule (a plan you review first)</span></button>
       <div class="wbsheet__section">Change</div>
       <button type="button" role="menuitem" @click="open = false; openEdit({ target: 'filename' })">File name pattern…
-        <span class="pick__hint">text and parameters from any column; a purple “New filename” column previews it</span></button>
-      {% for t, label in [('date', 'Date'), ('place', 'Place'), ('device', 'Device')] %}
-      <button type="button" role="menuitem" @click="open = false; openEdit({ target: '{{ t }}', kind: 'recommended' })">{{ label }}…
-        <span class="pick__hint">a rule fills a purple “New {{ label|lower }}” column</span></button>
+        <span class="pick__hint">text and parameters from any column; a purple “{{ edit_labels.filename }}” column previews it</span></button>
+      {% for t in ('date', 'place', 'device') %}
+      <button type="button" role="menuitem" @click="open = false; openEdit({ target: '{{ t }}', kind: 'recommended' })">{{ edit_labels[t]|replace(' ✎', '') }}…
+        <span class="pick__hint">a rule fills a purple “{{ edit_labels[t] }}” column next to it</span></button>
       {% endfor %}
       <button type="button" role="menuitem" :disabled="!$store.wb.count" @click="open = false; runAction('commit')">Save edits
         <span class="pick__hint">store the purple values of the selected rows as decisions</span></button>
@@ -77,11 +77,11 @@
       {% endif %}
       {% for c in cols %}
       {% set sorted = view.sort[0] == c.key %}
-      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }} {{ 'is-slim' if c.slim }} {{ 'is-empty' if c.empty }}"{{ " data-pin" if c.pinned }} data-tip="{{ c.label }}{{ ' (empty)' if c.empty }} — double-click to {{ 'expand' if c.slim else 'collapse' }}"{{ " data-filtered" if c.key in view.filters|map(attribute="key")|list }}{{ " data-catstart" if c.cat_start }} data-label="{{ c.label }}" data-target="{{ c.apply_target if c.apply_target != 'filename' else '' }}" data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}', {{ 'true' if c.slim else 'false' }})"
+      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }} {{ 'is-slim' if c.slim }} {{ 'is-empty' if c.empty }}"{{ " data-pin" if c.pinned }} data-tip="{{ c.label }}{{ ' (empty)' if c.empty }}{{ '. ' ~ c.writes if c.writes }} — double-click to {{ 'expand' if c.slim else 'collapse' }}"{{ " data-filtered" if c.key in view.filters|map(attribute="key")|list }}{{ " data-catstart" if c.cat_start }} data-label="{{ c.label }}" data-target="{{ c.apply_target if c.apply_target != 'filename' else '' }}" data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}', {{ 'true' if c.slim else 'false' }})"
           @dragover.prevent="over($event)" @drop.prevent="drop($event)"{% if sorted %} aria-sort="{{ 'ascending' if view.sort[1] == 'asc' else 'descending' }}"{% endif %}>
         <div class="wbh {{ 'wbh--sortable' if c.key != 'thumb' }}"{% if c.key != 'thumb' %} @click="clickSort()"{% endif %} @dblclick="toggleSlim()">
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)"
-                title="{{ c.label }} — click to sort, drag to move">{{ c.label|wbr }}</span>
+                title="{{ c.label }}{{ '. ' ~ c.writes ~ '; nothing changes on disk before that' if c.writes }} — click to sort, drag to move">{{ c.label|wbr }}</span>
           <span class="wbh__abbr" aria-hidden="true">{{ c.abbr }}</span>
           {% if c.links %}<span class="srclink srclink--head" data-srctip="{{ c.links|length }} source{{ '' if c.links|length == 1 else 's' }}: {% for l in c.links %}{{ l.letter }} = {{ l.label }}{{ '; ' if not loop.last }}{% endfor %}" aria-label="{{ c.links|length }} sources">{% include "partials/link_icon.svg" %}({{ c.links|length }})</span>{% endif %}
           {% if c.pinned and c.key != 'thumb' %}<span class="wbh__pin" title="Pinned: stays at the left while you scroll" aria-label="Pinned"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h4l-.5 4 2.5 2.5V10H4V8.5L6.5 6zM8 10v4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg></span>{% endif %}

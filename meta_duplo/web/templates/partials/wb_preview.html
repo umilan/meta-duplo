@@ -8,11 +8,11 @@
   <h3 class="preview__name">{{ r.v.filename }}</h3>
   <div class="small muted path">{{ r.v.path }}</div>
   {% set sections = [
-    ('Dates', [('Date taken', r.v.date), ('Date digitized', r.v.digitized), ('Date modified (EXIF)', r.v.modify), ('File date', r.v.file_date), ('GPS date (UTC)', r.v.gps_date), ('Date from file name', r.v.name_date), ('Recommended', r.v.rec_date)]),
-    ('Location', [('Place', r.v.place), ('Country', r.v.country), ('GPS', r.v.gps), ('Recommended', r.v.rec_place)]),
-    ('Device', [('Device', r.v.device), ('Make', r.v.make), ('Model', r.v.model), ('Serial', r.v.serial), ('Lens', r.v.lens), ('Software', r.v.software), ('Recommended', r.v.rec_device)]),
-    ('Author', [('Author', r.v.author), ('Copyright', r.v.copyright), ('Camera owner', r.v.owner)]),
-    ('File', [('Size', r.v.size|size), ('Dimensions', r.v.dims), ('Type', r.v.ext), ('Original name', r.original_name)]),
+    ('Dates', [('DateTimeOriginal (EXIF)', r.v.key_dto), ('DateCreated (IPTC/XMP)', r.v.key_created), ('CreateDate (EXIF)', r.v.digitized), ('ModifyDate (EXIF)', r.v.modify), ('FileModifyDate', r.v.file_date), ('GPSDateTime (UTC)', r.v.gps_date), ('Date from file name', r.v.name_date), ('Recommended date', r.v.rec_date)]),
+    ('Location', [('Place', r.v.place), ('Country', r.v.country), ('GPSPosition', r.v.gps), ('Recommended place', r.v.rec_place)]),
+    ('Device', [('Device', r.v.device), ('Make', r.v.make), ('Model', r.v.model), ('SerialNumber', r.v.serial), ('LensModel', r.v.lens), ('Software', r.v.software), ('Recommended device', r.v.rec_device)]),
+    ('Author', [('Artist', r.v.author), ('Copyright', r.v.copyright), ('OwnerName', r.v.owner)]),
+    ('File', [('FileSize', r.v.size|size), ('ImageSize', r.v.dims), ('FileTypeExtension', r.v.ext), ('Original name', r.original_name)]),
   ] %}
   {% if r.e %}
   <div class="pv-section pv-section--edit"><div class="pv-title">Edits (not applied yet)</div>

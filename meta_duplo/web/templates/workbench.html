@@ -15,7 +15,7 @@
 <button type="button" class="setsheet__item" title="Default columns, no filters" @click="$dispatch('wb-reset'); open = false">Reset view</button>
 {% endblock %}
 {% block content %}
-<div class="wb" x-data="wbPage" :class="panel && 'wb--panel'"
+<div class="wb" x-data="wbPage" data-edit-labels='{{ edit_labels|tojson }}' :class="panel && 'wb--panel'"
      @wb-filter.window="openFilter($event.detail, $event.detail.op || 'contains')" @wb-edit.window="openEdit($event.detail)"
      @wb-addcol.window="dialog = 'addcol'" @wb-preview.window="panel = true" @wb-panel.window="panel = $event.detail.on" @wb-reset.window="post({ action: 'reset' })" @wb-colors.window="post({ action: 'colors' })" @wb-cellmenu.window="openCellMenu($event.detail.btn)" @wb-cellsmenu.window="openCellsMenu($event.detail)"
      @wb-celledit.window="openCellMenu($event.detail.btn); openCellEdit()">
@@ -335,7 +335,7 @@
         <strong class="mono namer__previewname" x-text="name"></strong>
       </div>
       <div class="namer__field">{# label tight above its field #}
-      <label class="small muted">New filename</label>
+      <label class="small muted">{{ edit_labels.filename }}</label>
       <div class="namer__edit" @click.self="focusEnd()">
         <template x-for="(p, i) in parts" :key="i">
           <span class="namer__part">
@@ -400,10 +400,10 @@
         <select x-model="ac.target">
           <template x-for="t in ac.targets" :key="t"><option :value="t" x-text="targetName(t)"></option></template>
         </select></label>
-      {# one possible column (a date goes only to the capture date): say where it goes, no one-item dropdown #}
+      {# one possible column (a date goes only to DateTimeOriginal): say where it goes, no one-item dropdown #}
       <p class="small" x-show="ac.targets.length === 1">Goes to <strong x-text="targetName(ac.target)"></strong>
-        <span class="muted" x-show="ac.target === 'date'">(the only date the app can write for now; EXIF dates
-          will follow with ExifTool)</span></p>
+        <span class="muted" x-show="ac.target === 'date'">(the only date the app can write for now; the other
+          dates will follow with ExifTool)</span></p>
       <fieldset class="applycol__scope" x-show="ac.mode === 'cell'"><legend class="small muted">For</legend>
         <label><input type="radio" value="group" x-model="ac.scope"> Its group</label>
         <label><input type="radio" value="selection" x-model="ac.scope" :disabled="!$store.wb.count">
@@ -451,7 +451,7 @@
             <button type="button" class="chip chip--btn" @click="insert('{{ tok }}')">{{ tok }}</button>
             {% endfor %}
           </div>
-          <p class="small muted">Uses the New date / place / device columns when they exist, otherwise the accepted values.</p>
+          <p class="small muted">Uses the purple {{ edit_labels.date }}, {{ edit_labels.place }} and {{ edit_labels.device }} columns when they exist, otherwise the accepted values.</p>
         </div>
       </template>
       <template x-if="e.target && e.target !== 'filename'">

@@ -436,7 +436,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                              "abbr": wb.acronym(f.label), "apply_target": wb.edit_target(key) or "",
                              "width": wb.SLIM_WIDTH if slim else wb.snap(width),
                              "target": target, "edit": key.startswith("edit:"), "pinned": key in pinned,
-                             "groupable": {"path": "folder", "date": "day", "device": "device", "place": "place",
+                             "writes": wb.EDIT_WRITES.get(target, "") if key.startswith("edit:") else "",
+                             "groupable": {"path": "folder", "key_dto": "day", "device": "device", "place": "place",
                                            "dup_count": "dups", "dup_conf": "dups"}.get(key, "")})
                 if key.startswith("edit:"):  # the distinct sources (rules) its values come from, A, B, C…
                     links = {r["src"][target]["letter"]: r["src"][target] for r in rows if target in r.get("src", {})}
@@ -489,9 +490,9 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         if r is None:
             return {"name": "", "values": {}, "file": ""}
         e, v, eff = r["e"], r["v"], r["effective"]
-        values = {"capture_time": e.get("date", eff.get("capture_time") or v["date"]),
-                  "location_name": e.get("place", eff.get("location_name") or v["place"]),
-                  "device_name": e.get("device", eff.get("device_name") or v["device"]),
+        values = {"capture_time": e.get("date") or eff.get("capture_time") or v["date"],
+                  "location_name": e.get("place") or eff.get("location_name") or v["place"],
+                  "device_name": e.get("device") or eff.get("device_name") or v["device"],
                   "country": eff.get("country") or v["country"], "tags": v}
         def alone(tok: str) -> str:  # a token on its own, as it would read in the name
             out = harmonize.render_name(tok + ".x", values, r["original_name"], r["ext_raw"])
@@ -558,7 +559,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         reload = True
 
         def add_edit_column(t: str, after: str = "") -> None:
-            """The purple column of an edit rule: right after the field it edits (New date after Date taken), even
+            """The purple column of an edit rule: right after the field it edits (DateTimeOriginal (EXIF) ✎ after
+            DateTimeOriginal (EXIF)), even
             when its value was copied from another column; `after` is only the fallback when that field is hidden."""
             ekey, ks = f"edit:{t}", [c[0] for c in cols]
             if ekey in ks:
@@ -642,7 +644,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 rule["value"] = f.get("value", "").strip()
             elif kind == "shift":
                 secs = int(f.get("hh") or 0) * 3600 + int(f.get("mm") or 0) * 60 + int(f.get("ss") or 0)
-                rule.update(column=f.get("shift_column") or "date", seconds=-secs if f.get("sign") == "-" else secs)
+                rule.update(column=f.get("shift_column") or "key_dto", seconds=-secs if f.get("sign") == "-" else secs)
             view["edits"][t] = {**rule, "overrides": view["edits"].get(t, {}).get("overrides", {}),
                                         "override_from": view["edits"].get(t, {}).get("override_from", {})}
             add_edit_column(t)

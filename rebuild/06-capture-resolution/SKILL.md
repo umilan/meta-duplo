@@ -225,7 +225,7 @@ explanation is the cell tooltip. Every copy of the capture updates together (out
   `edit_target("rec_place") = "place"`, `edit_target("rec_device") = "device"`, date-kind keys → `"date"`.
   The preview panel (`partials/wb_preview.html`) lists them as *Recommended*.
 - Edit rule `kind "recommended"`: `e[target] = v["rec_" + target] or v[target]` (targets `date`, `place`, `device`).
-- New filename preview: `capture_time = e.get("date", effective.capture_time or v.date)`, likewise place and
+- FileName ✎ preview: `capture_time = e.get("date") or effective.capture_time or v.date`, likewise place and
   device; `country = effective.country or v.country`.
 - `commit(lib, view, ids, only=None) -> int` ("Save as decisions"): recomputes rows and edits; if `only` is
   `None` or `"filename"` and the filename rule has a pattern, saves it to setting `filename_pattern`. For each

@@ -31,11 +31,11 @@ def test_duplicates_grouping_and_differences(lib):
     g = _group_with(groups, "Copy of IMG_0003.JPG")
     assert len(g.rows) == 3 and g.ref["v"]["path"].endswith("Camera/DCIM")
     copy = next(r for r in g.rows if r["v"]["filename"] == "Copy of IMG_0003.JPG")
-    assert copy["diff"]["filename"] and not copy["diff"]["date"]
+    assert copy["diff"]["filename"] and not copy["diff"]["key_dto"]
     assert wb.conf_label(copy) == "100 % · identical"
     pc = _group_with(groups, "prague castle.jpg")  # same pixels, edited date
     castle = next(r for r in pc.rows if r["v"]["filename"] == "prague castle.jpg")
-    assert wb.conf_label(castle).startswith("99 %") and castle["diff"]["date"]
+    assert wb.conf_label(castle).startswith("99 %") and castle["diff"]["key_dto"]
     assert wb.conf_parts(castle) == ("99 %", "date differs, place missing, renamed")  # what differs from the kept copy, in grey
     assert wb.acronym("OffsetTimeDigitized (ExifIFD)") == "OTD" and wb.acronym("Date taken") == "DT"
     assert "IFD0:Artist" in exif_keys and "GPS:GPSDateStamp" in exif_keys
@@ -113,15 +113,15 @@ def test_duplicates_filter_chip_and_singles_group(lib):
 
 
 def test_columns_follow_the_picker_order():
-    cols = [["thumb", 48], ["path", 248], ["filename", 192], ["date", 160], ["author", 128]]
+    cols = [["thumb", 48], ["path", 248], ["filename", 192], ["key_dto", 160], ["author", 128]]
     wb.insert_column(cols, "dims", 96)          # File: right after the filename
     wb.insert_column(cols, "dup_conf", 144)     # Duplicates: before the dates
     wb.insert_column(cols, "exif:GPS:GPSLatitude", 152)  # Location, after the dates
-    assert [c[0] for c in cols] == ["thumb", "path", "filename", "dims", "dup_conf", "date",
+    assert [c[0] for c in cols] == ["thumb", "path", "filename", "dims", "dup_conf", "key_dto",
                                     "exif:GPS:GPSLatitude", "author"]
-    shuffled = [["author", 1], ["edit:date", 1], ["date", 1], ["path", 1], ["dup_count", 1]]
+    shuffled = [["author", 1], ["edit:date", 1], ["key_dto", 1], ["path", 1], ["dup_count", 1]]
     shuffled.sort(key=lambda c: wb.column_rank(c[0]))
-    assert [c[0] for c in shuffled] == ["path", "dup_count", "date", "edit:date", "author"]
+    assert [c[0] for c in shuffled] == ["path", "dup_count", "key_dto", "edit:date", "author"]
     assert list(wb.catalog([]))[:3] == ["File", "Duplicates", "Dates"]
 
 
@@ -144,11 +144,33 @@ def test_key_date_fields_first_and_xmp_date_read(tmp_path):
     cat = wb.catalog(["ExifIFD:DateTimeDigitized", "ExifIFD:DateTimeOriginal", "XMP:DateCreated"])
     assert [f.key for f in cat["Dates"]][:2] == ["key_dto", "key_created"]  # always there, first among the dates
     assert not any(f.key.endswith(("DateTimeOriginal", "DateCreated")) for f in cat["Dates"])  # not listed twice
-    cols = [["thumb", 48], ["path", 248], ["date", 160]]
+    cols = [["thumb", 48], ["path", 248], ["modify", 160]]
     wb.insert_column(cols, "key_created", 168)
-    assert [c[0] for c in cols] == ["thumb", "path", "key_created", "date"]
-    view = wb.load_view_from({"v": 4, "columns": [["thumb", 48], ["key_dto", 200], ["key_created", 168], ["path", 248], ["date", 160]]})
-    assert view["columns"] == [["thumb", 48], ["path", 248], ["key_dto", 200], ["key_created", 168], ["date", 160]]
+    assert [c[0] for c in cols] == ["thumb", "path", "key_created", "modify"]
+    view = wb.load_view_from({"v": 4, "columns": [["thumb", 48], ["key_dto", 200], ["key_created", 168], ["path", 248], ["modify", 160]]})
+    assert view["columns"] == [["thumb", 48], ["path", 248], ["key_dto", 200], ["key_created", 168], ["modify", 160]]
+
+
+def test_no_date_taken_column():
+    """The made-up "Date taken" is gone: a stored view's column, filter, sort and rules move to DateTimeOriginal
+    (EXIF), which the purple date column now edits, named after it."""
+    view = wb.load_view_from({"v": 5, "columns": [["path", 248], ["date", 160], ["modify", 160]], "sort": ["date", "asc"],
+                              "filters": [{"key": "date", "op": "empty", "value": ""}],
+                              "edits": {"date": {"kind": "shift", "column": "date", "seconds": 60}}})
+    assert view["columns"] == [["path", 248], ["key_dto", 160], ["modify", 160]] and view["sort"] == ["key_dto", "asc"]
+    assert view["filters"][0]["key"] == "key_dto" and view["edits"]["date"]["column"] == "key_dto"
+    assert wb.field_for("date") is None and wb.EDIT_BASE["date"] == "key_dto"
+    view = wb.load_view_from({"v": 5, "columns": [["digitized", 160], ["exif:ExifIFD:DateTimeDigitized", 152],
+                                                  ["exif:IFD0:DateTime", 152]]})
+    assert view["columns"] == [["digitized", 160], ["modify", 152]]  # one column per tag, under its tag name
+    cat = wb.catalog(["ExifIFD:DateTimeDigitized", "IFD0:DateTime", "IFD0:Make", "IFD0:Orientation"])
+    assert not any(f.key in ("exif:ExifIFD:DateTimeDigitized", "exif:IFD0:DateTime", "exif:IFD0:Make")
+                   for fs in cat.values() for f in fs)
+    assert wb.EDIT_LABELS == {"filename": "FileName ✎", "date": "DateTimeOriginal (EXIF) ✎", "place": "Place ✎",
+                              "device": "Device ✎"}
+    made_up = [f.label for f in wb.CORE if f.key not in wb.MAGIC_FIELDS and f.key not in ("thumb",)
+               and " " in f.label.split(" (")[0]]
+    assert made_up == []  # every other column is named after a real tag
 
 
 def test_cell_actions_scope_overrides_and_reference(lib):
@@ -278,7 +300,7 @@ def test_cells_action_on_several_cells(lib):
     assert {r["v"]["filename"] for g in groups for r in g.rows} >= {"Copy of IMG_0003.JPG"}
     # one value typed for two cells, then each cell's value applied to its own group (copied, with its source)
     client.post("/wb/view", data={"action": "cells", "op": "set", "value": "2001-02-03 04:05:06",
-                                  "cells": json.dumps([[a["id"], "date"], [b["id"], "date"]])})
+                                  "cells": json.dumps([[a["id"], "key_dto"], [b["id"], "key_dto"]])})
     rule = wb.load_view(lib)["edits"]["date"]
     assert rule["overrides"][str(a["id"])] == rule["overrides"][str(b["id"])] == "2001-02-03 04:05:06"
     client.post("/wb/view", data={"action": "cells", "op": "apply", "scope": "group", "cells": json.dumps([[a["id"], "digitized"]])})
@@ -291,9 +313,9 @@ def test_recommended_date_points_at_its_source_cell(lib):
     rows, _ = wb.build_rows(lib)
     wa = next(r for r in rows if r["v"]["filename"] == "IMG-20190515-WA0003.jpg")
     src = wa["rec_src"]
-    assert src and src["rid"] != wa["id"] and src["key"] == "date"  # from the original's EXIF, in another row
+    assert src and src["rid"] != wa["id"] and src["key"] == "key_dto"  # from the original's EXIF, in another row
     orig = next(r for r in rows if r["id"] == src["rid"])
-    assert orig["v"]["date"] == wa["v"]["rec_date"]
-    assert wa["rec_title"].endswith(f"from Date taken of {orig['v']['filename']}, another copy (in {orig['v']['path']})")
+    assert orig["v"]["key_dto"] == wa["v"]["rec_date"]
+    assert wa["rec_title"].endswith(f"from DateTimeOriginal (EXIF) of {orig['v']['filename']}, another copy (in {orig['v']['path']})")
     own = next(r for r in rows if r["v"]["filename"] == "IMG_4101.JPG")
     assert own["rec_src"]["rid"] == own["id"] and own["rec_title"].endswith("of this file")

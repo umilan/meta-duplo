@@ -154,7 +154,7 @@ Rules that keep these checks honest:
 | Table | no `.is-diff` with grouping *None*; filtered column orange, sorted cyan, both dashed (`::after` gradient); pinned column `left` constant while scrolling; slim column tooltip appears without delay |
 | Menus | header ⋯ items (Pin / Unpin, Sort, Find, Change; edit columns: Apply · Edit all · Clear · Remove); cell menu enables *Rename with a pattern…* on file names |
 | Edit columns | `= value` vs `→ value`; source badges letter and tooltip; source cell badge; header `🔗(n)` |
-| Naming dialog | chips and text parts, insert at caret, ← → ↑ ↓ Backspace Esc, search phrase filtering and hidden empty sections, per-tag values, extension warning, presets (save / update / rename / delete / Default protected), Apply adds *New filename* |
+| Naming dialog | chips and text parts, insert at caret, ← → ↑ ↓ Backspace Esc, search phrase filtering and hidden empty sections, per-tag values, extension warning, presets (save / update / rename / delete / Default protected), Apply adds *FileName ✎* |
 | Undo / redo | sequence of selection and view steps undone in order; toasts name the step; buttons disabled at the ends |
 | Lightbox | fit / width / height / 100 %, wheel zoom around the pointer, drag pan clamped, keys |
 | Jobs | stripe fixed at top, full width, inverted theme; Cancel → *Cancelling…* → page reload; DB job `cancelled` |
@@ -176,7 +176,7 @@ Rules that keep these checks honest:
 
 ## Verify
 
-- `uv run pytest -q` prints `30 passed` (`tests/test_desktop.py` covers the token page and the parent watchdog the desktop app relies on).
+- `uv run pytest -q` prints `31 passed` (`tests/test_desktop.py` covers the token page and the parent watchdog the desktop app relies on).
 - On a fresh library, `uv run meta-duplo demo && uv run meta-duplo serve` opens Filomena showing the demo disk
   (21 files when generated in this environment) grouped as duplicate sets, the `IMG_0003.JPG (3)` set among them, and no
   console errors.
