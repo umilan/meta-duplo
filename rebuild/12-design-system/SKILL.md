@@ -162,7 +162,7 @@ max-width 1504. `.page-head`, `.toolbar`, `.grid-cards`, `.split` (2 columns). `
 | Panels | `.panel`, `.card(__head/__body/__foot)`, `.stat(s)`, `.member` | `--surface`, hairline, radius 8, padding 16, `--shadow` |
 | Search field | `.searchfield`, `__btn`, `__clear` | input with 32px padding both sides; magnifier absolute left (becomes a bordered button in tight header), × 24px right |
 | Filters row | `.filters`, `.filters__label`, `.histbtns` | wrap, gap 8; labels muted 600 |
-| Table | `.wbt` | fixed layout, separate borders, 12/16; cells `--cell-py 8`, hairline bottom, nowrap ellipsis; sticky thead `--surface-2`; `td` height `--row-h`; see the Workbench skill for state colours |
+| Table | `.wbt` | fixed layout, separate borders, 12/16; cells padding `--cell-py` × 8px, hairline bottom, nowrap ellipsis; sticky thead `--surface-2`; `td` height `--row-h`; see the Workbench skill for state colours |
 | Header cell | `.wbh` | flex, gap 4, h 40, `.wbh__label` 600 2-line clamp, `.wbh__sort`, `.wbh__filter` (orange funnel), `.wbh__pin`, `.wbh__abbr`, `.wbh__resize` (8px, col-resize) |
 | Source link | `.srclink` (+ `--head`, `--origin`), `.srclink__icon` | inline-flex, h `--control-h-xs`, min-w 32, padding 0 4, no border, radius 4, bg `color-mix(--edit-text 16%, --edit-bg)` (28% on hover), text `--edit-text`, 12/16 600; icon 16 |
 | Tooltip | `.wbtip` | fixed z 70, padding 4 8, radius 4, inverted (`--text` bg, `--bg` text), 12/16, nowrap, no pointer events |
