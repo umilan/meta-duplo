@@ -202,6 +202,9 @@
                     title="Remove this edit column and its rule">Remove</button>
           </div>
         </template>
+        <button type="button" role="menuitem" class="wbsheet__pinitem" @click="post({ action: 'col_pin', key: menu.key, on: menu.pinned ? '' : '1' }); menu = null"
+                x-text="menu.pinned ? 'Unpin column' : 'Pin to the left'"
+                :title="menu.pinned ? 'Let it scroll with the others again' : 'Keep this column at the left while you scroll sideways'">Pin to the left</button>
         <div class="wbsheet__section">Sort by</div>
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'asc' }); menu = null">↑ Ascending (A → Z, old → new)</button>
         <button type="button" role="menuitem" @click="post({ action: 'sort', key: menu.key, dir: 'desc' }); menu = null">↓ Descending (Z → A, new → old)</button>

@@ -404,8 +404,10 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 /* pinned on the left as well: the expander column (40px, as wide as the checkbox column) and the thumbnail
    column when it comes first */
 .wbt .wbt__tree, .wbt .wbt__pin { position: sticky; z-index: 1; box-shadow: inset -1px 0 0 var(--line); }
-.wbt .wbt__tree, .wbt .wbt__pin { left: var(--space-500); }
-.wbt--tree .wbt__pin { left: calc(2 * var(--space-500)); }
+.wbt .wbt__tree { left: var(--space-500); }  /* pinned columns: `left` set by workbench.js from the rendered widths */
+.wbt .wbt__pin--last { box-shadow: inset -2px 0 0 var(--line-strong); }  /* where the scrolling part starts */
+.wbh__pin { flex: none; display: inline-grid; place-items: center; color: var(--muted); }
+.wbh__pin svg { width: var(--icon); height: var(--icon); }
 :where(.wbt tbody td.wbt__check, .wbt tbody td.wbt__tree, .wbt tbody td.wbt__pin) { background-color: var(--surface); }
 .wbt thead th.wbt__check, .wbt thead th.wbt__tree, .wbt thead th.wbt__pin { z-index: 3; }
 .wbt td.wbt__tree.wbg__exp { color: var(--muted); }

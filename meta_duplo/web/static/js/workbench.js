@@ -253,6 +253,32 @@
     if (box) box.style.maxHeight = `${Math.max(256, window.innerHeight - box.getBoundingClientRect().top)}px`;
   };
   window.addEventListener("resize", fitTable);
+
+  // Pinned columns (header data-pin, kept first by the server) stick to the left after the checkbox and group
+  // columns; offsets come from the rendered widths, so they follow resizing.
+  const applyPins = () => {
+    const table = document.querySelector("#wb-table .wbt");
+    if (!table || !table.tHead) return;
+    const head = [...table.tHead.rows[0].cells];
+    let left = 0;
+    for (const th of head) {
+      if (!th.matches(".wbt__check, .wbt__tree")) break;
+      left += th.getBoundingClientRect().width;
+    }
+    const pins = head.filter((th) => th.hasAttribute("data-pin"));
+    pins.forEach((th, n) => {
+      const last = n === pins.length - 1;
+      table.querySelectorAll(`tr > :nth-child(${th.cellIndex + 1})`).forEach((c) => {
+        if (c.colSpan > 1) return;
+        c.classList.add("wbt__pin"); c.classList.toggle("wbt__pin--last", last); c.style.left = `${Math.round(left)}px`;
+      });
+      left += th.getBoundingClientRect().width;
+    });
+  };
+  window.addEventListener("resize", applyPins);
+  document.addEventListener("htmx:afterSettle", applyPins);   // table reloads and new pages of groups
+  document.addEventListener("DOMContentLoaded", () => setTimeout(applyPins, 0));
+  document.addEventListener("mouseup", () => requestAnimationFrame(applyPins));  // after a column resize
   document.addEventListener("htmx:afterSettle", fitTable);
   document.addEventListener("DOMContentLoaded", () => setTimeout(fitTable, 0));
 

@@ -85,20 +85,21 @@
       {% endif %}
       {% for c in cols %}
       {% set sorted = view.sort[0] == c.key %}
-      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }} {{ 'wbt__pin' if loop.first and c.key == 'thumb' }} {{ 'is-slim' if c.slim }}" data-tip="{{ c.label }}{{ ' (empty)' if c.empty }} — double-click to {{ 'expand' if c.slim else 'collapse' }}"{{ " data-filtered" if c.key in view.filters|map(attribute="key")|list }}{{ " data-catstart" if c.cat_start }} data-label="{{ c.label }}" data-target="{{ c.apply_target if c.apply_target != 'filename' else '' }}" data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}', {{ 'true' if c.slim else 'false' }})"
+      <th class="wbh-cell {{ 'wbh-cell--edit' if c.edit }} {{ 'is-slim' if c.slim }}"{{ " data-pin" if c.pinned }} data-tip="{{ c.label }}{{ ' (empty)' if c.empty }} — double-click to {{ 'expand' if c.slim else 'collapse' }}"{{ " data-filtered" if c.key in view.filters|map(attribute="key")|list }}{{ " data-catstart" if c.cat_start }} data-label="{{ c.label }}" data-target="{{ c.apply_target if c.apply_target != 'filename' else '' }}" data-key="{{ c.key }}" x-data="wbHead('{{ c.key }}', '{{ view.sort[1] if sorted else '' }}', '{{ 'desc' if c.kind == 'num' else 'asc' }}', {{ 'true' if c.slim else 'false' }})"
           @dragover.prevent="over($event)" @drop.prevent="drop($event)"{% if sorted %} aria-sort="{{ 'ascending' if view.sort[1] == 'asc' else 'descending' }}"{% endif %}>
         <div class="wbh {{ 'wbh--sortable' if c.key != 'thumb' }}"{% if c.key != 'thumb' %} @click="clickSort()"{% endif %} @dblclick="toggleSlim()">
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)"
                 title="{{ c.label }} — click to sort, drag to move">{{ c.label|wbr }}</span>
           <span class="wbh__abbr" aria-hidden="true">{{ c.abbr }}</span>
           {% if c.links %}<span class="srclink srclink--head" data-srctip="{{ c.links|length }} source{{ '' if c.links|length == 1 else 's' }}: {% for l in c.links %}{{ l.letter }} = {{ l.label }}{{ '; ' if not loop.last }}{% endfor %}" aria-label="{{ c.links|length }} sources">{% include "partials/link_icon.svg" %}({{ c.links|length }})</span>{% endif %}
+          {% if c.pinned and c.key != 'thumb' %}<span class="wbh__pin" title="Pinned: stays at the left while you scroll" aria-label="Pinned"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h4l-.5 4 2.5 2.5V10H4V8.5L6.5 6zM8 10v4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg></span>{% endif %}
           {% if c.key in key_fields %}<span class="keybadge" title="{{ key_fields[c.key] }}">!</span>{% endif %}
           {% set col_filters = view.filters|selectattr("key", "equalto", c.key)|list %}
           {% if col_filters %}<span class="wbh__filter" role="img" aria-label="Filtered"
                 title="Filtered: {% for f in col_filters %}{{ ops[f.op] }}{% if f.op not in no_value_ops %} {{ f.value }}{% endif %}{{ '; ' if not loop.last }}{% endfor %}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12l-4.5 5.5V13l-3 1.5v-6z" fill="currentColor"/></svg></span>{% endif %}
           {% if c.key != 'thumb' %}<span class="wbh__sort {{ 'is-on' if sorted }}" aria-hidden="true">{% if sorted %}{{ '↑' if view.sort[1] == 'asc' else '↓' }}{% else %}{{ '↓' if c.kind == 'num' else '↑' }}{% endif %}</span>{% endif %}
           {% if c.key != 'thumb' %}<button type="button" class="wbh__act" aria-haspopup="menu" :class="menu && menu.key === '{{ c.key }}' && 'is-open'"
-              @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}', edit: {{ 'true' if c.edit else 'false' }} }, $el)" title="Column menu: sort, filter, search, edit" aria-label="Column menu">⋯</button>{% endif %}
+              @click.stop="openMenu({ key: '{{ c.key }}', label: '{{ c.label }}', target: '{{ c.target }}', groupable: '{{ c.groupable }}', edit: {{ 'true' if c.edit else 'false' }}, pinned: {{ 'true' if c.pinned else 'false' }} }, $el)" title="Column menu: sort, filter, search, edit" aria-label="Column menu">⋯</button>{% endif %}
           <span class="wbh__resize" @mousedown.stop.prevent="resize($event)" @click.stop title="Drag to resize"></span>
         </div>
       </th>

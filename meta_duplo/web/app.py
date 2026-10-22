@@ -408,7 +408,10 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                     sc = src_cells.setdefault(f"{src['rid']}:{src['key']}", {"letter": src["letter"], "target": t, "n": 0})
                     sc["n"] += 1
         cols, prev_cat = [], None
-        for key, width in view["columns"]:
+        # pinned columns stay at the left (the thumbnail too while it is first); they are kept as one block
+        pinned = set(view.get("pinned", [])) | ({"thumb"} if view["columns"] and view["columns"][0][0] == "thumb" else set())
+        ordered = [c for c in view["columns"] if c[0] in pinned] + [c for c in view["columns"] if c[0] not in pinned]
+        for key, width in ordered:
             f = wb.field_for(key)
             if f:
                 target = key[5:] if key.startswith("edit:") else f.editable
@@ -419,7 +422,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 cols.append({"key": key, "label": f.label, "kind": f.kind, "slim": slim, "empty": empty, "cat_start": cat_start,
                              "abbr": wb.acronym(f.label), "apply_target": wb.edit_target(key) or "",
                              "width": wb.SLIM_WIDTH if slim else wb.snap(width),
-                             "target": target, "edit": key.startswith("edit:"),
+                             "target": target, "edit": key.startswith("edit:"), "pinned": key in pinned,
                              "groupable": {"path": "folder", "date": "day", "device": "device", "place": "place",
                                            "dup_count": "dups", "dup_conf": "dups"}.get(key, "")})
                 if key.startswith("edit:"):  # the distinct sources (rules) its values come from, A, B, C…
@@ -592,6 +595,16 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             rest = [c for c in cols if c[0] != f["key"]]
             at = next((i for i, c in enumerate(rest) if c[0] == f.get("before")), len(rest))
             view["columns"] = rest[:at] + [moving] + rest[at:]
+        elif act == "col_pin" and f.get("key") in keys:  # header menu: keep the column at the left while scrolling
+            pinned = [k for k in view.get("pinned", []) if k in keys and k != f["key"]]
+            if f.get("on"):
+                lead = [k for k in keys if k == "thumb" or k in pinned]  # the pinned block, in table order
+                col = next(c for c in cols if c[0] == f["key"])
+                rest = [c for c in cols if c[0] != f["key"]]
+                at = max((i for i, c in enumerate(rest) if c[0] in lead), default=-1) + 1
+                view["columns"] = rest[:at] + [col] + rest[at:]  # joins the end of the pinned block
+                pinned.append(f["key"])
+            view["pinned"] = pinned
         elif act == "col_slim" and f.get("key") in keys:  # header double-click: collapse / expand
             view.setdefault("slim", {})[f["key"]] = f.get("on") == "1"
         elif act == "col_width" and f.get("key") == "__group":

@@ -97,8 +97,9 @@ DEFAULT_VIEW = {
     "sources_off": [],        # source ids left out of the view (Data input checkboxes)
     "group_width": 232,       # width of the grouping (tree) column
     "sort": ["", "asc"],
-    "slim": {},
-    "ref_ids": [],            # files chosen as the reference row of their group (red / green compare against them)               # column key → True (collapsed to 40px) / False (kept wide); unset: slim when empty
+    "slim": {},               # column key → True (collapsed to 40px) / False (kept wide); unset: slim when empty
+    "ref_ids": [],            # files chosen as the reference row of their group (red / green compare against them)
+    "pinned": [],             # columns kept at the left while scrolling sideways (the thumbnail is, while first)
     "q": "",
     "colors": True,
 }
@@ -170,7 +171,7 @@ HISTORY_LABELS = {"sort": "sorting", "group": "grouping", "filter_add": "filter"
                   "col_move": "column order", "col_slim": "column width", "col_width": "column width",
                   "edit_set": "edit rule", "edit_clear": "edit rule", "edit_remove": "edit column",
                   "cell_set": "edited value", "cell_apply": "applied value", "cell_filter": "filter",
-                  "cell_ref": "reference row"}
+                  "cell_ref": "reference row", "col_pin": "pinned column"}
 _RELOAD_KEYS = ("group", "q", "sources_off", "colors")  # rendered outside the table: the page reloads for these
 
 
