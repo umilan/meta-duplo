@@ -732,14 +732,23 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
 _DATE_TEXT = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
 
 
+# columns that show the same EXIF tag: one vote between them (Date modified is IFD0 DateTime, Date taken is the
+# capture date read from DateTimeOriginal, Date digitized is DateTimeDigitized)
+_SAME_TAG = {"exif:IFD0:DateTime": "modify", "key_dto": "date", "exif:ExifIFD:DateTimeOriginal": "date",
+             "exif:ExifIFD:DateTimeDigitized": "digitized"}
+
+
 def _row_date_keys(keys: list[str]) -> list[str]:
-    """The date-time columns a row compares across (no grouping): local dates only, no UTC (GPS, "…Z")."""
-    return [k for k in keys if not k.startswith("edit:") and edit_target(k) == "date" and "gps" not in k.lower()]
+    """The date-time columns a row compares across (no grouping): local dates read from the file only — no UTC
+    (GPS, "…Z"), no derived values (the recommended date)."""
+    return [k for k in keys if not k.startswith("edit:") and edit_target(k) == "date" and "gps" not in k.lower()
+            and k != "rec_date"]
 
 
 def row_date_states(r: dict, keys: list[str]) -> dict[str, str]:
     """No grouping: compare a row's date-times with each other. All present values equal → every one "same" (green);
-    otherwise the values outside the single most common one are "diff" (red); without a single majority, all are."""
+    otherwise only the values outside the single most common one are "diff" (red), counting columns that show the
+    same tag once; with no single majority (a tie) nothing is red: there is no minority."""
     vals: dict[str, str] = {}
     for k in keys:
         raw = value(r, k)
@@ -750,12 +759,12 @@ def row_date_states(r: dict, keys: list[str]) -> dict[str, str]:
             vals[k] = d
     if len(vals) < 2:
         return {}
-    counts = Counter(vals.values())
+    counts = Counter(d for _, d in {(_SAME_TAG.get(k, k), d) for k, d in vals.items()})  # one vote per tag and value
     if len(counts) == 1:
         return {k: "same" for k in vals}
     (top, n), *rest = counts.most_common()
-    if rest and rest[0][1] == n:  # no single majority
-        return {k: "diff" for k in vals}
+    if rest and rest[0][1] == n:  # a tie: no minority to point at
+        return {}
     return {k: "diff" for k, d in vals.items() if d != top}
 
 

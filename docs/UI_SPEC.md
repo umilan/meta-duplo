@@ -181,9 +181,10 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   the group's files and shows the group's first file in the preview.
 - **Differences:** values that differ from the group's reference row are red (with *No grouping* there is no
   reference, so rows are not compared with each other and Meta checks shows –; instead each row's **date-times** are
-  compared with each other: tidied to one form, empty values ignored, UTC times (GPS, values ending in *Z*) left out;
-  all equal → green; otherwise the values outside the single most common one are red, and all are red when there is
-  no single majority). **Green means every file of the group
+  compared with each other: tidied to one form, empty values ignored, UTC times (GPS, values ending in *Z*) and the
+  derived *Recommended date* left out, and columns showing the same tag (Date modified = DateTime (IFD0), Date taken =
+  DateTimeOriginal, Date digitized = DateTimeDigitized) counted once; all equal → green; otherwise only the minority,
+  the values outside the single most common one, is red; a tie has no minority, so nothing is red). **Green means every file of the group
   agrees:** a file name is green only when all files in the group have that name (the group's name in the group row
   is then green too, red when the names differ); a path segment is green when every file has it at that place, red
   on a copy where it differs from the reference row, and neutral otherwise (e.g. the reference's own folder when a

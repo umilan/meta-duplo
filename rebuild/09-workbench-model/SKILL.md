@@ -562,3 +562,8 @@ _RELOAD_KEYS = ("group", "q", "sources_off", "colors")   # rendered outside the 
 ## Row date comparison without grouping (update)
 
 With grouping `none`, `table()` sets `r["rowcmp"] = row_date_states(r, _row_date_keys(keys))`: the shown date columns (`edit_target == "date"`, no `edit:`, no `gps`) are tidied with `_readable_date(...)[:19]`, empty and `…Z` values skipped; all equal → `"same"`; else the values outside the single most common one → `"diff"`; a tie for most common → all `"diff"`. The template colours `is-same` / `is-diff` from it. Test: `test_row_dates_compared_without_grouping`.
+
+
+## Row date comparison: votes (update)
+
+`_row_date_keys` also drops `rec_date` (derived). `row_date_states` counts one vote per (tag, value) with `_SAME_TAG` = {`exif:IFD0:DateTime`→`modify`, `key_dto`/`exif:ExifIFD:DateTimeOriginal`→`date`, `exif:ExifIFD:DateTimeDigitized`→`digitized`}; only values outside the single most common one are `diff`; a tie returns `{}` (nothing red).

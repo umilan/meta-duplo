@@ -250,7 +250,16 @@ def test_row_dates_compared_without_grouping():
     r["v"]["file_date"] = "2019-05-18 11:47:10"
     assert set(wb.row_date_states(r, keys).values()) == {"same"}  # all agree (empty ignored): green
     r["v"].update(key_dto="2020-01-01 00:00:00", date="2020-01-01 00:00:00")
-    assert set(wb.row_date_states(r, keys).values()) == {"diff"}  # 2 against 2: no majority, all red
+    assert wb.row_date_states(r, keys) == {"key_dto": "diff", "date": "diff"}  # one tag (1 vote) against IFD0 DateTime + file date
+    # the reported case: modify = IFD0 DateTime (one tag) against the file date; the recommendation does not vote
+    r = {"e": {}, "v": {"modify": "2018-09-24 11:32:04", "exif:IFD0:DateTime": "2018:09:24 11:32:04",
+                        "file_date": "2018-09-24 18:40:42", "rec_date": "2018-09-24 18:40:42", "date": "", "key_dto": ""}}
+    keys = wb._row_date_keys(["modify", "file_date", "rec_date", "exif:IFD0:DateTime", "date", "key_dto"])
+    assert "rec_date" not in keys
+    assert wb.row_date_states(r, keys) == {}  # one tag against one file date: a tie, no minority, nothing red
+    r["v"]["exif:ExifIFD:DateTimeDigitized"], r["v"]["digitized"] = "2018:09:24 11:32:04", "2018-09-24 11:32:04"
+    keys = wb._row_date_keys(["modify", "file_date", "exif:IFD0:DateTime", "digitized", "exif:ExifIFD:DateTimeDigitized"])
+    assert wb.row_date_states(r, keys) == {"file_date": "diff"}  # two tags agree: only the file date is red
 
 
 def test_cells_action_on_several_cells(lib):
