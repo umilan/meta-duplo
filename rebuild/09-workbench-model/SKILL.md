@@ -47,7 +47,7 @@ class Field:
 | 10 | `modify` | Date modified (EXIF) | Dates | date | | 160 |
 | 11 | `file_date` | File date | Dates | date | | 160 |
 | 12 | `gps_date` | GPS date (UTC) | Dates | date | | 160 |
-| 13 | `name_date` | Date in filename | Dates | date | | 160 |
+| 13 | `name_date` | Date from file name (third in Dates, after the two key dates) | Dates | date | | 160 |
 | 14 | `rec_date` | Recommended date | Dates | date | | 160 |
 | 15 | `place` | Place | Location | text | place | 120 |
 | 16 | `rec_place` | Recommended place | Location | text | | 128 |

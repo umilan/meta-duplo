@@ -253,7 +253,7 @@ sources. A clash with such a file on disk surfaces at apply time (`PlanError("ta
 │  │       hover: ✎ rename, × delete (not for builtin); inline input when renaming / adding
 │  │   .namer__sidefoot: [Update “name”] (active, saved, modified) · [+ Save as new preset] · .namer__err
 │  └─ .namer__main
-│      .namer__preview: "Preview for <file|the first file>" above <strong.mono> new name
+│      .namer__preview: "New file name preview for '<file>'" (or "…for the first file") above <strong.mono> new name
 │      label "New filename"; .namer__edit (resizable, wraps): parts = text inputs + chip buttons
 │      p.namer__warn (red, role=alert) while !/\.\{(ext|EXT)\}$/.test(pattern())
 │      p.namer__hint  (two variants, see below)

@@ -197,7 +197,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Edit columns** (light purple, inserted right of the source column) exist **only on demand**: none by default,
   *Edit…* in a header's ⋯ sheet opens the rule dialog and adds one.
   - **Filename:** the **Naming pattern** dialog (also *Actions → File name pattern…* and a double-click on any
-    file name). At the top, the preview: *Preview for <file>* above the new name it would get. The name is typed text with parameter chips (purple, underlined) in a resizable field. Under it a
+    file name). At the top, the preview: *New file name preview for '<file>'* above the new name it would get. The name is typed text with parameter chips (purple, underlined) in a resizable field. Under it a
     hint, then one bordered box holding a search field (with ×, a line under it, staying on top) and the parameter list, which scrolls under it, always open: *Recommended values* (date and time, date,
     year … sec, place, country, device, original filename, extension; they follow the New date / place / device
     columns), *Columns in this table*, then every field by category (EXIF / XMP / IPTC tags included,
@@ -286,6 +286,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   table. Both carry a red **!** badge. The raw tags they come from are not listed again. Extraction reads
   DateCreated since `RAW_VERSION = 3`; saved views are brought in line once (`VIEW_VERSION = 5`). They are shown
   only, not yet weighed as capture-time candidates.
+  Third in *Dates* comes *Date from file name* (a date read from the file's name, e.g. `IMG_20190518_114710`).
 - **Slim columns:** a shown column is never dropped, not even when no file has a value in it: an empty column is
   collapsed to 40 px (as wide as the checkbox column). Double-clicking any header collapses or expands it (the
   choice is kept per column in the view, `slim`); a single click still sorts (it waits a moment, so a double-click

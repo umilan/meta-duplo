@@ -43,12 +43,12 @@ CORE = [
     Field("checks", "Meta checks", "Duplicates", "special", width=240),
     Field("key_dto", "DateTimeOriginal (EXIF)", "Dates", "date", width=168),
     Field("key_created", "DateCreated (IPTC/XMP)", "Dates", "date", width=168),
+    Field("name_date", "Date from file name", "Dates", "date", width=160),  # third: right after the two key dates
     Field("date", "Date taken", "Dates", "date", editable="date", width=160),
     Field("digitized", "Date digitized", "Dates", "date", width=160),
     Field("modify", "Date modified (EXIF)", "Dates", "date", width=160),
     Field("file_date", "File date", "Dates", "date", width=160),
     Field("gps_date", "GPS date (UTC)", "Dates", "date", width=160),
-    Field("name_date", "Date in filename", "Dates", "date", width=160),
     Field("rec_date", "Recommended date", "Dates", "date", width=160),
     Field("place", "Place", "Location", editable="place", width=120),
     Field("rec_place", "Recommended place", "Location", width=128),

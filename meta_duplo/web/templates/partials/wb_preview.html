@@ -8,7 +8,7 @@
   <h3 class="preview__name">{{ r.v.filename }}</h3>
   <div class="small muted path">{{ r.v.path }}</div>
   {% set sections = [
-    ('Dates', [('Date taken', r.v.date), ('Date digitized', r.v.digitized), ('Date modified (EXIF)', r.v.modify), ('File date', r.v.file_date), ('GPS date (UTC)', r.v.gps_date), ('Date in filename', r.v.name_date), ('Recommended', r.v.rec_date)]),
+    ('Dates', [('Date taken', r.v.date), ('Date digitized', r.v.digitized), ('Date modified (EXIF)', r.v.modify), ('File date', r.v.file_date), ('GPS date (UTC)', r.v.gps_date), ('Date from file name', r.v.name_date), ('Recommended', r.v.rec_date)]),
     ('Location', [('Place', r.v.place), ('Country', r.v.country), ('GPS', r.v.gps), ('Recommended', r.v.rec_place)]),
     ('Device', [('Device', r.v.device), ('Make', r.v.make), ('Model', r.v.model), ('Serial', r.v.serial), ('Lens', r.v.lens), ('Software', r.v.software), ('Recommended', r.v.rec_device)]),
     ('Author', [('Author', r.v.author), ('Copyright', r.v.copyright), ('Camera owner', r.v.owner)]),

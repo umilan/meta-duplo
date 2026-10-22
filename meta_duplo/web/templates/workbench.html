@@ -287,7 +287,7 @@
       </aside>
       <div class="namer__main">
       <div class="namer__preview">
-        <span class="small muted" x-text="'Preview for ' + (file || 'the first file')"></span>
+        <span class="small muted" x-text="file ? `New file name preview for '${file}'` : 'New file name preview for the first file'"></span>
         <strong class="mono namer__previewname" x-text="name"></strong>
       </div>
       <div class="namer__field">{# label tight above its field #}
