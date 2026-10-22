@@ -561,6 +561,12 @@ def edit_target(key: str) -> str | None:
     return None
 
 
+def apply_targets(key: str) -> list[str]:
+    """Edit columns a cell's value may feed ("Apply to column…"): a date only the capture date; any other value
+    a place or a device (the fields plans can write)."""
+    return ["date"] if edit_target(key) == "date" else ["place", "device"]
+
+
 def cell_value(r: dict, key: str) -> str:
     """A cell's value as an edit value: dates in 'YYYY-MM-DD HH:MM:SS'."""
     val = value(r, key)

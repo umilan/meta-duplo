@@ -452,6 +452,7 @@
         const r = btn.getBoundingClientRect(), td = btn.parentElement, tr = td.parentElement;
         const th = tr.closest("table").tHead.rows[0].cells[td.cellIndex];
         const value = [...td.childNodes].filter((n) => n !== btn && !n.classList?.contains("srclink")).map((n) => n.textContent).join("").trim();
+        this.sub = false;
         this.menu = { cell: true, btn, td, key: th.dataset.key, label: th.dataset.label || th.dataset.key, target: th.dataset.target,
                       isName: ["filename", "edit:filename"].includes(th.dataset.key),  // edited through the naming pattern
                       fid: tr.dataset.rowid, value: value === "—" ? "" : value, isRef: tr.classList.contains("wbr--userref"),
@@ -461,6 +462,23 @@
       cellAct(action, extra = {}) {
         const m = this.menu; this.menu = null;
         postView({ action, fid: m.fid, key: m.key, ...extra });
+      },
+      // "Apply this value › To column…": the user picks the field it feeds (a date: the capture date; else place / device)
+      sub: false,
+      ac: { fid: "", key: "", label: "", value: "", targets: [], target: "", scope: "group" },
+      targetName(t) { return { date: "New date (capture date)", place: "New place", device: "New device" }[t] || t; },
+      openApplyCol() {
+        const m = this.menu; this.menu = null;
+        const targets = m.target === "date" ? ["date"] : ["place", "device"];
+        this.ac = { fid: m.fid, key: m.key, label: m.label, value: m.value.replace(/^[→=]\s*/, ""), targets,
+                    target: targets.includes(m.target) ? m.target : targets[0], scope: "group" };
+        this.dialog = "applycol";
+      },
+      saveApplyCol() {
+        const a = this.ac;
+        postView({ action: "cell_apply", fid: a.fid, key: a.key, target: a.target, scope: a.scope,
+                   ids: a.scope === "selection" ? Alpine.store("wb").csv() : "" });
+        this.close();
       },
       cellEdit: { label: "", value: "", fid: "", key: "" },
       openCellEdit() {

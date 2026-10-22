@@ -241,7 +241,7 @@ headers. Unknown actions or failed guards save the view unchanged (still `wb-rel
 | `cell_ref` | `fid` | XOR fid into `ref_ids` (sorted); key not needed |
 | `cell_filter` | `fid`, `key` (known) | append `{key, op: "empty", value: ""}` if the cell is empty, else `{key, op: "equals", value: str(val)}` (value from rows with edits applied) |
 | `cell_set` | `fid`, `key` (target date/place/device), `value` | rule = existing or `{"kind": "keep"}`; `overrides[str(fid)] = value.strip()`; `add_edit_column(t, after=key)` |
-| `cell_apply` | `fid`, `key` (target date/place/device), `scope` (`group`/`selection`/`all`), `ids` | value = `wb.cell_value(r, key)`; ids: `group` → ids of the group (from `wb.table` with the current view) holding fid, else `[fid]`; `selection` → `_ids(ids) ∪ {fid}` sorted; otherwise `None` (all). Rule `{"kind": "fixed", "value", "ids", "from": {"fid", "key"}, "overrides": existing}`; `add_edit_column(t, after=key)` |
+| `cell_apply` | `fid`, `key` (target date/place/device), optional `target` ("To column…": must be in `wb.apply_targets(key)`: `date` for date fields, else `place`/`device`), `scope` (`group`/`selection`/`all`), `ids` | value = `wb.cell_value(r, key)`; ids: `group` → ids of the group (from `wb.table` with the current view) holding fid, else `[fid]`; `selection` → `_ids(ids) ∪ {fid}` sorted; otherwise `None` (all). Rule `{"kind": "fixed", "value", "ids", "from": {"fid", "key"}, "overrides": existing}`; `add_edit_column(t, after=key)` |
 | `edit_clear` | `target` | rule → `{"kind": "keep"}` (+ `"pattern": ""` for filename): overrides dropped, column kept (`= current`) |
 | `edit_remove` | `target` | drop the rule and the `edit:<target>` column |
 | `reset` | — | `DEFAULT_VIEW` deep copy, keeping `colors` |

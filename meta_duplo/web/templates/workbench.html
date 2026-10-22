@@ -178,11 +178,21 @@
                 :title="menu.target || menu.isName ? '' : 'Only date, place, device and file names can be changed (plans write those)'"
                 @click="openCellEdit()" x-text="menu.isName ? 'Rename with a pattern…' : 'Edit this value…'">Edit this value…</button>
         <button type="button" role="menuitem" disabled title="Not yet: plans cannot clear a metadata value">Remove this value</button>
-        <button type="button" role="menuitem" :disabled="!menu.target" @click="cellAct('cell_apply', { scope: 'group' })">Apply this value to its group
-          <span class="pick__hint">a purple column next to this one previews the new values</span></button>
-        <button type="button" role="menuitem" :disabled="!menu.target || !$store.wb.count" @click="cellAct('cell_apply', { scope: 'selection', ids: $store.wb.csv() })"
-                x-text="'Apply this value to the selection (' + $store.wb.count + ')'">Apply this value to the selection</button>
-        <button type="button" role="menuitem" :disabled="!menu.target" @click="cellAct('cell_apply', { scope: 'all' })">Apply this value to all rows</button>
+        {# Apply this value ›: a submenu (opens on hover or click; to the left near the window's right edge) #}
+        <div class="wbsheet__subwrap" @mouseenter="sub = true" @mouseleave="sub = false">
+          <button type="button" role="menuitem" class="wbsheet__subbtn" aria-haspopup="menu" :aria-expanded="sub.toString()"
+                  :disabled="!menu.value" @click="sub = true" @keydown.arrow-right.prevent="sub = true">Apply this value
+            <span class="wbsheet__chev" aria-hidden="true">›</span></button>
+          <div class="wbsheet wbsheet--sub" role="menu" x-show="sub" x-cloak :class="menu.x > innerWidth - 640 && 'is-left'">
+            <button type="button" role="menuitem" :disabled="!menu.target" @click="cellAct('cell_apply', { scope: 'group' })">To its group
+              <span class="pick__hint">the purple column of this field previews the new values</span></button>
+            <button type="button" role="menuitem" :disabled="!menu.target || !$store.wb.count" @click="cellAct('cell_apply', { scope: 'selection', ids: $store.wb.csv() })"
+                    x-text="'To the selection (' + $store.wb.count + ')'">To the selection</button>
+            <button type="button" role="menuitem" :disabled="!menu.target" @click="cellAct('cell_apply', { scope: 'all' })">To all rows</button>
+            <button type="button" role="menuitem" @click="openApplyCol()">To column…
+              <span class="pick__hint">choose which field gets it, then group, selection or all</span></button>
+          </div>
+        </div>
         <div class="wbsheet__section">Compare</div>
         <button type="button" role="menuitem" @click="cellAct('cell_ref')"
                 x-text="menu.isRef ? 'Stop using this row as the reference' : 'Use this row as the reference of its group'"></button>
@@ -346,6 +356,24 @@
       </div>
       <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button>
         <button type="button" class="btn btn--primary" @click="apply()">Apply</button></div>
+    </div>
+    <div class="modal__box" x-show="dialog === 'applycol'">
+      <div class="colpick-head"><h3>Apply to column</h3>
+        <button type="button" class="btn btn--icon btn--small modal__close" @click="close()" aria-label="Close">×</button></div>
+      <p class="small"><span class="muted" x-text="ac.label + ':'"></span> <strong class="mono" x-text="ac.value"></strong></p>
+      <label>Column
+        <select x-model="ac.target">
+          <template x-for="t in ac.targets" :key="t"><option :value="t" x-text="targetName(t)"></option></template>
+        </select></label>
+      <fieldset class="applycol__scope"><legend class="small muted">For</legend>
+        <label><input type="radio" value="group" x-model="ac.scope"> Its group</label>
+        <label><input type="radio" value="selection" x-model="ac.scope" :disabled="!$store.wb.count">
+          <span x-text="'The selection (' + $store.wb.count + ')'"></span></label>
+        <label><input type="radio" value="all" x-model="ac.scope"> All rows</label>
+      </fieldset>
+      <p class="small muted">A purple column previews the new values; nothing changes on disk until you apply a plan.</p>
+      <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button>
+        <button type="button" class="btn btn--primary" @click="saveApplyCol()">Apply</button></div>
     </div>
     <div class="modal__box" x-show="dialog === 'celledit'">
       <h3 x-text="'Edit ' + cellEdit.label"></h3>

@@ -239,7 +239,7 @@ Column variant (`menu.cell` false):
 - `openCellMenu(btn)` reads the cell text (minus button and srclink), `th.dataset.key/label/target`, `isName` (filename / edit:filename), `fid`, `isRef`. Same sheet, cell variant:
   1. `div.wbsheet__title` "Label: value" (— if empty).
   2. "Filter this column by this value" → `cell_filter` (adds `equals` or `empty`).
-  3. Section "Change": "Edit this value…" or, for names, "Rename with a pattern…" (`openCellEdit()`; disabled when neither target nor name); "Remove this value" (always disabled: "Not yet: plans cannot clear a metadata value"); "Apply this value to its group" (`cell_apply scope=group`); "Apply this value to the selection (n)" (`scope=selection, ids=csv`; needs count); "Apply this value to all rows" (`scope=all`). Apply items need `menu.target`.
+  3. Section "Change": "Edit this value…" or, for names, "Rename with a pattern…" (`openCellEdit()`; disabled when neither target nor name); "Remove this value" (always disabled: "Not yet: plans cannot clear a metadata value"); "Apply this value ›" (`.wbsheet__subwrap`: hover sets `sub`, click opens; `.wbsheet--sub`, `is-left` near the right edge) with "To its group" (`cell_apply scope=group`), "To the selection (n)" (`scope=selection, ids=csv`; needs count), "To all rows" (`scope=all`) — these need `menu.target` — and "To column…" (`openApplyCol()` → dialog `applycol`: `<select>` of `ac.targets` (`date` for date cells, else `place`/`device`), scope radios; `saveApplyCol()` posts `cell_apply` with `target`).
   4. Section "Compare": "Use this row as the reference of its group" / "Stop using this row as the reference" → `cell_ref`.
 - `cellAct(action, extra)` closes the menu and posts `{action, fid, key, …extra}`.
 

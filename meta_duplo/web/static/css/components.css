@@ -713,3 +713,12 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .namer__err { margin: 0; color: var(--conflict); }
 @media (max-width: 760px) { .namer__body { grid-template-columns: 1fr; } .namer__side { border-right: 0; padding-right: 0; } }
 .namer__edit .namer__text:focus, .namer__edit .namer__text:focus-visible { outline: 0; border: 0; box-shadow: none; }  /* the field shows focus */
+
+/* cell menu: "Apply this value ›" opens a submenu beside the menu (to the left near the window's right edge) */
+.wbsheet__subwrap { position: relative; display: grid; }
+.wbsheet .wbsheet__subbtn { justify-content: space-between; }
+.wbsheet__chev { color: var(--muted); font-size: var(--text-md); }
+.wbsheet.wbsheet--sub { position: absolute; top: calc(-1 * var(--space-050)); left: calc(100% + var(--space-050)); z-index: 41; }
+.wbsheet.wbsheet--sub.is-left { left: auto; right: calc(100% + var(--space-050)); }
+.applycol__scope { display: grid; gap: var(--space-050); margin: 0; padding: 0; border: 0; }
+.applycol__scope label { display: flex; align-items: center; gap: var(--space-100); }

@@ -343,8 +343,11 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   - *Filter this column by this value* (an empty cell filters on “is empty”);
   - *Change* — only date, place and device values can be changed, because plans write only those (other columns
     show these items disabled): *Edit this value…* (a dialog; the value applies to this file only; in Filename / New filename it reads *Rename with a pattern…* and opens the naming-pattern dialog),
-    *Remove this value* (disabled: plans cannot clear a metadata value yet), *Apply this value to its group /
-    the selection (n) / all rows*. Each fills the purple edit column of that field (it sits after the field it edits,
+    *Remove this value* (disabled: plans cannot clear a metadata value yet), and *Apply this value ›*, a submenu
+    (opens on hover or click, beside the menu; to its left near the window's right edge): *To its group / To the
+    selection (n) / To all rows* (for date, place and device cells) and *To column…*, a small dialog to pick the field
+    it feeds (a date: *New date (capture date)* only; any other value, e.g. Model or Author: *New place* or *New device*)
+    and the scope (its group / the selection / all rows). Each fills the purple edit column of that field (it sits after the field it edits,
     e.g. New date after Date taken, not after the clicked column), as a preview; nothing changes until *Save edits* and a plan. A value typed for one file wins over a
     rule; a rule limited to a group or a selection leaves the other files at their current value.
   - *Compare*: *Use this row as the reference of its group* (★ in the expander column; red / green and the

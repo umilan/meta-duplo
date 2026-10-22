@@ -649,6 +649,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                 wb.apply_edits(rows, view["edits"])
                 r = next((x for x in rows if x["id"] == fid), None)
                 t = wb.edit_target(key)
+                if act == "cell_apply" and f.get("target"):  # "Apply to column…": the user picks the field it feeds
+                    t = f["target"] if f["target"] in wb.apply_targets(key) else None
                 if r is None:
                     pass
                 elif act == "cell_filter":  # only rows with this value in this column
