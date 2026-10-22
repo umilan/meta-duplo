@@ -155,9 +155,8 @@ fcounts, params, query, offset, next_offset, cols, all_cols, filters, status_lab
 2. `tree = {"label", "name_col", "width": wb.TREE_WIDTH}` from `GROUP_COLUMN[view.group]`; `None` for `none`.
 3. `rows` = all rows of all (filtered) groups — not just this page.
 4. **Re-letter sources** in display order: per target, source id → `A`, `B`, … (`*` after 26), written into
-   `r["src"][t]["letter"]` (overrides the letters from `apply_edits`).
-5. `src_cells`: for every `src` with `rid` (a value copied by *Apply this value to …*),
-   `src_cells[f"{rid}:{key}"] = {"letter", "target", "n"}` (`n` = rows fed). The origin cell shows the badge.
+   `r["src"][t]["letter"]`; they only order the header's "Values from: …" list now (no badges are shown).
+5. (removed: `src_cells`; a source cell is shown on hover by `data-src` + the arrow, see 11 §6)
 6. Pinned ordering: `pinned = set(view.pinned) | {"thumb"} if the first column is thumb`; columns =
    pinned ones (in stored order) followed by the rest.
 7. For each column whose `field_for(key)` exists, a `cols` entry:
@@ -175,14 +174,14 @@ fcounts, params, query, offset, next_offset, cols, all_cols, filters, status_lab
 | `edit` | key starts `edit:` |
 | `pinned` | key in `pinned` |
 | `groupable` | `path→folder, date→day, device→device, place→place, dup_count→dups, dup_conf→dups`, else "" |
-| `links` | edit columns only: distinct `r["src"][target]` dicts, sorted by letter (header `🔗(n)` + legend) |
+| `base` | edit columns: the column they edit (`EDIT_BASE`), for `= value` |
+| `links` | edit columns only: distinct `r["src"][target]` dicts, sorted by letter (the header tooltip's "Values from: …") |
 
 8. Returned keys:
 
 | key | value |
 |---|---|
 | `view` | the view dict |
-| `src_cells` | above |
 | `edit_labels` | `wb.EDIT_LABELS` |
 | `groups` | `groups[offset:offset + WB_PAGE]` |
 | `ngroups`, `nrows`, `offset`, `next_offset` (`offset + 60`) | paging |
@@ -317,7 +316,7 @@ hashes, fingerprints, files, sources`); nothing on disk. The job stripe then pol
    `#job` slot; `partials/job.html` with 1 s polling and Cancel.
 4. Sources/jobs routes; `/job?watch=1` returns `HX-Refresh` after `done`/`cancelled`.
 5. Steps 1–4, plans, settings, `/thumb`, `/media` routes per the tables.
-6. `wb_ctx` with every key listed (re-lettering, `src_cells`, pinned-first order, slim/empty, `cat_start`,
+6. `wb_ctx` with every key listed (re-lettering, pinned-first order, slim/empty, `cat_start`,
    `links`, `table_width`, `name_*`).
 7. `/workbench`, `/wb/table`, `/wb/more` (60 groups per chunk, `intersect once`).
 8. `/wb/view` with all 22 actions, `add_edit_column`, `reload=False` for widths, history push +

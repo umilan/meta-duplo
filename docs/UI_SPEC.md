@@ -244,15 +244,12 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   filename column saves its pattern; nothing changes on disk until a plan is applied); *Edit all* opens the rule
   dialog; *Clear* drops the rule and the per-file values but keeps the column (all `= current`); *Remove* drops
   the column and its rule.
-  **Source links:** each edit cell ends with a purple badge `🔗A`, `🔗B`… naming where its value comes from: the
-  rule (recommended, a copied column, a shift), a cell it was copied from (*Apply this value to …*), a value typed
-  for that file, or *unchanged*. Letters follow the order the sources first show in the table. Hovering a badge
-  shows an instant tooltip with the source and outlines the column (and row) it points to; clicking opens the
-  rule dialog, or the per-file dialog for a typed value. The header shows `🔗(n)`, the number of different
-  sources in the column at its right edge, with the legend in its tooltip. A cell values were copied from (*Apply
-  this value to …*) shows the same badge at its right; its tooltip names the edit column and how many files it
-  feeds, hovering outlines that column and row, and clicking opens the rule dialog. In group rows the value and badge are
-  dimmed (50 %): the files below carry the real values.
+  **Where a value comes from** (no badges): hovering or selecting an edit cell outlines, in blue, the cell its value
+  comes from (the copied column of the same file, the cell of another copy for *Apply this value to …*, the edited
+  column itself when unchanged) and draws a blue arrow from it, a dot at the source and the head at the cell; the
+  cell's tooltip names the source in words. A typed or fixed value has no source cell. The header tooltip lists the
+  column's sources. Recommended date cells show their source the same way. In group rows the value is dimmed
+  (50 %): the files below carry the real values.
   **Double-click** an edit cell to type a value for that one file (the *Edit this value…* dialog, prefilled without
   the `=` / `→` mark); in FileName ✎ it opens the naming-pattern dialog (one pattern for all files).
 - **Duplicate confidence:**
@@ -290,7 +287,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   value in every selected column / in none), *Edit these values…* (one value typed for every editable cell), *Apply
   these values › To its group* (each cell's value to its own group; *To the selection / To all rows* only when the
   cells hold one value; *To column…*), *Use these rows as the references of their groups*. Copied values keep their
-  🔗 source (the cell they came from). Keys typed in fields, menus and dialogs are left alone.
+  source (the cell they came from; hover shows the arrow). Keys typed in fields, menus and dialogs are left alone.
 - **Undo / redo:** *⌘ / Ctrl + Z* undoes, *⇧⌘Z / Ctrl + Shift + Z / Ctrl + Y* redoes; the ↶ ↷ buttons right of
   the *Filomena* title do the same (greyed when there is nothing). One ordered history covers selection changes (ticking,
   presets, X; a burst within 250 ms is one step) and every view change: sorting, grouping, filters, search,
@@ -315,7 +312,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   carries a yellow magic-wand badge (a guess from the name, not metadata), in the table and in the column picker.
   Fourth comes *Recommended date*, with the same yellow badge (worked out from all dates of the file and its copies,
   not read from one tag). Hovering or selecting a Recommended date cell outlines, in blue, the cell its value came
-  from, and its tooltip says it in words: “from DateTimeOriginal (EXIF) of this file”, or “… of IMG_0002.JPG, another copy (in
+  from and draws an arrow from it, and its tooltip says it in words: “from DateTimeOriginal (EXIF) of this file”, or “… of IMG_0002.JPG, another copy (in
   disk/Camera/DCIM)”, or “typed in step 3”. The source is the one the recommendation recorded (camera metadata, the
   file name or the file date of a named copy); when the file's own cell of that kind holds the same value, it is
   preferred.

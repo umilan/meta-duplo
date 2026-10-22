@@ -43,7 +43,7 @@ Column widths snap to 8 (`workbench.snap`: 40–904; also while dragging). Break
 | `--radius-full` | 999px | | pills |
 | `--control-h` | 32px | 24px | buttons, inputs, selects, menu items |
 | `--control-h-sm` | 24px | 24px | small buttons, chips, filter pills |
-| `--control-h-xs` | 24px | 16px | in-cell ⋯ buttons, srclink |
+| `--control-h-xs` | 24px | 16px | in-cell ⋯ buttons |
 | `--check` | 16px | | checkbox, radio |
 | `--icon` | 16px | | SVG icons |
 | `--cell-py` | 4px | 2px | table cell vertical padding |
@@ -164,7 +164,7 @@ max-width 1504. `.page-head`, `.toolbar`, `.grid-cards`, `.split` (2 columns). `
 | Filters row | `.filters`, `.filters__label`, `.histbtns` | wrap, gap 8; labels muted 600 |
 | Table | `.wbt` | fixed layout, separate borders, 12/16; cells padding `--cell-py` × 8px, hairline bottom, nowrap ellipsis; sticky thead `--surface-2`; `td` height `--row-h`; see the Workbench skill for state colours |
 | Header cell | `.wbh` | flex, gap 4, h 40, `.wbh__label` 600 2-line clamp, `.wbh__sort`, `.wbh__filter` (orange funnel), `.wbh__pin`, `.wbh__abbr`, `.wbh__resize` (8px, col-resize) |
-| Source link | `.srclink` (+ `--head`, `--origin`), `.srclink__icon` | inline-flex, h `--control-h-xs`, min-w 32, padding 0 4, no border, radius 4, bg `color-mix(--edit-text 16%, --edit-bg)` (28% on hover), text `--edit-text`, 12/16 600; icon 16 |
+| Source arrow | `.srcarrow` (fixed SVG overlay, z 30, no pointer events) | line `--accent` 2px, dot r 4 and arrowhead filled `--accent`; the source cell `.is-recsrc` inset 2px `--accent` |
 | Tooltip | `.wbtip` | fixed z 70, padding 4 8, radius 4, inverted (`--text` bg, `--bg` text), 12/16, nowrap, no pointer events |
 | Drop line | `.dropline` | fixed z 45, 4px accent bar, 16px round ends (`::before/::after`) with 2px `--bg` ring, glow `0 0 8px --accent` |
 | Modal | `.modal`, `__backdrop`, `__box(--wide)`, `__actions`, `__close` | fixed z 50; box 440px (min 92vw) / wide 1040 (94vw), max-h 88vh, padding 24, gap 16, radius 8, `--shadow-modal`; h3 lg; labels stacked 12/16 (radios/checkboxes inline md); actions right-aligned gap 8 |
@@ -231,7 +231,7 @@ reference.
 Inline SVG only: `viewBox="0 0 16 16"` (or 20), `fill="none" stroke="currentColor" stroke-width="1.5"`,
 round caps/joins, `aria-hidden="true"`, sized by CSS to `--icon` (16px) — never by inline style. Colour comes from
 `currentColor`, so hover/active states recolour icons. Shared SVGs live in partials (e.g.
-`partials/link_icon.svg`, class `srclink__icon`) and are `{% include %}`d. Text glyphs are used where they read
+`partials/wand_icon.svg`) and are `{% include %}`d. Text glyphs are used where they read
 well: ⋯ › └ ★ ✓ × + − ↑ ↓ ✎ ⤢ ⚙. No icon fonts, no image sprites.
 
 ## 8. Rules for adding UI

@@ -81,9 +81,8 @@
           @dragover.prevent="over($event)" @drop.prevent="drop($event)"{% if sorted %} aria-sort="{{ 'ascending' if view.sort[1] == 'asc' else 'descending' }}"{% endif %}>
         <div class="wbh {{ 'wbh--sortable' if c.key != 'thumb' }}"{% if c.key != 'thumb' %} @click="clickSort()"{% endif %} @dblclick="toggleSlim()">
           <span class="wbh__label {{ 'is-sorted' if sorted }}" draggable="true" @dragstart="dragStart($event)"
-                title="{{ c.label }}{{ '. ' ~ c.writes ~ '; nothing changes on disk before that' if c.writes }} — click to sort, drag to move">{{ c.label|wbr }}</span>
+                title="{{ c.label }}{% if c.links %}. Values from: {% for l in c.links %}{{ l.label }}{{ '; ' if not loop.last }}{% endfor %}{% endif %}{{ '. ' ~ c.writes ~ '; nothing changes on disk before that' if c.writes }} — click to sort, drag to move">{{ c.label|wbr }}</span>
           <span class="wbh__abbr" aria-hidden="true">{{ c.abbr }}</span>
-          {% if c.links %}<span class="srclink srclink--head" data-srctip="{{ c.links|length }} source{{ '' if c.links|length == 1 else 's' }}: {% for l in c.links %}{{ l.letter }} = {{ l.label }}{{ '; ' if not loop.last }}{% endfor %}" aria-label="{{ c.links|length }} sources">{% include "partials/link_icon.svg" %}({{ c.links|length }})</span>{% endif %}
           {% if c.pinned and c.key != 'thumb' %}<span class="wbh__pin" title="Pinned: stays at the left while you scroll" aria-label="Pinned"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2h4l-.5 4 2.5 2.5V10H4V8.5L6.5 6zM8 10v4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg></span>{% endif %}
           {% if c.key in key_fields %}<span class="keybadge" title="{{ key_fields[c.key] }}">!</span>{% endif %}
           {% if c.key in magic_fields %}<span class="keybadge keybadge--magic" title="{{ magic_fields[c.key] }}">{% include "partials/wand_icon.svg" %}</span>{% endif %}

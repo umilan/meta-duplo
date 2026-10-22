@@ -80,16 +80,48 @@
     document.querySelectorAll(".wbt .is-hrow, .wbt .is-hcell").forEach((el) => el.classList.remove("is-hrow", "is-hcell"));
     hover.td = null;
   };
-  // a Recommended date cell under the highlight outlines the cell its value came from (blue)
+  // A cell whose value comes from another cell (Recommended date, a purple edit cell: data-src="rowid|key") outlines
+  // that cell in blue, and an arrow runs from it to the cell under the highlight.
+  const arrow = () => {
+    let el = document.getElementById("wb-srcarrow");
+    if (!el) {
+      el = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      el.id = "wb-srcarrow"; el.classList.add("srcarrow"); el.setAttribute("aria-hidden", "true");
+      el.innerHTML = '<defs><marker id="wb-srchead" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8"' +
+        ' markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L8 4L0 8z"/></marker></defs><line marker-end="url(#wb-srchead)"/><circle r="4"/>';
+      document.body.appendChild(el);
+    }
+    return el;
+  };
+  let srcFrom = null;  // [source cell, the cell that takes its value] while an arrow shows
+  const drawArrow = () => {
+    const el = arrow();
+    if (!srcFrom || !srcFrom.every((c) => c.isConnected)) { el.hidden = true; return; }  // gone after a re-render
+    const [a, b] = srcFrom.map((c) => c.getBoundingClientRect());
+    const ay = a.top + a.height / 2, by = b.top + b.height / 2;
+    // from the edge of the source that faces the target, to the facing edge of the target
+    let x1 = a.left + a.width / 2, x2 = b.left + b.width / 2, y1 = ay, y2 = by;
+    if (a.right <= b.left) { x1 = a.right; x2 = b.left; } else if (b.right <= a.left) { x1 = a.left; x2 = b.right; }
+    else { y1 = ay < by ? a.bottom : a.top; y2 = ay < by ? b.top : b.bottom; }
+    const line = el.querySelector("line"), dot = el.querySelector("circle");
+    [["x1", x1], ["y1", y1], ["x2", x2], ["y2", y2]].forEach(([k, v]) => line.setAttribute(k, Math.round(v)));
+    dot.setAttribute("cx", Math.round(x1)); dot.setAttribute("cy", Math.round(y1));
+    el.hidden = false;
+  };
   const recSource = (td) => {
     document.querySelectorAll(".wbt .is-recsrc").forEach((c) => c.classList.remove("is-recsrc"));
-    const ref = td && td.dataset && td.dataset.recsrc;
-    if (!ref) return;
-    const [rid, key] = ref.split("|"), table = td.closest("table");
-    const th = table.querySelector(`thead th[data-key="${CSS.escape(key)}"]`);
-    const tr = table.querySelector(`tr.wbr[data-rowid="${CSS.escape(rid)}"]`);
-    if (th && tr && tr.cells[th.cellIndex]) tr.cells[th.cellIndex].classList.add("is-recsrc");
+    srcFrom = null;
+    const ref = td && td.dataset && td.dataset.src;
+    if (ref) {
+      const [rid, key] = ref.split("|"), table = td.closest("table");
+      const th = table.querySelector(`thead th[data-key="${CSS.escape(key)}"]`);
+      const tr = table.querySelector(`tr.wbr[data-rowid="${CSS.escape(rid)}"]`);
+      const cell = th && tr && tr.cells[th.cellIndex];
+      if (cell && cell !== td) { cell.classList.add("is-recsrc"); srcFrom = [cell, td]; }
+    }
+    drawArrow();
   };
+  document.addEventListener("scroll", () => { if (srcFrom) drawArrow(); }, true);
   const highlight = (td) => {  // td: a table cell (body or header); null clears
     recSource(td);
     if (!td) { clearColumn(); clearCell(); return; }
@@ -255,7 +287,7 @@
   };
   const cellInfo = (td) => {
     const th = td.closest("table").tHead.rows[0].cells[td.cellIndex];
-    const raw = [...td.childNodes].filter((n) => n.id !== "wb-cellbtn" && !n.classList?.contains("srclink"))
+    const raw = [...td.childNodes].filter((n) => n.id !== "wb-cellbtn")
       .map((n) => n.textContent).join("").trim().replace(/^[→=]\s*/, "");
     return { fid: td.parentElement.dataset.rowid, key: th.dataset.key, label: th.dataset.label || th.dataset.key,
              target: th.dataset.target, isName: ["filename", "edit:filename"].includes(th.dataset.key), value: raw === "—" ? "" : raw };
@@ -372,7 +404,7 @@
   // a click puts the cursor on that cell; after a reload the cursor finds its row again
   document.addEventListener("click", (e) => {
     const td = e.target.closest && e.target.closest(".wbt tbody td");
-    if (td && isDataCell(td) && (e.shiftKey || e.metaKey || e.ctrlKey) && !e.target.closest("#wb-cellbtn, .srclink, input")) {
+    if (td && isDataCell(td) && (e.shiftKey || e.metaKey || e.ctrlKey) && !e.target.closest("#wb-cellbtn, input")) {
       const cur = cursorCell();
       if (e.shiftKey) {  // a range from the cursor (or the anchor) to here
         if (!csel.anchor) csel.anchor = cur && isDataCell(cur) ? { row: kb.row, col: kb.col } : { row: td.parentElement, col: td.cellIndex };
@@ -386,7 +418,7 @@
       setCursor(td.parentElement, td.cellIndex);
       csel.anchor = keep; cselPaint(); return;
     }
-    if (td && !e.target.closest("#wb-cellbtn, .srclink")) cselClear();
+    if (td && !e.target.closest("#wb-cellbtn")) cselClear();
     if (td && td.parentElement.matches(".wbr, .wbg__head")) setCursor(td.parentElement, td.cellIndex);
     // a click on a group row's cell also opens the preview of the group's first file (like a click on a file row)
     if (td && td.parentElement.matches(".wbg__head") && !td.matches(".wbt__check, .wbg__exp, .wbg__label")) {
@@ -441,42 +473,11 @@
     if (!el) { el = document.createElement("div"); el.id = "wb-tip"; el.className = "wbtip"; el.hidden = true; document.body.appendChild(el); }
     return el;
   };
-  // Source links ([🔗A] in edit columns) use the same tooltip and light up the column / row they point to.
-  let srcOn = null;
-  const clearSrc = () => {
-    if (!srcOn) return;
-    srcOn = null;
-    document.querySelectorAll(".wbt .is-srccol, .wbt .is-srcrow").forEach((x) => x.classList.remove("is-srccol", "is-srcrow"));
-  };
-  const showSrc = (link) => {
-    if (srcOn === link) return;
-    clearSrc(); srcOn = link;
-    const table = link.closest("table"), key = link.dataset.srckey, row = link.dataset.srcrow;
-    const th = key && table.querySelector(`thead th[data-key="${CSS.escape(key)}"]`);
-    if (th) table.querySelectorAll(`tr > :nth-child(${th.cellIndex + 1})`).forEach((c) => c.classList.add("is-srccol"));
-    if (row) table.querySelector(`tr.wbr[data-rowid="${CSS.escape(row)}"]`)?.classList.add("is-srcrow");
-  };
-  document.addEventListener("click", (e) => {
-    const link = e.target.closest && e.target.closest(".wbt td .srclink");
-    if (!link) return;
-    e.stopPropagation();  // not the row click (preview)
-    const td = link.closest("td"), th = td.closest("table").tHead.rows[0].cells[td.cellIndex];
-    const target = link.dataset.target || (th?.dataset.key || "").replace(/^edit:/, "");  // a source cell names its edit column
-    if (link.dataset.typed && td.closest("tr.wbr")) {  // a value typed for this file: edit it again
-      const btn = cellButton();
-      if (btn.parentElement !== td) td.appendChild(btn);
-      window.dispatchEvent(new CustomEvent("wb-celledit", { detail: { btn } }));
-    } else {
-      window.dispatchEvent(new CustomEvent("wb-edit", { detail: { target, kind: "recommended" } }));
-    }
-  }, true);
   document.addEventListener("mouseover", (e) => {
-    const link = e.target.closest && e.target.closest(".wbt .srclink");
-    const th = !link && e.target.closest && e.target.closest(".wbt th[data-tip].is-slim");
-    const el = tip(), anchor = link || th;
-    if (link) showSrc(link); else clearSrc();
+    const th = e.target.closest && e.target.closest(".wbt th[data-tip].is-slim");
+    const el = tip(), anchor = th;
     if (!anchor) { el.hidden = true; return; }
-    el.textContent = link ? link.dataset.srctip : th.dataset.tip; el.hidden = false;
+    el.textContent = th.dataset.tip; el.hidden = false;
     const r = anchor.getBoundingClientRect(), w = el.offsetWidth;
     el.style.left = `${Math.round(Math.max(8, Math.min(r.left, window.innerWidth - w - 8)))}px`;
     el.style.top = `${Math.round(r.top - el.offsetHeight - 4)}px`;
@@ -606,7 +607,7 @@
         if (this.menu && this.menu.cell && this.menu.btn === btn && this.menu.td === btn.parentElement) { this.menu = null; return; }
         const r = btn.getBoundingClientRect(), td = btn.parentElement, tr = td.parentElement;
         const th = tr.closest("table").tHead.rows[0].cells[td.cellIndex];
-        const value = [...td.childNodes].filter((n) => n !== btn && !n.classList?.contains("srclink")).map((n) => n.textContent).join("").trim();
+        const value = [...td.childNodes].filter((n) => n !== btn).map((n) => n.textContent).join("").trim();
         this.sub = false; this.subSel = false;
         this.menu = { cell: true, btn, td, key: th.dataset.key, label: th.dataset.label || th.dataset.key, target: th.dataset.target,
                       isName: ["filename", "edit:filename"].includes(th.dataset.key),  // edited through the naming pattern

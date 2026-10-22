@@ -8,7 +8,7 @@ description: The Workbench screen (shown as "Filomena") as implemented now, cove
 Sources this describes (the code is the source of truth):
 `meta_duplo/web/templates/workbench.html`, `partials/wb_table.html` (filter row + table head),
 `partials/wb_groups.html` (group and file rows, lazy pages), `partials/wb_preview.html`, `partials/job.html`,
-`partials/link_icon.svg`, `base.html`, `meta_duplo/web/static/js/workbench.js`, `static/css/components.css`
+`base.html`, `meta_duplo/web/static/js/workbench.js`, `static/css/components.css`
 (section "workbench"), with server state in `meta_duplo/web/app.py` (`/wb/*`) and `meta_duplo/web/workbench.py`.
 Visual tokens and generic components are in `rebuild/12-design-system/SKILL.md`.
 
@@ -126,7 +126,7 @@ border-collapse:separate; border-spacing:0; font 12/16`. `table_width = 40 + 40 
 |---|---|
 | `span.wbh__label[draggable=true]` (`.is-sorted`) | name with `<wbr>` before CamelCase humps and " (" (Jinja filter `wbr`); 2-line clamp; `@dragstart` |
 | `span.wbh__abbr` | acronym (≤3 letters, e.g. OTD), shown only when slim |
-| `span.srclink.srclink--head` | edit columns: link icon + `(n)` distinct sources; `data-srctip` legend "n sources: A = …; B = …" |
+| (no source tag) | edit columns list their sources in the label's `title` |
 | `span.wbh__pin` | pin SVG when pinned (not thumb) |
 | `span.keybadge` "!" | key capture-date fields (red circle) |
 | `span.wbh__filter[role=img]` | funnel SVG in `--filter-c`; title lists the column's filters |
@@ -145,7 +145,7 @@ singles group), `@wb-fold.window="open = $event.detail"`.
 **Group row** `tr.wbg__head` (absent with grouping None), `@click="open = !open"`:
 - `td.wbt__check` (`@click.stop`) checkbox "Select group": `setMany(ids, checked)`, checked when every id is selected.
 - `td.wbt__tree.wbg__exp` `span.chev` (title "label (n)").
-- per column: thumb → empty; the tree's `name_col` (filename for dups/photo, path for folder, date for day, device/place/author) → `td.wbg__label` "Label <span.muted>(n)</span>"; singles with dup_count/dup_conf/checks → `td.nil` "–"; `dup_count` → "n pcs"; `dup_conf` → score only; edit columns → `td.wbt__edit` with `span.wbt__ev` "→ value" or `.nil` "—" plus a `span.srclink` of the reference row (both **dimmed to .5 opacity**); others → `td.wbg__sum.wbg__sum--same|--diff|--na` "Same / Diff / N/A".
+- per column: thumb → empty; the tree's `name_col` (filename for dups/photo, path for folder, date for day, device/place/author) → `td.wbg__label` "Label <span.muted>(n)</span>"; singles with dup_count/dup_conf/checks → `td.nil` "–"; `dup_count` → "n pcs"; `dup_conf` → score only; edit columns → `td.wbt__edit` with `span.wbt__ev` "→ value" or `.nil` "—" of the reference row (**dimmed to .5 opacity**; `data-src` from the reference row); others → `td.wbg__sum.wbg__sum--same|--diff|--na` "Same / Diff / N/A".
 - Group cells: `background: --group-bg` (beige), weight 400 (label 600), `border-top: 1px --line`, pointer.
 
 **File row** `tr.wbr[.wbr--userref][data-rowid]`, `x-show="open"`, `:class="{ 'wbr--selected': has(id), 'wbr--active': active === id }"`,
@@ -162,9 +162,9 @@ singles group), `@wb-fold.window="open = $event.detail"`.
 | `dup_count` | "n pcs" |
 | `dup_conf` | "98 %" + `span.conf-why` "· date differs, renamed" (grey) |
 | `checks` | `div.checks` of `span.check.check--ok|--no|--na` > `span.check__name` + `span.check__n` (only counts below 208px via container query); `td.nil` "–" when not comparable |
-| edit (`edit:*`) | `td.wbt__edit[.wbt__edit--same]` > `span.wbt__ev` "= v" (unchanged, muted) / "→ v" / `.nil` "—" + `button.srclink` (`data-srctip`, `data-srckey`, `data-srcrow`, `data-typed`) |
+| edit (`edit:*`) | `td.wbt__edit[.wbt__edit--same]` > `span.wbt__ev` "= v" (unchanged, muted) / "→ v" / `.nil` "—" ; `data-src="rowid|key"` when the value comes from a cell; `title` value · source |
 | `size` | `td.col-num[.is-diff]` formatted size |
-| other | `[.is-diff]` value or `span.nil` "—"; plus `button.srclink.srclink--origin` when values were copied from this cell (`data-srckey="edit:{target}"`, `data-srcrow`, `data-target`, tooltip "Source A of DateTimeOriginal (EXIF) ✎: copied to n files") |
+| other | `[.is-diff]` value or `span.nil` "—"; `rec_date` cells: `data-src` + `title` = `rec_title` |
 
 "Nothing to compare" (`nocmp`) = singles group or grouping None: no red/green, checks "–".
 Last cell of each row is an empty `td` under "+".
@@ -236,7 +236,7 @@ Column variant (`menu.cell` false):
 
 - One floating `button#wb-cellbtn.cellbtn` "⋯" (24px, absolute right 4px, vertically centred) is appended to the hovered data cell (`mouseover`; not checkbox/tree/thumb columns, not `tbody.more`); removed on `mouseout` of the table. Cells holding it get `padding-right:32px`. Its click stops propagation and dispatches `wb-cellmenu {btn}`.
 - **Right-click** on a `tr.wbr > td` (not thumb) → `preventDefault`, moves the button into the cell, dispatches `wb-cellmenu`.
-- `openCellMenu(btn)` reads the cell text (minus button and srclink), `th.dataset.key/label/target`, `isName` (filename / edit:filename), `fid`, `isRef`. Same sheet, cell variant:
+- `openCellMenu(btn)` reads the cell text (minus the ⋯ button), `th.dataset.key/label/target`, `isName` (filename / edit:filename), `fid`, `isRef`. Same sheet, cell variant:
   1. `div.wbsheet__title` "Label: value" (— if empty).
   2. "Filter this column by this value" → `cell_filter` (adds `equals` or `empty`).
   3. Section "Change": "Edit this value…" or, for names, "Rename with a pattern…" (`openCellEdit()`; disabled when neither target nor name); "Remove this value" (always disabled: "Not yet: plans cannot clear a metadata value"); "Apply this value ›" (`.wbsheet__subwrap`: hover sets `sub`, click opens; `.wbsheet--sub`, `is-left` near the right edge) with "To its group" (`cell_apply scope=group`), "To the selection (n)" (`scope=selection, ids=csv`; needs count), "To all rows" (`scope=all`) — these need `menu.target` — and "To column…" (`openApplyCol()` → dialog `applycol`: `<select>` of `ac.targets` (`date` for date cells, else `place`/`device`), shown only with two or more targets; with one, the line “Goes to <name>” replaces it (for `date` with the muted note that EXIF dates follow with ExifTool); scope radios; `saveApplyCol()` posts `cell_apply` with `target`).
@@ -247,9 +247,9 @@ Column variant (`menu.cell` false):
 
 - Purple columns `edit:filename|date|place|device` (named after the column they edit with a pencil: "FileName ✎", "DateTimeOriginal (EXIF) ✎", "Place ✎", "Device ✎"; header tooltip `EDIT_WRITES`; `targetName(t)` reads these labels from `data-edit-labels` on `.wb`) appear only on demand, inserted right after their base column (or the cell's column for `cell_set` / `cell_apply`), width 304 (filename) or 176.
 - Cell text: `= value` unchanged (muted), `→ value` change, `—` no data.
-- **Source badges** `.srclink` (icon `partials/link_icon.svg` = `svg.srclink__icon` 16px + letter A, B, …; `*` after Z). Letters are assigned in table order per edit column. Inside cells: absolute at the right; `td:has(> .srclink)` padding-right 40px (64px with ⋯, which moves to right 40px). Header `srclink--head` sits after ⋯ (`order:2`, `cursor:help`).
-- **Hover** (`mouseover` on `.wbt .srclink`): `#wb-tip` shows `data-srctip`; the column `th[data-key=srckey]` gets `.is-srccol` on all its cells (2px `--edit-text` side edges + tint) and `tr.wbr[data-rowid=srcrow]` gets `.is-srcrow` (2px top/bottom edges + tint; the intersection cell a full 2px frame on `--edit-bg`). Cleared when the pointer leaves the link.
-- **Click** (capture phase, stops the row click): `data-typed` in a file row → dispatch `wb-celledit` (per-file dialog); otherwise `wb-edit {target, kind:'recommended'}` (rule dialog; a `srclink--origin` names its target in `data-target`).
+- **No source badges** (removed). Edit cells carry `data-src="<rowid>|<key>"` when the source is a cell (`sl.rid or r.id`, `sl.key`; group rows use `g.ref`), and `title` = value · source label. `rec_date` cells carry the same `data-src` (was `data-recsrc`).
+- **Hover / cursor** (`recSource(td)`, called by `highlight()` and when the pointer leaves the table for the cursor cell): the source cell gets `.is-recsrc` (inset 2px `--accent`), and the fixed SVG overlay `#wb-srcarrow.srcarrow` (z 30, no pointer events) draws a 2px `--accent` line with a dot (r 4) at the source and an arrowhead marker at the cell, between the facing edges (left/right; top/bottom when the cells overlap horizontally). Redrawn on any scroll; hidden when either cell is no longer in the page.
+- The header tooltip of an edit column lists its sources ("Values from: …"), then `EDIT_WRITES`.
 
 ## 7. Double-click behaviours
 
@@ -272,7 +272,7 @@ Double-clicks on buttons/inputs inside cells are ignored.
 | Dialog | Opened by | Content |
 |---|---|---|
 | **Filter** (`form.modal__box`, `hx-post=/wb/view hx-swap=none`) | `+`, chip click, header Filter…/Search…/differs, event `wb-filter` | h3 "Add filter" / "Edit filter"; hidden `action=filter_add`, `index`; select Column (catalog optgroups + "Edit columns"); select Condition (`OPS`: contains, is, is not, is empty, is not empty, ≥, ≤, differs in group, same in group); Value (hidden for empty/not_empty/diff/same, autofocused); hint "Grouped views keep a whole group when any of its rows matches; “No grouping” filters rows."; Cancel / "Apply filter" or "Save filter" |
-| **Edit rule** (`form.modal__box--wide`, `action=edit_set`, `target`) | Actions → Date/Place/Device, header Edit…, Edit all, srclink, `wb-edit` | h3 "Edit: new date" etc.; radios `kind`: recommended, column (select of date sources / catalog fields), shift (date only: column, ±, hh, mm, ss), fixed (`YYYY-MM-DD HH:MM:SS` placeholder for date); `.rule-editor`, `.indent`, `.shift`. Actions: `btn--danger` "Remove edit column", spacer, Cancel, "Apply rule". (A filename branch with `.rule__tokens` chips exists in the template but `openEdit` routes filename to the naming dialog) |
+| **Edit rule** (`form.modal__box--wide`, `action=edit_set`, `target`) | Actions → Date/Place/Device, header Edit…, Edit all, `wb-edit` | h3 "Edit: new date" etc.; radios `kind`: recommended, column (select of date sources / catalog fields), shift (date only: column, ±, hh, mm, ss), fixed (`YYYY-MM-DD HH:MM:SS` placeholder for date); `.rule-editor`, `.indent`, `.shift`. Actions: `btn--danger` "Remove edit column", spacer, Cancel, "Apply rule". (A filename branch with `.rule__tokens` chips exists in the template but `openEdit` routes filename to the naming dialog) |
 | **Cell edit** | `openCellEdit()` | h3 "Edit {label}", hint "Only for this file…", text input prefilled without leading `=`/`→`, selected; Enter or "Preview the change" → `cell_set {fid, key, value}` |
 | **Filter by value** | header "Filter by value…" | `.colpick-head` h3 "Filter by value: Label" + close ×; search input; `.valuelist` of `button.valuelist__item` (value or muted "(empty)", count right) from `GET /wb/values?key=` (most frequent first, ≤300); "Loading…"; pick → `filter_add` `equals` (or `empty`) |
 | **Columns** (`--wide`) | "+" header cell, ⚙ "Columns…", `wb-addcol` | head: "n shown", `linkbtn` "Order like this list" (`cols_order`), "Select all"/"Select all found", "None"/"None of found" (`cols_set`), close ×; search "Search fields (e.g. Date, GPS, Artist, Lens)"; `.colcat` grid (auto-fill 224px) of `fieldset.colcat__group` with `legend.colcat__title` tri-state checkbox (all/some/none via `colsState`) and `label.colcat__item` checkboxes (`col_add`/`col_remove` immediately; `keybadge` on key fields); "Done" |
@@ -390,8 +390,8 @@ window bottom. Runs on `resize`, `htmx:afterSettle`, `DOMContentLoaded` (timeout
 |---|---|---|
 | `wb-reload` | server `HX-Trigger`, `postView`, undo | `#wb-table` (`from:body`) |
 | `wb-filter` {key,label,value,op,index} | (listener exists for external use) | `wbPage.openFilter` |
-| `wb-edit` {target, kind} | filename dblclick, srclink click | `wbPage.openEdit` |
-| `wb-celledit` {btn} | edit-cell dblclick, typed srclink | `openCellMenu` + `openCellEdit` |
+| `wb-edit` {target, kind} | filename dblclick | `wbPage.openEdit` |
+| `wb-celledit` {btn} | edit-cell dblclick | `openCellMenu` + `openCellEdit` |
 | `wb-cellmenu` {btn} | `#wb-cellbtn` click, contextmenu, Alt/Ctrl/⌘+Enter | `openCellMenu` |
 | `wb-naming` | `openEdit({target:'filename'})` | `namer.start()` |
 | `wb-addcol` | "+" header, ⚙ Columns… | `dialog='addcol'` |
@@ -428,7 +428,7 @@ window bottom. Runs on `resize`, `htmx:afterSettle`, `DOMContentLoaded` (timeout
 5. Render the table: colgroup widths, sticky header, `wbHead` per column, tree column, group rows, file rows, lazy `tbody.more`, empty states.
 6. Add the colour/state CSS (diff/same, sorted cyan, filtered orange, dashed both, beige groups, purple edits, hover overlays, selection, cursor, category dividers).
 7. Implement `applyPins`, `fitTable`, slim tooltip `#wb-tip`, drop line `#wb-dropline`, scrollLeft keep.
-8. Implement the page-level menu sheet (column and cell variants), floating `#wb-cellbtn`, right-click, double-click handlers, srclink hover/click.
+8. Implement the page-level menu sheet (column and cell variants), floating `#wb-cellbtn`, right-click, double-click handlers, the source outline + arrow (`recSource`).
 9. Implement the six dialogs inside one `.modal`.
 10. Implement preview panel (resize + localStorage) and the lightbox (modes, zoom/pan/fit, keys).
 11. Implement the store, `undoHistory` (sessionStorage), keyboard handler and toasts; job stripe partial with polling and Cancel.
@@ -446,7 +446,7 @@ Manual checks:
 - Double-click a header: it becomes 40px with an acronym; hover shows the tooltip immediately above it.
 - Drag a header label: the 4px accent drop line with round ends spans the table; drop moves the column; widths snap to 8px when resizing.
 - Pin a column from ⋯: it gets the pin icon, sticks left when scrolling horizontally, and a 2px line marks the pinned block's end.
-- Right-click a date cell → "Apply this value to its group": a purple "DateTimeOriginal (EXIF) ✎" column appears right of DateTimeOriginal (EXIF) with `🔗A` badges; hovering a badge outlines the source column/row; the header shows `🔗(n)`; group rows show it dimmed.
+- Right-click a date cell → "Apply this value to its group": a purple "DateTimeOriginal (EXIF) ✎" column appears right of DateTimeOriginal (EXIF) ; hovering one of its cells outlines the source cell in blue with an arrow from it; group rows show it dimmed.
 - Double-click a DateTimeOriginal (EXIF) ✎ cell → cell edit dialog prefilled without `→`; double-click a file name → Naming pattern dialog.
 - Arrow keys show the 2px accent cursor; Shift+↓ ticks rows; X toggles and moves; ⌘A selects all ("All (n)"); ⌘Z then ⇧⌘Z show toasts "Undone: selection" / "Redone: selection"; undoing a sort says "Undone: sorting".
 - Space opens the preview; drag its left edge (256–720px); reload keeps the width. Click the image → lightbox; +, −, 0, 1, W, H work; Esc closes.

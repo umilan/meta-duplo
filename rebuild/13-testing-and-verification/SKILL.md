@@ -153,7 +153,7 @@ Rules that keep these checks honest:
 |---|---|
 | Table | no `.is-diff` with grouping *None*; filtered column orange, sorted cyan, both dashed (`::after` gradient); pinned column `left` constant while scrolling; slim column tooltip appears without delay |
 | Menus | header ⋯ items (Pin / Unpin, Sort, Find, Change; edit columns: Apply · Edit all · Clear · Remove); cell menu enables *Rename with a pattern…* on file names |
-| Edit columns | `= value` vs `→ value`; source badges letter and tooltip; source cell badge; header `🔗(n)` |
+| Edit columns | `= value` vs `→ value`; no `.srclink`; hovering an edit cell with `data-src` outlines the source (`.is-recsrc`) and shows `#wb-srcarrow` (line between the facing edges); leaving the table hides it |
 | Naming dialog | chips and text parts, insert at caret, ← → ↑ ↓ Backspace Esc, search phrase filtering and hidden empty sections, per-tag values, extension warning, presets (save / update / rename / delete / Default protected), Apply adds *FileName ✎* |
 | Undo / redo | sequence of selection and view steps undone in order; toasts name the step; buttons disabled at the ends |
 | Lightbox | fit / width / height / 100 %, wheel zoom around the pointer, drag pan clamped, keys |

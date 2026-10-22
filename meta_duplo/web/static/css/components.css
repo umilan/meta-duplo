@@ -673,26 +673,13 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .wbsheet button.namer__opt .namer__val.is-empty { color: var(--muted); }  /* this file has no value for the tag */
 .namer__none { margin: var(--space-100); }
 
-/* source links in edit columns: [🔗A] = where the new value comes from (a rule, a column, a cell, typed);
-   hover: instant tooltip + highlight of that column / row; click: edit. The header counts the distinct sources. */
-.srclink { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-025); height: var(--control-h-xs);
-  min-width: var(--space-400); padding: 0 var(--space-050); border: 0; border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--edit-text) 16%, var(--edit-bg)); color: var(--edit-text);
-  font: inherit; font-size: var(--text-sm); line-height: var(--line-sm); font-weight: 600; cursor: pointer; }
-.srclink:hover, .srclink:focus-visible { background: color-mix(in srgb, var(--edit-text) 28%, var(--edit-bg)); }
-.srclink__icon { width: var(--space-200); height: var(--space-200); flex: none; }
-.wbt td > .srclink { position: absolute; right: var(--space-050); top: 50%; transform: translateY(-50%); }
-.wbt td:has(> .srclink) { padding-right: var(--space-500); }
-.wbt td:has(> .srclink):has(> .cellbtn) { padding-right: var(--space-800); }
-.wbt td:has(> .srclink) > .cellbtn { right: var(--space-500); }
-.srclink--head { cursor: help; order: 2; }  /* header: the tag sits at the right edge, after the ⋯ */
-.wbh:has(> .srclink--head) > .wbh__act { order: 1; }
-/* group rows: the edit value and its tag dimmed (the files below carry the real values) */
-.wbg__head td.wbt__edit > .wbt__ev, .wbg__head td.wbt__edit > .srclink { opacity: .5; }
-/* the column / row a hovered link points to */
-.wbt .is-srccol { box-shadow: inset 2px 0 0 var(--edit-text), inset -2px 0 0 var(--edit-text); background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); }
-.wbt tr.is-srcrow > td { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 2px 0 var(--edit-text), inset 0 -2px 0 var(--edit-text); }
-.wbt tr.is-srcrow > td.is-srccol { box-shadow: inset 0 0 0 2px var(--edit-text); background-color: var(--edit-bg); }
+/* group rows: the edit value dimmed (the files below carry the real values) */
+.wbg__head td.wbt__edit > .wbt__ev { opacity: .5; }
+/* where a value comes from: hovering a Recommended date or a purple cell outlines its source cell (.is-recsrc) and
+   draws this arrow from it (fixed overlay, coordinates set by JS; it never takes a click) */
+.srcarrow { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 30; overflow: visible; }
+.srcarrow line { stroke: var(--accent); stroke-width: 2; }
+.srcarrow circle, .srcarrow marker path { fill: var(--accent); }
 
 /* undo / redo (Workbench filter row, left of Selection) */
 .histbtns { display: inline-flex; gap: var(--space-050); margin-right: var(--space-100); }

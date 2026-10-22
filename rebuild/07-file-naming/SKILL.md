@@ -240,7 +240,6 @@ sources. A clash with such a file on disk surfaces at apply time (`PlanError("ta
    `wb-edit {target: "filename"}`.
 4. **Actions → File name pattern…** (wb_table.html), hint "text and parameters from any column; a purple “New
    filename” column previews it".
-5. Also: clicking a source link (`.srclink`) in a *FileName ✎* cell dispatches `wb-edit` for that target.
 
 ### Layout (workbench.html, inside `.modal`)
 
@@ -404,7 +403,7 @@ starts *Actions → Rename…* (`POST /wb/rename-plan`, which commits first; ski
 8. Build the `.namer` markup and the `namer` Alpine component: parts model, preview line,
    extension warning, hint, search, always-open grouped list with per-tag values, presets sidebar.
 9. Wire the entry points: header menu, cell menu "Rename with a pattern…", double-click on a file name,
-   Actions → File name pattern…, source links.
+   Actions → File name pattern….
 10. Implement the keyboard table and the 250 ms debounced refresh; confirm Esc on a chip does not close the dialog.
 
 ## Verify
