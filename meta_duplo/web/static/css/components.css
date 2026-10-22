@@ -384,6 +384,13 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 @container wbbar (max-width: 1040px) {
   .wbbar .wbbar__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }  /* still named for screen readers */
 }
+@container wbbar (max-width: 880px) {  /* narrow (e.g. preview panel open on a small window): tighter gaps, smaller pickers */
+  .wbbar { gap: var(--space-100); }
+  .wbbar .selectbtn { min-width: 96px; }
+  .wbbar .datain { min-width: 96px; }
+  .wbbar .histbtns { margin-right: 0; }
+}
+.wbbar .histbtns { flex: none; }
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-100); margin: 0 0 var(--space-200); }
 .filters label { display: inline-flex; align-items: center; gap: var(--space-100); }
 .fchip { display: inline-flex; align-items: center; gap: var(--space-050); height: var(--control-h); padding: 0 var(--space-050) 0 var(--space-100); border: 2px solid var(--filter-c); background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 600; color: var(--muted); }
@@ -484,6 +491,8 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .cellbtn { position: absolute; right: var(--space-050); top: 50%; transform: translateY(-50%); z-index: 1; }
 .wbt tbody .wbr--selected > td { background-color: var(--sel); }
 /* keyboard cursor: the row gets the hover tint, the cell a 2px accent frame */
+/* a group row's cell marks that column in the group's files */
+.wbt tbody td.is-gsel { background-image: linear-gradient(var(--tint-cell), var(--tint-cell)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent); }
 .wbt tbody td.is-cursor, .wbt tbody td.is-cursor.is-hcell:not(.wbt__check) { box-shadow: inset 0 0 0 2px var(--accent); }
 .wbt tbody .wbr--active > td { background-color: var(--sel-active); }
 .wbt--colors .is-diff { color: var(--differ); }

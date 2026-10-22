@@ -170,6 +170,15 @@
   const visibleRows = () => [...document.querySelectorAll("#wb-table .wbt tbody tr")]
     .filter((tr) => tr.offsetParent !== null && (tr.classList.contains("wbr") || tr.classList.contains("wbg__head")));
   const cursorCell = () => (kb.row && kb.row.isConnected ? kb.row.cells[kb.col] : null);
+  // a group row's cell (not the chevron): marks that column in every file of the group; returns the group's first file
+  const groupCells = (td) => {
+    document.querySelectorAll(".wbt .is-gsel").forEach((el) => el.classList.remove("is-gsel"));
+    if (!td || !td.parentElement.classList.contains("wbg__head") || td.matches(".wbt__check, .wbg__exp")) return null;
+    const tbody = td.closest("tbody");
+    td.classList.add("is-gsel");
+    tbody.querySelectorAll(`tr.wbr > :nth-child(${td.cellIndex + 1})`).forEach((c) => c.classList.add("is-gsel"));
+    return tbody.querySelector("tr.wbr");
+  };
   const paint = () => {
     document.querySelectorAll(".wbt .is-cursor, .wbt .is-cursor-row").forEach((el) => el.classList.remove("is-cursor", "is-cursor-row"));
     const td = cursorCell();
@@ -177,6 +186,7 @@
     kb.row.classList.add("is-cursor-row");
     td.classList.add("is-cursor");
     if (!hover.locked) highlight(td);  // the keyboard takes over the hover highlight
+    groupCells(td);
     td.scrollIntoView({ block: "nearest", inline: "nearest" });
   };
   const showPreview = (tr) => {
@@ -190,8 +200,10 @@
     kb.col = Math.max(0, Math.min(col, tr.cells.length - 2));  // the last cell is the empty "+" column
     paint();
     // with the preview or the large viewer open, they follow the cursor (debounced: holding an arrow key stays smooth)
-    if (moved && tr.classList.contains("wbr") && (Alpine.store("wb").panel || Alpine.store("wb").lightbox)) {
-      clearTimeout(kb.pv); kb.pv = setTimeout(() => showPreview(tr), 120);
+    // (on a group row: its first file, which shows the group's picture)
+    const target = tr.classList.contains("wbg__head") ? tr.closest("tbody").querySelector("tr.wbr") : tr;
+    if (moved && target && (Alpine.store("wb").panel || Alpine.store("wb").lightbox)) {
+      clearTimeout(kb.pv); kb.pv = setTimeout(() => showPreview(target), 120);
     }
   };
   const typing = (el) => el && (el.closest("input, select, textarea, [contenteditable], .modal") !== null);
@@ -253,7 +265,7 @@
       tr.querySelector("td.wbt__check input")?.click();
     } else if (e.key === " ") {
       e.preventDefault();
-      if (tr.classList.contains("wbg__head")) tr.click();  // fold / unfold the group
+      if (tr.classList.contains("wbg__head")) (tr.querySelector(".wbg__exp") || tr).click();  // fold / unfold the group
       else if (Alpine.store("wb").panel) window.dispatchEvent(new CustomEvent("wb-panel", { detail: { on: false } }));  // Space toggles
       else { showPreview(tr); window.dispatchEvent(new CustomEvent("wb-preview")); }
     }
@@ -262,6 +274,11 @@
   document.addEventListener("click", (e) => {
     const td = e.target.closest && e.target.closest(".wbt tbody td");
     if (td && td.parentElement.matches(".wbr, .wbg__head")) setCursor(td.parentElement, td.cellIndex);
+    // a click on a group row's cell also opens the preview of the group's first file (like a click on a file row)
+    if (td && td.parentElement.matches(".wbg__head") && !td.matches(".wbt__check, .wbg__exp, .wbg__label")) {
+      const first = td.closest("tbody").querySelector("tr.wbr");
+      if (first) { showPreview(first); window.dispatchEvent(new CustomEvent("wb-preview")); }
+    }
   });
   document.addEventListener("htmx:afterSwap", (e) => {
     if (!e.detail.target || e.detail.target.id !== "wb-table" || !kb.rowid) return;

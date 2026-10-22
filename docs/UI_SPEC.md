@@ -124,7 +124,7 @@ in inverted colours (dark blue with light text in the light theme, light blue wi
 job name, stage, a bar using all the free width, `done / total`, and **Cancel**. Cancel stops the job at its next
 progress step (*Cancelling…* meanwhile); what is done is kept (stages are idempotent) and the page reloads with the
 partial results; the job is recorded as `cancelled`. The page gets 40 px of top padding while the stripe shows.
-Header: two rows. Row 1 holds the title, Data input, Grouping by, Sort by, Search and ⚙ (⚙ is part of the row, so a
+Header: two rows. Row 1 holds the title with undo / redo right of it, Data input, Grouping by, Sort by, Search and ⚙ (⚙ is part of the row, so a
 job progress stripe pushes the whole row down); row 2 the filters
 with Selection and Actions. When row 1 gets tight (under 1240 px) Search becomes a 32 px magnifier button that opens
 the field in place (it stays open while it has text); the Data input field stays on one line (folder count truncates with …, *Found N files* hides below 208 px); under 1040 px the labels hide visually (still read by screen
@@ -176,7 +176,9 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   table scrolls sideways.
 - **Group by** sets the task: *Duplicates* (only files with copies; the kept copy is the reference row),
   *Photo (all copies)*, *Folder*, *Day*, *Device*, *Place*, *No grouping*. The group row shows the reference
-  thumbnail and, per column, **Same** (green) or **Diff** (red).
+  thumbnail and, per column, **Same** (green) or **Diff** (red). The chevron and the group name fold and unfold the
+  group; clicking any other group-row cell (or moving the keyboard cursor onto it) marks that column's cells in all
+  the group's files and shows the group's first file in the preview.
 - **Differences:** values that differ from the group's reference row are red (with *No grouping* there is no
   reference, so nothing is red or green and Meta checks shows –). Path segments and file names are
   green when equal, red when not. *Text colours* in the settings sheet switches the colours off.
@@ -266,8 +268,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   unticks the row and moves down; *⌘ / Ctrl + A* ticks every row of the view (Selection → All); *Esc* closes an open
   menu first, then leaves the cursor. Clicking a cell moves the cursor there;
   after a reload it returns to the same file. Keys typed in fields, menus and dialogs are left alone.
-- **Undo / redo:** *⌘ / Ctrl + Z* undoes, *⇧⌘Z / Ctrl + Shift + Z / Ctrl + Y* redoes; the ↶ ↷ buttons left of
-  *Selection* do the same (greyed when there is nothing). One ordered history covers selection changes (ticking,
+- **Undo / redo:** *⌘ / Ctrl + Z* undoes, *⇧⌘Z / Ctrl + Shift + Z / Ctrl + Y* redoes; the ↶ ↷ buttons right of
+  the *Filomena* title do the same (greyed when there is nothing). One ordered history covers selection changes (ticking,
   presets, Shift+↑/↓; a burst within 250 ms is one step) and every view change: sorting, grouping, filters, search,
   columns (add, remove, move, width, slim), edit rules and typed or applied values, the reference row, folders
   shown, reset. A toast names what was undone. Up to 100 steps; a new change clears the redo steps; the history

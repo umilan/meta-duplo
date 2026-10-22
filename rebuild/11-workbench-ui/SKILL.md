@@ -489,3 +489,7 @@ expect(Math.abs(fit[0] - Math.max(256, page.viewportSize().height - fit[1]))).to
 ## Highlight model (update)
 
 Row and cell hover are classes, not CSS `:hover`: `highlight(td)` in `workbench.js` sets `tr.is-hrow`, `td.is-hcell` and `.is-hcol` on the column; the mouse (`mouseover`) and the keyboard cursor (`paint()`) both call it, so the last one used wins (the cursor keeps its own 2 px `is-cursor` frame). While a cell menu is open (`wbPage` watches `menu` and dispatches `wb-hl-lock` / `wb-hl-unlock`), the highlight and the ⋯ button stay on that cell; on close, if the pointer is no longer over the table, the highlight clears.
+
+## Group-row cells and undo placement (update)
+
+The group row folds only from `td.wbg__exp` (chevron) and `td.wbg__label` (name), both `@click="open = !open"`; without a tree column the whole row still folds. Any other group-row cell, clicked or reached by the keyboard cursor, runs `groupCells(td)`: it adds `.is-gsel` to that cell and to the same column's cells of every `tr.wbr` in the group's `tbody` (tint + 1 px accent outline); a click also shows the group's first file in the preview (`showPreview(first)` + `wb-preview`), and the keyboard cursor does when the panel or lightbox is open. Space on a group row clicks `.wbg__exp`. Undo / redo (`.histbtns`) sit in header row 1 right after the title; below an 880 px header width (`@container wbbar`) gaps shrink to 8 px and pickers to 96 px.

@@ -6,13 +6,14 @@
 {% set nocmp = singles or view.group == 'none' %}{# nothing to compare against: no red / green #}
 <tbody class="wbg {{ 'wbg--singles' if singles }}" x-data="{ open: {{ 'false' if singles else '$store.wb.expanded' }} }" @wb-fold.window="open = $event.detail">
   {% if view.group != 'none' %}
-  <tr class="wbg__head" @click="open = !open">
+  {# folding: the chevron and the group name; any other cell marks that column in the group's files #}
+  <tr class="wbg__head"{% if not tree %} @click="open = !open"{% endif %}>
     <td class="wbt__check" @click.stop><input type="checkbox" aria-label="Select group" @change="$store.wb.setMany({{ ids|tojson }}, $event.target.checked)"
         :checked="{{ ids|tojson }}.every(i => $store.wb.has(i))"></td>
-    {% if tree %}<td class="wbt__tree wbg__exp" title="{{ g.label }} ({{ g.rows|length }})"><span class="chev" :class="open && 'chev--open'">›</span></td>{% endif %}
+    {% if tree %}<td class="wbt__tree wbg__exp" title="{{ g.label }} ({{ g.rows|length }})" @click="open = !open"><span class="chev" :class="open && 'chev--open'">›</span></td>{% endif %}
     {% for c in cols %}
     {% if c.key == 'thumb' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}></td>
-    {% elif tree and c.key == tree.name_col %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbg__label" title="{{ g.label }}">{{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>
+    {% elif tree and c.key == tree.name_col %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbg__label" title="{{ g.label }}" @click="open = !open">{{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>
     {% elif singles and c.key in ('dup_count', 'dup_conf', 'checks') %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="nil">–</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{{ g.ref.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{% set cp = conf_parts(g.ref) %}{{ cp[0] }}</td>

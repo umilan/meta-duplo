@@ -11,14 +11,6 @@
   <button class="btn btn--icon" type="button" title="Add a filter" aria-label="Add a filter"
           @click="openFilter({ key: '{{ cols[1].key if cols|length > 1 else 'path' }}', label: '' })">+</button>
   <span class="results-toolbar__spacer"></span>
-  <span class="histbtns" role="group" aria-label="Undo and redo">
-    <button type="button" class="btn btn--icon" :disabled="!$store.wb.undoN" @click="$store.wb.step('undo')"
-            title="Undo (⌘Z): selection, sorting, filters, columns, edits, reference row" aria-label="Undo">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 2.5 7 6 10.5M3 7h6.5a4 4 0 0 1 0 8H8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <button type="button" class="btn btn--icon" :disabled="!$store.wb.redoN" @click="$store.wb.step('redo')"
-            title="Redo (⇧⌘Z)" aria-label="Redo">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 13.5 7 10 10.5M13 7H6.5a4 4 0 0 0 0 8H8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-  </span>
   <div class="pick pick--right" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
     <span class="wbbar__label" id="sel-label">Selection</span>
     <button type="button" class="selectbtn" :class="$store.wb.count && 'is-active'" aria-labelledby="sel-label" aria-haspopup="menu"
