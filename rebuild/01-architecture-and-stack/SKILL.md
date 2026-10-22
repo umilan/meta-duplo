@@ -166,7 +166,9 @@ The web "rescan" from the Workbench data-input actions also runs `harmonize.buil
 ```python
 token = None if args.no_token else os.environ.get("META_DUPLO_TOKEN") or secrets.token_urlsafe(16)
 app = create_app(lib, token)
-print(f"meta-duplo is running: http://{host}:{port}/" + (f"?token={token}" if token else ""))
+print(f"meta-duplo is running: http://{host}:{port}/" + (f"?token={token}" if token else ""), flush=True)
+if parent := os.environ.get("META_DUPLO_PARENT_PID"):
+    stop_with_parent(int(parent))   # thread: every 2 s os.kill(pid, 0); once gone, SIGTERM to itself
 uvicorn.run(app, host=host, port=port, log_level="warning")
 ```
 
@@ -176,8 +178,11 @@ and the globals `token` and `field_labels`, and disables `/docs` and `/redoc`.
 **Middleware `session_token`** (HTTP, runs on every request):
 
 1. If `token is None` or the path starts with `/static`, pass through.
-2. If the query has `token=<token>`: answer `RedirectResponse(request.url.path)` (307, query dropped) and
-   set the cookie `meta-duplo=<token>`, `httponly`, `samesite="strict"`.
+2. If the query has `token=<token>`: answer `200` with a tiny page,
+   `<meta http-equiv="refresh" content="0;url=<path>">` plus a *Continue* link (query dropped, path escaped), and
+   set the cookie `meta-duplo=<token>`, `httponly`, `samesite="strict"`. **Not a redirect:** the desktop app
+   opens this link from its own origin, and a redirect would keep the chain cross-site, so WebKit would hold the
+   new strict cookie back (ADR-019).
 3. If the cookie does not match (`secrets.compare_digest`): `403` with "Open meta-duplo with the link printed in
    the terminal."
 4. If the method is `POST` and the header `X-Meta-Duplo-Token` does not match: `403` "Missing request token."
@@ -225,6 +230,37 @@ root-absolute (`/static/...`, `/thumb/...`), not relative.
 htmx conventions: responses use the `HX-Redirect`, `HX-Refresh: true` and `HX-Trigger` headers (JSON with
 `toast`, `selection-changed`, `results-reload`, `grid-reload`, `wb-reload`, `wb-pickpath`). Every page uses
 `render()`, which adds `counts` (nav badges) and `job` (the last job row).
+
+### Desktop app (update)
+
+The macOS app (ADR-019) has three parts. Build them after the web app works.
+
+- **`packaging/server.py` + `packaging/meta-duplo-server.spec`** (PyInstaller, one-file, console, no UPX,
+  `TARGET_ARCH` from the environment). `server.py` calls `multiprocessing.freeze_support()` then `main()`. The
+  spec bundles `meta_duplo/web/templates` and `static`, all submodules of `uvicorn` and `meta_duplo`, all of
+  `pillow_heif`, and the data files of `reverse_geocoder`. Run it with
+  `uv sync --extra geo --group package` (the `package` group is `pyinstaller>=6.10`), then
+  `uv run pyinstaller packaging/meta-duplo-server.spec --noconfirm --distpath packaging/dist --workpath packaging/build`.
+  The result is `packaging/dist/meta-duplo-server` (about 78 MB). It takes the same commands as `meta-duplo`.
+- **`desktop/`** (Tauri v2, `@tauri-apps/cli` 2.5.0, Rust crates `tauri` 2, `tauri-plugin-shell` 2, `libc` on
+  unix):
+  - `tauri.conf.json`: productName `Filomena`, identifier `app.metaduplo.filomena`, `frontendDist ../dist`,
+    window `main` 1440×900 (min 960×600), `externalBin ["binaries/meta-duplo-server"]`, macOS minimum 11.0,
+    `signingIdentity "-"` (ad-hoc).
+  - `dist/index.html` is the "Starting the library…" page.
+  - `src/main.rs` does the following:
+    1. Picks a free port (bind `127.0.0.1:0`) and a 128-bit hex token from `/dev/urandom`.
+    2. Spawns the sidecar `serve` with `META_DUPLO_HOST/PORT/TOKEN/PARENT_PID`, and prints its output prefixed
+       `server:`.
+    3. A thread polls the TCP port for up to 90 s, then calls `run_on_main_thread` → `window.navigate(http://127.0.0.1:<port>/?token=<token>)`.
+    4. `RunEvent::Exit` sends SIGTERM to the sidecar (`libc::kill`). Do not use `CommandChild::kill`: its
+       SIGKILL leaves the one-file binary's Python child running.
+  - The sidecar file must be named `src-tauri/binaries/meta-duplo-server-<target triple>`.
+  - Icons come from `npm run icons` (`app-icon.png`, 1024 px).
+- **`.github/workflows/desktop.yml`** runs on `macos-15` (aarch64) and `macos-15-intel` (x86_64). It builds the
+  server, then smoke-tests the binary (demo, scan, serve; a token link and a cookie request must reach a page
+  containing "Filomena"). Then it runs `npm ci` and `npx tauri build --target <triple>`, and uploads
+  `Filomena-<arch>.dmg` and `.app.zip`. On `v*` tags it attaches them to a release.
 
 ## 7. Job runner (`scan.Runner`)
 
@@ -325,7 +361,7 @@ leave a `TODO(spec):` instead of guessing.
 
 ```bash
 uv sync --extra geo
-uv run pytest -q                                   # expect: 22 passed (tests/test_workflow.py, test_results.py, test_workbench.py)
+uv run pytest -q                                   # expect: 30 passed (test_workflow, test_results, test_workbench, test_desktop)
 L=$(mktemp -d); D=$(mktemp -d)/demo
 uv run meta-duplo --library "$L" demo "$D"         # "Demo disk created at … and added as a writable source to …"
 uv run meta-duplo --library "$L" scan              # {'name': 'scan', 'status': 'done', 'message': 'Scan complete'}
@@ -333,7 +369,7 @@ ls "$L"                                            # library.sqlite  thumbs  und
 ls "$L/thumbs" | wc -l                             # 18 (one per demo image)
 META_DUPLO_TOKEN=t uv run meta-duplo --library "$L" serve --port 8799 &
 curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8799/workbench          # 403 (no cookie)
-curl -s -c j -o /dev/null -w '%{http_code}\n' 'http://127.0.0.1:8799/?token=t'     # 307 + Set-Cookie meta-duplo=t
+curl -s -c j -o /dev/null -w '%{http_code}\n' 'http://127.0.0.1:8799/?token=t'     # 200 (refresh page) + Set-Cookie meta-duplo=t
 curl -s -b j -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:8799/scan   # 403 (no X-Meta-Duplo-Token header)
 curl -s -b j -H 'X-Meta-Duplo-Token: t' -X POST http://127.0.0.1:8799/scan | grep -c job   # job partial
 ```

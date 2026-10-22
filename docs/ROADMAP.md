@@ -30,7 +30,7 @@ See `WORKFLOW.md` and ADR-013 for its scope. The milestones below take it to the
 | M9 | Confidence + calibration: log-odds, masking calibration, duplicate-pair calibration from "not duplicates" | 1–2 | – |
 | M10 | Restore + reorganize: rename rule (✓), XMP (✓), folder layout rule, in-file writes via ExifTool (opt-in), mixed plans | 2 | rename + XMP + file dates |
 | M11 | Polish + optional modules (OCR, CLIP, faces, PRNU, C2PA, embeddings, audio fingerprints) | – | – |
-| M12 | Tauri desktop app | – | – |
+| M12 | Tauri desktop app | 1 | started: unsigned macOS builds (arm64, x86_64) in CI, ADR-019 |
 
 **Next three steps after the POC:**
 1. ExifTool adapter (M1).

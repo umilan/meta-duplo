@@ -23,6 +23,7 @@ meta-duplo = "meta_duplo.__main__:main"
 
 [dependency-groups]
 dev = ["pytest>=8", "httpx>=0.27"]
+package = ["pyinstaller>=6.10"]
 
 [build-system]
 requires = ["hatchling"]

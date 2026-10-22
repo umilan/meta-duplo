@@ -28,7 +28,7 @@ They complement, not replace:
 | 10 | [web-routes](10-web-routes/SKILL.md) | FastAPI routes, `/wb/view` actions, context, htmx conventions | every route answers as listed |
 | 11 | [workbench-ui](11-workbench-ui/SKILL.md) | the Filomena screen: table, menus, dialogs, keyboard, preview, lightbox | browser checks in 13 pass |
 | 12 | [design-system](12-design-system/SKILL.md) | tokens, components, themes, settings sheet | light and dark screenshots match |
-| 13 | [testing-and-verification](13-testing-and-verification/SKILL.md) | throughout: demo disk, pytest, Playwright recipes | 22 tests pass, no console errors |
+| 13 | [testing-and-verification](13-testing-and-verification/SKILL.md) | throughout: demo disk, pytest, Playwright recipes | 30 tests pass, no console errors |
 
 Port the tests early (13): they are the acceptance criteria for 03–09.
 

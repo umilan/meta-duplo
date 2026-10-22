@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Filomena</title>
+  <style>
+    /* Shown for the few seconds the local server needs to start; then the window moves to it. */
+    :root { --bg: #fbfbfa; --text: #1d1d1f; --muted: #6e6e73; --accent: #2f6fde; --line: #e5e5e7; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #161617; --text: #f2f2f2; --muted: #a1a1a6; --accent: #6a9cf0; --line: #333336; } }
+    html, body { height: 100%; margin: 0; }
+    body { display: grid; place-items: center; background: var(--bg); color: var(--text);
+           font: 14px/20px system-ui, -apple-system, "Helvetica Neue", sans-serif; }
+    main { display: grid; justify-items: center; gap: 16px; }
+    h1 { margin: 0; font-size: 24px; line-height: 32px; }
+    p { margin: 0; color: var(--muted); }
+    .bar { width: 160px; height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
+    .bar::after { content: ""; display: block; width: 40%; height: 100%; border-radius: inherit; background: var(--accent);
+                  animation: slide 1.2s ease-in-out infinite; }
+    @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Filomena</h1>
+    <div class="bar" role="progressbar" aria-label="Starting"></div>
+    <p>Starting the library…</p>
+  </main>
+</body>
+</html>

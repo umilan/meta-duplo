@@ -4,6 +4,9 @@ from __future__ import annotations
 import argparse
 import os
 import secrets
+import signal
+import threading
+import time
 from pathlib import Path
 
 from .db import Library, now, tx
@@ -35,6 +38,24 @@ def remove_source(lib: Library, sid: int) -> bool:
         con.execute("DELETE FROM files WHERE source_id = ?", (sid,))
         con.execute("DELETE FROM sources WHERE id = ?", (sid,))
     return True
+
+
+def stop_with_parent(pid: int, every: float = 2.0) -> None:
+    """Stop this server (as Ctrl+C would) once process `pid` is gone. The desktop app passes its own pid in
+    META_DUPLO_PARENT_PID, so a crashed or force-quit app never leaves a server running in the background."""
+
+    def watch() -> None:
+        while True:
+            time.sleep(every)
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                os.kill(os.getpid(), signal.SIGTERM)
+                return
+            except PermissionError:
+                pass  # alive, owned by someone else
+
+    threading.Thread(target=watch, name="parent-watch", daemon=True).start()
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -79,7 +100,9 @@ def main(argv: list[str] | None = None) -> None:
         token = None if args.no_token else os.environ.get("META_DUPLO_TOKEN") or secrets.token_urlsafe(16)
         app = create_app(lib, token)
         url = f"http://{args.host}:{args.port}/" + (f"?token={token}" if token else "")
-        print(f"meta-duplo is running: {url}")
+        print(f"meta-duplo is running: {url}", flush=True)
+        if parent := os.environ.get("META_DUPLO_PARENT_PID"):
+            stop_with_parent(int(parent))
         uvicorn.run(app, host=args.host, port=args.port, log_level="warning")
 
 

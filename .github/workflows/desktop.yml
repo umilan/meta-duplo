@@ -1,0 +1,92 @@
+# Builds the Filomena desktop app for macOS (Apple Silicon and Intel): the Python server as one binary
+# (PyInstaller, packaging/), wrapped by the Tauri shell (desktop/). Download the .dmg from the run's artifacts,
+# or from the release when a v* tag is pushed. The app is not signed with a Developer ID yet: see desktop/README.md.
+name: desktop
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths: [desktop/**, packaging/**, meta_duplo/**, pyproject.toml, uv.lock, .github/workflows/desktop.yml]
+
+permissions:
+  contents: write  # attach the .dmg files to a release on tags
+
+jobs:
+  mac:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15         # Apple Silicon
+            target: aarch64-apple-darwin
+            arch: arm64
+          - runner: macos-15-intel   # Intel
+            target: x86_64-apple-darwin
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - name: Server binary (PyInstaller)
+        run: |
+          uv sync --extra geo --group package
+          uv run pyinstaller packaging/meta-duplo-server.spec --noconfirm --distpath packaging/dist --workpath packaging/build
+          mkdir -p desktop/src-tauri/binaries
+          cp packaging/dist/meta-duplo-server "desktop/src-tauri/binaries/meta-duplo-server-${{ matrix.target }}"
+          file "desktop/src-tauri/binaries/meta-duplo-server-${{ matrix.target }}"
+
+      - name: Smoke test the server binary
+        run: |
+          export HOME="$RUNNER_TEMP/home"; mkdir -p "$HOME"
+          BIN=packaging/dist/meta-duplo-server
+          $BIN demo > /dev/null
+          $BIN scan
+          META_DUPLO_PORT=8799 META_DUPLO_TOKEN=ci $BIN serve > server.log 2>&1 &
+          for i in $(seq 1 90); do curl -fs -o /dev/null "http://127.0.0.1:8799/?token=ci" && break; sleep 1; done
+          curl -fs -c jar -o /dev/null "http://127.0.0.1:8799/?token=ci"
+          curl -fsL -b jar "http://127.0.0.1:8799/" | grep -q Filomena
+          kill %1; cat server.log
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+
+      - name: App (Tauri)
+        working-directory: desktop
+        run: |
+          npm ci
+          npx tauri build --target ${{ matrix.target }}
+
+      - name: Collect
+        run: |
+          OUT=desktop/src-tauri/target/${{ matrix.target }}/release/bundle
+          mkdir -p out
+          cp "$OUT"/dmg/*.dmg "out/Filomena-${{ matrix.arch }}.dmg"
+          ditto -c -k --keepParent "$OUT/macos/Filomena.app" "out/Filomena-${{ matrix.arch }}.app.zip"
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Filomena-macos-${{ matrix.arch }}
+          path: out/*
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/*

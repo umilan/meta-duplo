@@ -17,6 +17,7 @@ reorganization. Read `docs/ARCHITECTURE.md` first.
 - External tools: `ffprobe`/`ffmpeg` (Homebrew). ExifTool comes with milestone M1 (ADR-013).
 - Try it: `uv sync --extra geo`, `uv run meta-duplo demo`, then `uv run meta-duplo serve` (it prints a link with the session token).
 - Other commands: `uv run meta-duplo add-source <path> [--writable]`, `uv run meta-duplo scan`.
+- Mac app (Tauri, ADR-019): `desktop/README.md`. CI builds the `.dmg` (`.github/workflows/desktop.yml`).
 - Test: `uv run pytest` (the end-to-end workflow on a generated demo disk, including apply + undo).
 - Library: `~/MetaDuploLibraries/default` (`--library` or `META_DUPLO_LIBRARY` to change it).
 - Flow: read `docs/WORKFLOW.md` (four steps) and `docs/UI_SPEC.md` before changing behaviour or screens.

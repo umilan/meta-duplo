@@ -183,3 +183,20 @@ accepted ones. Supersede them with a new entry instead.
 - **Consequences:** files on disk are never undone here; that stays with plans (`undo_plan`). Saved decisions
   (Apply / Save edits) are not in the history. A view change made from another tab is on the server stack but not
   in this page's list, so the two can drift until the next reload of history; acceptable for a single-user tool.
+
+### ADR-019 Desktop app: Tauri v2 around the bundled Python server (supersedes the timing in ADR-008)
+- **Context:** the owner wants to run the app on other Macs without installing Python, `uv` or the repository.
+- **Decision:** the server is frozen with PyInstaller into one binary (`packaging/`), and a Tauri v2 shell
+  (`desktop/`) starts it as a sidecar. The shell picks a free port and a random token and passes them in
+  `META_DUPLO_HOST` / `META_DUPLO_PORT` / `META_DUPLO_TOKEN`, together with its own pid in
+  `META_DUPLO_PARENT_PID`. It shows a start page until the port answers, then points its window at the server.
+  The UI is the same HTML as in the browser. The token link answers with a page that moves on by itself instead
+  of a redirect, because a redirect from the shell's own origin would keep the strict cookie back in WebKit. On
+  quit the shell sends SIGTERM, which the one-file binary passes on to Python (SIGKILL would not reach it). If
+  the shell dies, the server stops itself once that pid is gone. GitHub Actions (`.github/workflows/desktop.yml`)
+  builds an arm64 and an x86_64 `.dmg` on macOS runners.
+- **Consequences:** no signing with a Developer ID and no notarization yet. The app is only ad-hoc signed, so on
+  first start the user right-clicks it and chooses Open, or clears the quarantine flag. `ffprobe` is not bundled:
+  videos get dates and devices only where Homebrew's `ffmpeg` is installed. The library stays in
+  `~/MetaDuploLibraries/default`, shared with the command line. Start-up takes a few seconds while the one-file
+  binary unpacks itself. A one-folder build would start faster, but it would need the bundle's resources folder.

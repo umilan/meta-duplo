@@ -63,7 +63,11 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         if token is None or request.url.path.startswith("/static"):
             return await call_next(request)
         if request.query_params.get("token") == token:
-            resp = RedirectResponse(request.url.path)
+            # a page that moves on by itself, not a redirect: when the link is opened from another origin (the
+            # desktop app's start page), a redirect stays cross-site and WebKit holds the new strict cookie back
+            path = escape(request.url.path)
+            resp = HTMLResponse(f'<!doctype html><meta http-equiv="refresh" content="0;url={path}">'
+                                f'<a href="{path}">Continue</a>')
             resp.set_cookie("meta-duplo", token, httponly=True, samesite="strict")
             return resp
         if not secrets.compare_digest(request.cookies.get("meta-duplo", ""), token):

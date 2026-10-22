@@ -176,7 +176,7 @@ Rules that keep these checks honest:
 
 ## Verify
 
-- `uv run pytest -q` prints `22 passed`.
+- `uv run pytest -q` prints `30 passed` (`tests/test_desktop.py` covers the token page and the parent watchdog the desktop app relies on).
 - On a fresh library, `uv run meta-duplo demo && uv run meta-duplo serve` opens Filomena showing the demo disk
   (21 files when generated in this environment) grouped as duplicate sets, the `IMG_0003.JPG (3)` set among them, and no
   console errors.
