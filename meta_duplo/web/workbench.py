@@ -44,12 +44,12 @@ CORE = [
     Field("key_dto", "DateTimeOriginal (EXIF)", "Dates", "date", width=168),
     Field("key_created", "DateCreated (IPTC/XMP)", "Dates", "date", width=168),
     Field("name_date", "Date from file name", "Dates", "date", width=160),  # third: right after the two key dates
+    Field("rec_date", "Recommended date", "Dates", "date", width=160),  # fourth: the other derived date
     Field("date", "Date taken", "Dates", "date", editable="date", width=160),
     Field("digitized", "Date digitized", "Dates", "date", width=160),
     Field("modify", "Date modified (EXIF)", "Dates", "date", width=160),
     Field("file_date", "File date", "Dates", "date", width=160),
     Field("gps_date", "GPS date (UTC)", "Dates", "date", width=160),
-    Field("rec_date", "Recommended date", "Dates", "date", width=160),
     Field("place", "Place", "Location", editable="place", width=120),
     Field("rec_place", "Recommended place", "Location", width=128),
     Field("gps", "GPS", "Location", width=152),
@@ -263,6 +263,7 @@ def meta_counts(tags: dict) -> dict[str, int]:
 # table, shown by default. The raw tags they come from are not listed again.
 MAGIC_FIELDS = {  # derived (not metadata) but worth a look: a yellow magic-wand badge
     "name_date": "Read from the file's name (e.g. IMG_20190518_114710): a guess from the name, not camera metadata",
+    "rec_date": "Recommended: worked out from all the dates of the file and its copies (step 3), not read from one tag",
 }
 KEY_FIELDS = {
     "key_dto": "EXIF DateTimeOriginal: when the camera took the photo",
