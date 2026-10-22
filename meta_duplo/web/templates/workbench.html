@@ -396,10 +396,14 @@
         <button type="button" class="btn btn--icon btn--small modal__close" @click="close()" aria-label="Close">×</button></div>
       <p class="small" x-show="ac.mode === 'cell'"><span class="muted" x-text="ac.label + ':'"></span> <strong class="mono" x-text="ac.value"></strong></p>
       <p class="small" x-show="ac.mode === 'column'">Each file takes its own <strong x-text="ac.label"></strong> value.</p>
-      <label>Column
+      <label x-show="ac.targets.length > 1">Column
         <select x-model="ac.target">
           <template x-for="t in ac.targets" :key="t"><option :value="t" x-text="targetName(t)"></option></template>
         </select></label>
+      {# one possible column (a date goes only to the capture date): say where it goes, no one-item dropdown #}
+      <p class="small" x-show="ac.targets.length === 1">Goes to <strong x-text="targetName(ac.target)"></strong>
+        <span class="muted" x-show="ac.target === 'date'">(the only date the app can write for now; EXIF dates
+          will follow with ExifTool)</span></p>
       <fieldset class="applycol__scope" x-show="ac.mode === 'cell'"><legend class="small muted">For</legend>
         <label><input type="radio" value="group" x-model="ac.scope"> Its group</label>
         <label><input type="radio" value="selection" x-model="ac.scope" :disabled="!$store.wb.count">

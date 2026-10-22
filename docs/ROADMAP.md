@@ -33,7 +33,7 @@ See `WORKFLOW.md` and ADR-013 for its scope. The milestones below take it to the
 | M12 | Tauri desktop app | 1 | started: unsigned macOS builds (arm64, x86_64) in CI, ADR-019 |
 
 **Next three steps after the POC:**
-1. ExifTool adapter (M1).
+1. ExifTool adapter (M1). With it, purple columns for the EXIF dates (DateTimeOriginal, CreateDate, ModifyDate), written into the file by ExifTool through an approved plan, opt-in (M10). “Use this for another column” then offers them next to *New date*.
 2. Camera clock correction (M5).
 3. Folder overlap view (M4).
 
