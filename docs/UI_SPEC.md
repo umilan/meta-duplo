@@ -197,7 +197,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Edit columns** (light purple, inserted right of the source column) exist **only on demand**: none by default,
   *Edit…* in a header's ⋯ sheet opens the rule dialog and adds one.
   - **Filename:** the **Naming pattern** dialog (also *Actions → File name pattern…* and a double-click on any
-    file name). The name is typed text with parameter chips (purple, underlined) in a resizable field. Under it a
+    file name). At the top, the preview: *Preview for <file>* above the new name it would get. The name is typed text with parameter chips (purple, underlined) in a resizable field. Under it a
     hint, a search field (with ×) and the parameter list, always open: *Recommended values* (date and time, date,
     year … sec, place, country, device, original filename, extension; they follow the New date / place / device
     columns), *Columns in this table*, then every field by category (EXIF / XMP / IPTC tags included,
@@ -208,7 +208,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
     selected), or *Remove it* / *Keep it*. **Keyboard:** ← → walk through the line, from the text over the chips
     (a chip is one step); ↑ ↓ on a selected chip swap it for the previous / next tag of the list (as filtered),
     live, with the list following; Backspace / Delete next to a chip select it, and again remove it; Esc leaves a chip. *Tech names / Preview* switches chips between their names (a column tag by its key,
-    e.g. `EXIF:DateTimeOriginal`) and the values of the previewed (or first) file; the full new name shows below.
+    e.g. `EXIF:DateTimeOriginal`) and the values of the previewed (or first) file.
     A red warning shows while the name does not end with `.<Extension>`. Empty parts are tidied like an empty
     place; `{tag:KEY|%Y-%m-%d}` formats a date tag. Rename plans use the same values the table shows.
     **Presets** (left sidebar of the dialog, 240 px; stacked under 760 px): each shows its name and the pattern as

@@ -286,6 +286,10 @@
           <button type="button" role="radio" :aria-checked="(mode === 'preview').toString()" @click="mode = 'preview'; refresh()">Preview</button>
         </div>
       </div>
+      <div class="namer__preview">
+        <span class="small muted" x-text="'Preview for ' + (file || 'the first file')"></span>
+        <strong class="mono namer__previewname" x-text="name"></strong>
+      </div>
       <label class="small muted">New filename</label>
       <div class="namer__edit" @click.self="focusEnd()">
         <template x-for="(p, i) in parts" :key="i">
@@ -332,7 +336,6 @@
           <p class="small muted namer__none" x-show="q && !anyMatch()">No parameter matches.</p>
         </div>
       </div>
-      <p class="small"><span class="muted" x-text="'Preview for ' + (file || 'the first file') + ':'"></span> <strong class="mono" x-text="name"></strong></p>
       </div>
       </div>
       <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button>

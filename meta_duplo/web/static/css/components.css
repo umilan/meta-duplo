@@ -625,6 +625,8 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 /* the parameter list sits under the name field, always open (search + scrolling list) */
 .namer__edit { resize: vertical; overflow: auto; min-height: var(--space-800); align-content: flex-start; }
 .namer__hint { margin: 0; }
+.namer__preview { display: grid; gap: var(--space-050); }  /* label above, the new name below (like the field labels) */
+.namer__previewname { overflow-wrap: anywhere; }
 .namer__warn { margin: 0; color: var(--conflict); }
 .namer__sel { color: var(--edit-text); }
 .namer__hint .namer__del { color: var(--conflict); }
