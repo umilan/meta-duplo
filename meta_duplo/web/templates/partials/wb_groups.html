@@ -13,7 +13,8 @@
     {% if tree %}<td class="wbt__tree wbg__exp" title="{{ g.label }} ({{ g.rows|length }})" @click="open = !open"><span class="chev" :class="open && 'chev--open'">›</span></td>{% endif %}
     {% for c in cols %}
     {% if c.key == 'thumb' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}></td>
-    {% elif tree and c.key == tree.name_col %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbg__label" title="{{ g.label }}" @click="open = !open">{{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>
+    {% elif tree and c.key == tree.name_col %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} {% set ls = g.summary.get(c.key, '') %}{# the group's name, coloured by its column: green when every file has the same value, red when they differ #}
+      class="wbg__label {{ 'wbg__sum--' ~ ls|lower if ls in ('Same', 'Diff') }}" title="{{ g.label }}{{ ' · ' ~ {'Same': 'the same in every file', 'Diff': 'differs between files'}[ls] if ls in ('Same', 'Diff') }}" @click="open = !open">{{ g.label }} <span class="muted">({{ g.rows|length }})</span></td>
     {% elif singles and c.key in ('dup_count', 'dup_conf', 'checks') %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="nil">–</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{{ g.ref.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{% set cp = conf_parts(g.ref) %}{{ cp[0] }}</td>
@@ -36,9 +37,9 @@
     {% if c.key == 'thumb' %}
       <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__thumbcell"><img class="wbt__thumb" src="/thumb/{{ r.id }}" alt="" loading="lazy"></td>
     {% elif c.key == 'path' %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__path" title="{{ r.v.path }}">{% for seg, same in r.path_parts %}<span class="{{ '' if nocmp else ('is-same' if same else 'is-diff') }}">{{ seg }}</span> / {% endfor %}</td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="wbt__path" title="{{ r.v.path }}">{% for seg, state in r.path_parts %}<span class="{{ '' if nocmp or g.rows|length < 2 else ('is-' ~ state if state else '') }}">{{ seg }}</span> / {% endfor %}</td>
     {% elif c.key == 'filename' %}
-      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 and not nocmp else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
+      <td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="{{ 'is-diff' if d else ('is-same' if g.rows|length > 1 and not nocmp and g.summary.get('filename') == 'Same' else '') }}" title="{{ r.v.filename }}">{{ r.v.filename }}</td>
     {% elif c.key == 'dup_count' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{{ r.v.dup_count }} pcs</td>
     {% elif c.key == 'dup_conf' %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }}>{% set cp = conf_parts(r) %}{{ cp[0] }}{% if cp[1] %} <span class="conf-why">· {{ cp[1] }}</span>{% endif %}</td>
     {% elif c.key == 'checks' and nocmp %}<td{{ " data-sorted" if c.key == sc }}{{ " data-filtered" if c.key in fkeys }}{{ " data-catstart" if c.cat_start }} class="nil">–</td>

@@ -180,8 +180,11 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   group; clicking any other group-row cell (or moving the keyboard cursor onto it) marks that column's cells in all
   the group's files and shows the group's first file in the preview.
 - **Differences:** values that differ from the group's reference row are red (with *No grouping* there is no
-  reference, so nothing is red or green and Meta checks shows –). Path segments and file names are
-  green when equal, red when not. *Text colours* in the settings sheet switches the colours off.
+  reference, so nothing is red or green and Meta checks shows –). **Green means every file of the group
+  agrees:** a file name is green only when all files in the group have that name (the group's name in the group row
+  is then green too, red when the names differ); a path segment is green when every file has it at that place, red
+  on a copy where it differs from the reference row, and neutral otherwise (e.g. the reference's own folder when a
+  copy sits elsewhere). *Text colours* in the settings sheet switches the colours off.
 - **Path and Filename are separate columns.**
 - **Columns:** the catalog has the core fields first (Dates, Location, Device, Author, Duplicates, File) and
   then **every EXIF tag found in the library** (`IFD0:*`, `ExifIFD:*`, `GPS:*`, QuickTime tags), sorted into the same

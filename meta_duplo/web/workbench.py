@@ -667,13 +667,14 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
         chosen = next((r for r in rs if r["id"] in ref_ids), None)  # "use this cell as reference"
         ref = chosen or (next((r for r in rs if r["keeper"]), rs[0]) if by == "dups" else rs[0])
         unrelated = gk == SINGLES or by == "none"  # files without copies, or no grouping: nothing to compare
+        common = _common_segments([r["v"]["path"] for r in rs])
         for r in rs:  # differences against the group's reference row
             r["diff"] = {k: not unrelated and len(rs) > 1 and r is not ref and str(value(r, k)) != str(value(ref, k)) for k in keys}
             r["is_ref"] = r is ref
             r["user_ref"] = r is chosen
             if by == "dups" and not unrelated and r["dup"]:
                 r["dup_explain"] = explain_diff(r, ref)
-            r["path_parts"] = _path_diff(r["v"]["path"], ref["v"]["path"], r is ref or len(rs) == 1)
+            r["path_parts"] = _path_parts(r["v"]["path"], ref["v"]["path"], common)
             # per field: True same as the reference row, False differs, None when neither has a value
             r["checks"] = {t: None if not r["v"][t] and not ref["v"][t] else str(r["v"][t]) == str(ref["v"][t])
                            for t in CHECKS}
@@ -710,9 +711,21 @@ def table(lib: Library, view: dict) -> tuple[list[Group], list[str], int]:
     return groups, exif_keys, sum(len(g.rows) for g in groups)
 
 
-def _path_diff(path: str, ref: str, same: bool) -> list[tuple[str, bool]]:
+def _common_segments(paths: list[str]) -> list[str | None]:
+    """Per position, the segment every path shares there (None where they differ or one is shorter)."""
+    split = [p.split("/") for p in paths]
+    common: list[str | None] = list(split[0]) if split else []
+    for s in split[1:]:
+        common = [c if i < len(s) and s[i] == c else None for i, c in enumerate(common[:len(s)])]
+    return common
+
+
+def _path_parts(path: str, ref: str, common: list[str | None]) -> list[tuple[str, str]]:
+    """Path segments with a state: "same" when every file of the group has that segment there (green), "diff" when
+    it differs from the reference row's (red), "" otherwise (equal to the reference while other files differ)."""
     a, b = path.split("/"), ref.split("/")
-    return [(seg, same or (i < len(b) and b[i] == seg)) for i, seg in enumerate(a)]
+    return [(seg, "same" if i < len(common) and common[i] == seg else "" if i < len(b) and b[i] == seg else "diff")
+            for i, seg in enumerate(a)]
 
 
 def acronym(label: str) -> str:

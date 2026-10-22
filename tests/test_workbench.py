@@ -219,3 +219,16 @@ def test_all_date_columns_shown_once_by_default(lib):
     assert [k for k in shown if k in dates] == dates  # in catalog order
     view["columns"] = [c for c in view["columns"] if c[0] != "file_date"]  # the user hides one
     assert not wb.show_new_dates(view, cat) and "file_date" not in [c[0] for c in view["columns"]]
+
+
+def test_same_only_when_every_file_agrees(lib):
+    groups, _, _ = wb.table(lib, wb.load_view(lib))
+    g = _group_with(groups, "IMG-20190515-WA0003.jpg")  # names differ inside this set
+    assert g.summary["filename"] == "Diff"
+    by_name = {r["v"]["filename"]: r for r in g.rows}
+    wa = by_name["IMG-20190515-WA0003.jpg"]
+    assert wa["diff"]["filename"]
+    # path: the shared root is green, the differing folder red on the copy, neutral on the reference
+    ref_parts = dict(g.ref["path_parts"]); wa_parts = dict(wa["path_parts"])
+    assert ref_parts["disk"] == "same" and wa_parts["disk"] == "same"
+    assert wa_parts["WhatsApp Images"] == "diff" and ref_parts["Camera"] == ""

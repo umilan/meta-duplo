@@ -552,3 +552,8 @@ _RELOAD_KEYS = ("group", "q", "sources_off", "colors")   # rendered outside the 
 | `test_cell_actions_scope_overrides_and_reference` | `edit_target` key_dto→date, place→place, lens→None; fixed rule with `ids` + override: other member gets the fixed value, castle gets the typed one, outsiders keep theirs; `ref_ids` makes castle the ref with `user_ref` |
 | `test_view_undo_redo` | undo → `{"ok": True, "label": "grouping", "reload": True}`; next undo label *sorting*, `reload` False; third undo None; redo restores sort; a push clears redo |
 | `test_name_pattern_with_column_tags` | `{tag:…}` rendering and tidying; `rename_preview` uses table values via the registered tag source |
+
+
+## Same / different colouring (update)
+
+`path_parts` is now `[(segment, state)]` with state `"same"` (every file of the group has that segment at that position; `_common_segments` computes it once per group), `"diff"` (differs from the reference row's segment) or `""` (equal to the reference while other files differ). File names are green only when the group's `summary["filename"] == "Same"`; the group-row label (`td.wbg__label`, the grouping's name column) takes `wbg__sum--same` / `--diff` from that column's summary. Test: `test_same_only_when_every_file_agrees`.
