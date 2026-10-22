@@ -253,7 +253,6 @@ sources. A clash with such a file on disk surfaces at apply time (`PlanError("ta
 │  │       hover: ✎ rename, × delete (not for builtin); inline input when renaming / adding
 │  │   .namer__sidefoot: [Update “name”] (active, saved, modified) · [+ Save as new preset] · .namer__err
 │  └─ .namer__main
-│      .namer__bar: radiogroup .themeswitch  [Tech names] [Preview]
 │      .namer__preview: "Preview for <file|the first file>" above <strong.mono> new name
 │      label "New filename"; .namer__edit (resizable, wraps): parts = text inputs + chip buttons
 │      p.namer__warn (red, role=alert) while !/\.\{(ext|EXT)\}$/.test(pattern())
@@ -275,7 +274,7 @@ replace or remove it." Chip selected → "Click a tag to replace <techName> · R
 
 ### Component state (`Alpine.data("namer", (labels = {}) => …)`)
 
-`parts` (`[{t: "text"|"tok", v}]`, always alternating text/tok/…/text), `mode` (`"tech"|"preview"`), `picking`
+`parts` (`[{t: "text"|"tok", v}]`, always alternating text/tok/…/text), `picking`
 (selected chip index, −1 none), `q`, `at` (`{i, pos}` last text caret), `vals` (token → value in the current
 pattern), `optVals` (token → value for the list), `name`, `file`, `presets`, `preset`, `loaded`, `renaming`,
 `renameTo`, `adding`, `newName`, `err`.
@@ -285,7 +284,7 @@ pattern), `optVals` (token → value for the list), `name`, `file`, `presets`, `
 | `init` | listens to `wb-naming` → `start()`; deep-watches `parts` → debounced 250 ms `refresh()` |
 | `parse(p)` | split on `/\{[^}]+\}/g` into text/tok/…/text (leading and trailing text parts always exist) |
 | `pattern()` | `parts.map(p => p.v).join("")` |
-| `start()` | reads `#wb-table.dataset.pattern`; resets mode `tech`, picking −1, q, err, adding; `loadPresets()` then marks the preset whose pattern equals it (`preset`, `loaded`); `refresh(true)` |
+| `start()` | reads `#wb-table.dataset.pattern`; resets picking −1, q, err, adding; `loadPresets()` then marks the preset whose pattern equals it (`preset`, `loaded`); `refresh(true)` |
 | `techName(tok)` | `{tag:(exif:)?KEY…}` → `KEY` (e.g. `EXIF:DateTimeOriginal`, `file_date`); known token → `<Label>`; unknown → token without braces |
 | `pretty(p)` | pattern with every token replaced by `techName` (preset subtitles) |
 | `caret(i, ev)` | remember `at = {i, pos: selectionStart}` on focus/keyup/click/input of a text part |
@@ -301,7 +300,7 @@ pattern), `optVals` (token → value for the list), `name`, `file`, `presets`, `
 | `refresh(options)` | `POST /wb/name-preview` (`pattern`, `fid = $store.wb.active`, `options = "1"|""`) with header `X-Meta-Duplo-Token`; sets `vals`, `name`, `file`, and `optVals` when returned |
 | `apply()` | `#wb-table.dataset.pattern = pattern()`; `postView({action: "edit_set", target: "filename", pattern})`; close |
 
-Chip text: `mode === "preview" ? (vals[tok] || "∅") : techName(tok)`; title `label — token`. Text inputs size to
+Chip text: `techName(tok)` (there is no Tech names / Preview switch; values show in the preview line and the list); title `label — token`. Text inputs size to
 content (`width: <len>ch`, 2px when empty).
 
 ### Keyboard
@@ -402,7 +401,7 @@ starts *Actions → Rename…* (`POST /wb/rename-plan`, which commits first; ski
    `name_pattern` (+ `data-pattern` on `#wb-table`).
 7. Add `POST /wb/name-preview` (edit values win, `alone()`, `options=1`) and `GET/POST /wb/presets` with the
    save/rename/delete rules and the built-in Default.
-8. Build the `.namer` markup and the `namer` Alpine component: parts model, Tech names/Preview, preview line,
+8. Build the `.namer` markup and the `namer` Alpine component: parts model, preview line,
    extension warning, hint, search, always-open grouped list with per-tag values, presets sidebar.
 9. Wire the entry points: header menu, cell menu "Rename with a pattern…", double-click on a file name,
    Actions → File name pattern…, source links.

@@ -618,7 +618,6 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 
 /* ───────── naming-pattern dialog (Filename → Edit) ───────── */
 .modal__box--wide.namer { width: min(1040px, 96vw); }
-.namer__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); }
 .namer__edit { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-025) 0; min-height: var(--control-h);
   padding: var(--space-050) var(--space-100); border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
   background: var(--surface); font-family: var(--font-mono); font-size: var(--text-md); line-height: var(--line-md); cursor: text; }
@@ -634,6 +633,7 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 /* the parameter list sits under the name field, always open (search + scrolling list) */
 .namer__edit { resize: vertical; overflow: auto; min-height: var(--space-800); align-content: flex-start; }
 .namer__hint { margin: 0; }
+.namer__field { display: grid; gap: var(--space-050); }  /* a label and its field, 4 px apart */
 .namer__preview { display: grid; gap: var(--space-050); }  /* label above, the new name below (like the field labels) */
 .namer__previewname { overflow-wrap: anywhere; }
 .namer__warn { margin: 0; color: var(--conflict); }

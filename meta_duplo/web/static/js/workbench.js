@@ -557,10 +557,10 @@
       },
     }));
 
-    // Naming-pattern dialog: tokens as chips (click: replace / remove), text between them editable,
-    // "Add new parameter" inserts at the text cursor; Tech names / Preview; presets kept in the library.
+    // Naming-pattern dialog: tokens as chips (click: select, then replace / remove), text between them editable,
+    // a tag from the list inserts at the text cursor; the preview line shows the values; presets in the library.
     Alpine.data("namer", (labels = {}) => ({
-      parts: [], mode: "tech", picking: -1, q: "", at: { i: 0, pos: 0 }, vals: {}, optVals: {}, name: "", file: "",  // picking: the selected parameter (-1: none)
+      parts: [], picking: -1, q: "", at: { i: 0, pos: 0 }, vals: {}, optVals: {}, name: "", file: "",  // picking: the selected parameter (-1: none)
       presets: [], preset: "", loaded: "", renaming: null, renameTo: "", adding: false, newName: "", err: "",
       init() {
         window.addEventListener("wb-naming", () => this.start());
@@ -575,7 +575,7 @@
       },
       start() {
         const current = document.querySelector("#wb-table")?.dataset.pattern || "";
-        this.parts = this.parse(current); this.mode = "tech"; this.picking = -1; this.q = ""; this.err = ""; this.adding = false;
+        this.parts = this.parse(current); this.picking = -1; this.q = ""; this.err = ""; this.adding = false;
         this.loadPresets().then(() => {  // mark the preset this pattern comes from, if any
           const p = this.presets.find((x) => x.pattern === current); this.preset = p ? p.name : ""; this.loaded = p ? p.pattern : "";
         });
@@ -584,7 +584,7 @@
       load(p) { this.parts = this.parse(p.pattern); this.preset = p.name; this.loaded = p.pattern; this.err = ""; },
       activePreset() { return this.presets.find((p) => p.name === this.preset) || null; },
       modified() { return !!this.preset && this.pattern() !== this.loaded; },
-      // Tech names: a column tag by its key (EXIF:DateTimeOriginal, file_date…), a recommended value by its name
+      // chip text: a column tag by its key (EXIF:DateTimeOriginal, file_date…), a recommended value by its name
       techName(tok) {
         const tag = /^\{tag:(?:exif:)?([^|}]+)/.exec(tok);
         if (tag) return tag[1];

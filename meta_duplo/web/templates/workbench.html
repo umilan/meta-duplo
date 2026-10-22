@@ -286,16 +286,11 @@
         </div>
       </aside>
       <div class="namer__main">
-      <div class="namer__bar">
-        <div class="themeswitch" role="radiogroup" aria-label="Show">
-          <button type="button" role="radio" :aria-checked="(mode === 'tech').toString()" @click="mode = 'tech'">Tech names</button>
-          <button type="button" role="radio" :aria-checked="(mode === 'preview').toString()" @click="mode = 'preview'; refresh()">Preview</button>
-        </div>
-      </div>
       <div class="namer__preview">
         <span class="small muted" x-text="'Preview for ' + (file || 'the first file')"></span>
         <strong class="mono namer__previewname" x-text="name"></strong>
       </div>
+      <div class="namer__field">{# label tight above its field #}
       <label class="small muted">New filename</label>
       <div class="namer__edit" @click.self="focusEnd()">
         <template x-for="(p, i) in parts" :key="i">
@@ -308,14 +303,16 @@
             <template x-if="p.t === 'tok'">
               <button type="button" class="namer__tok" :class="picking === i && 'is-open'" :data-i="i" @click="selectTok(i)"
                       @keydown="tokKey(i, $event)" :aria-pressed="(picking === i).toString()"
-                      :title="label(p.v) + ' — ' + p.v" x-text="mode === 'preview' ? (vals[p.v] || '∅') : techName(p.v)"></button>
+                      :title="label(p.v) + ' — ' + p.v" x-text="techName(p.v)"></button>
             </template>
           </span>
         </template>
       </div>
+      </div>
       <p class="small namer__warn" x-show="!/\.\{(ext|EXT)\}$/.test(pattern())" x-cloak role="alert">
         ⚠ The name does not end with <code>.&lt;Extension&gt;</code>: files would lose or change their extension.</p>
       {# the parameter list, always open: a click inserts at the text cursor, or replaces the selected parameter #}
+      <div class="namer__field">{# label tight above its field #}
       <p class="small muted namer__hint">
         <template x-if="picking < 0">
           <span>Click a tag to add it at your text cursor; click a parameter in the name to replace or remove it.</span></template>
@@ -343,6 +340,7 @@
           {% endfor %}
           <p class="small muted namer__none" x-show="q && !anyMatch()">No parameter matches.</p>
         </div>
+      </div>
       </div>
       </div>
       </div>
