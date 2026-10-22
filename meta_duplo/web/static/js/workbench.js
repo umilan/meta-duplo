@@ -328,6 +328,85 @@
   window.addEventListener("wb-csel-clear", cselClear);
   document.addEventListener("scroll", () => { if (csel.cells.size > 1) cselPaint(); }, true);
   document.addEventListener("htmx:afterSwap", (e) => { if (e.detail.target && e.detail.target.id === "wb-table") cselClear(); });
+  // Drag the selected cell(s) (or the cursor cell) onto Recommended date or a purple edit column, in the same rows:
+  // each cell's value goes to its own row. The cells that would take a value get a dashed frame while dragging.
+  const drag = { cells: [], x: 0, y: 0, on: false, key: "", targets: [], px: 0, py: 0, raf: 0 };
+  const dropTargets = (table, col) => {  // the cells that take the dragged values in column `col`, or null when not allowed
+    const key = headerKey(table, col);
+    if (key !== "rec_date" && !/^edit:(date|place|device)$/.test(key)) return null;
+    const want = key === "rec_date" ? "date" : key.slice(5), rows = new Set(), out = [];
+    for (const td of drag.cells) {
+      const th = table.tHead.rows[0].cells[td.cellIndex], info = cellInfo(td);
+      const isDate = th.dataset.target === "date";
+      if (th.dataset.key === key || rows.has(td.parentElement) || !info.value) return null;  // one value per row
+      if (want === "date" ? !isDate : isDate) return null;  // a date feeds dates; anything else a place or a device
+      rows.add(td.parentElement);
+      out.push(td.parentElement.cells[col]);
+    }
+    return out.every(Boolean) ? out : null;
+  };
+  const dropPaint = (cells) => {
+    document.querySelectorAll(".wbt td.is-droptarget").forEach((c) => c.classList.remove("is-droptarget"));
+    (cells || []).forEach((c) => c.classList.add("is-droptarget"));
+  };
+  // near an edge of the scrolling table the view scrolls on its own, so an off-screen column can be reached
+  const dragScroll = () => {
+    drag.raf = 0;
+    const box = drag.on && drag.cells[0]?.closest(".wb-scroll");
+    if (!box) return;
+    const r = box.getBoundingClientRect(), zone = 48, step = 16;
+    const dx = drag.px < r.left + zone ? -step : drag.px > r.right - zone ? step : 0;
+    const dy = drag.py < r.top + zone ? -step : drag.py > r.bottom - zone ? step : 0;
+    if (!dx && !dy) return;
+    box.scrollBy(dx, dy);
+    dragOver();
+    drag.raf = requestAnimationFrame(dragScroll);
+  };
+  const dragOver = () => {
+    const td = document.elementFromPoint(drag.px, drag.py)?.closest(".wbt tbody td");
+    const table = td && td.closest("table");
+    drag.targets = (table && table === drag.cells[0].closest("table") && dropTargets(table, td.cellIndex)) || [];
+    drag.key = drag.targets.length ? headerKey(table, td.cellIndex) : "";
+    dropPaint(drag.targets);
+  };
+  const dragEnd = () => {
+    cancelAnimationFrame(drag.raf); drag.raf = 0;
+    drag.on = false; drag.cells = []; drag.targets = []; drag.key = "";
+    document.body.classList.remove("is-dragcells"); dropPaint(null);
+  };
+  document.addEventListener("mousedown", (e) => {
+    if (e.button !== 0 || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
+    const td = e.target.closest && e.target.closest(".wbt tbody td");
+    if (!isDataCell(td) || e.target.closest("#wb-cellbtn") || td.classList.contains("is-edge")) return;
+    const cells = csel.cells.size > 1 && csel.cells.has(td) ? [...csel.cells] : td === cursorCell() ? [td] : [];
+    if (!cells.length) return;  // only a selected cell can be dragged; a plain click still moves the cursor
+    e.preventDefault();  // no text selection while dragging
+    Object.assign(drag, { cells, x: e.clientX, y: e.clientY, on: false });
+  });
+  document.addEventListener("mousemove", (e) => {
+    if (!drag.cells.length) return;
+    if (!drag.on) {
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 4) return;
+      drag.on = true; document.body.classList.add("is-dragcells");
+    }
+    drag.px = e.clientX; drag.py = e.clientY;
+    dragOver();
+    if (!drag.raf) drag.raf = requestAnimationFrame(dragScroll);
+  });
+  document.addEventListener("mouseup", () => {
+    if (!drag.cells.length) return;
+    if (drag.on) {
+      swallowClick = true;  // the click that ends the drag does not move the cursor
+      if (drag.targets.length) {
+        const cells = JSON.stringify(drag.cells.map((td) => { const i = cellInfo(td); return [i.fid, i.key]; }));
+        if (drag.key === "rec_date") postView({ action: "rec_drop", cells });
+        else postView({ action: "cells", op: "apply", cells, target: drag.key.slice(5), scope: "self" });
+        window.dispatchEvent(new CustomEvent("wb-csel-clear"));
+      }
+    }
+    dragEnd();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && drag.on) { e.stopPropagation(); dragEnd(); } }, true);
   document.addEventListener("mousedown", (e) => {  // Shift / Ctrl / ⌘ + click must not select text
     if ((e.shiftKey || e.metaKey || e.ctrlKey) && isDataCell(e.target.closest && e.target.closest(".wbt tbody td"))) e.preventDefault();
   });

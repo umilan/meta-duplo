@@ -288,6 +288,14 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   these values › To its group* (each cell's value to its own group; *To the selection / To all rows* only when the
   cells hold one value; *To column…*), *Use these rows as the references of their groups*. Copied values keep their
   source (the cell they came from; hover shows the arrow). Keys typed in fields, menus and dialogs are left alone.
+- **Drag and drop cells:** drag the selected cells (or the cell under the cursor) onto *Recommended date* or a purple
+  edit column; each value goes to the same row only. While dragging, the cells that would take a value get a dashed
+  accent frame; there is none (and nothing happens on release) when the column does not fit: a date goes to
+  *Recommended date* or the purple date column, any other value to *Place ✎* or *Device ✎*, one cell per row, no empty
+  values. Near an edge of the table it scrolls on its own; Esc cancels. On a purple column it is a per-file value
+  copied from that cell (a preview, as *Apply this value*). On *Recommended date* it is that photo's date decision at
+  once (all its copies; status *edited*), and the Recommended date cell then points back at the dropped cell. Both
+  are one undo step (⌘Z), the decision included.
 - **Undo / redo:** *⌘ / Ctrl + Z* undoes, *⇧⌘Z / Ctrl + Shift + Z / Ctrl + Y* redoes; the ↶ ↷ buttons right of
   the *Filomena* title do the same (greyed when there is nothing). One ordered history covers selection changes (ticking,
   presets, X; a burst within 250 ms is one step) and every view change: sorting, grouping, filters, search,

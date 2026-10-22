@@ -361,7 +361,7 @@ leave a `TODO(spec):` instead of guessing.
 
 ```bash
 uv sync --extra geo
-uv run pytest -q                                   # expect: 31 passed (test_workflow, test_results, test_workbench, test_desktop)
+uv run pytest -q                                   # expect: 32 passed (test_workflow, test_results, test_workbench, test_desktop)
 L=$(mktemp -d); D=$(mktemp -d)/demo
 uv run meta-duplo --library "$L" demo "$D"         # "Demo disk created at … and added as a writable source to …"
 uv run meta-duplo --library "$L" scan              # {'name': 'scan', 'status': 'done', 'message': 'Scan complete'}

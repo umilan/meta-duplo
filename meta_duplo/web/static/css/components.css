@@ -675,6 +675,10 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 
 /* group rows: the edit value dimmed (the files below carry the real values) */
 .wbg__head td.wbt__edit > .wbt__ev { opacity: .5; }
+/* dragging cells: the cells that would take the values (Recommended date, a purple column, same rows) */
+body.is-dragcells, body.is-dragcells .wbt td { cursor: grabbing; }
+.wbt tbody td.is-droptarget { outline: 2px dashed var(--accent); outline-offset: -2px; }
+body.is-dragcells .srcarrow { display: none; }  /* no source arrow while dragging */
 /* where a value comes from: hovering a Recommended date or a purple cell outlines its source cell (.is-recsrc) and
    draws this arrow from it (fixed overlay, coordinates set by JS; it never takes a click) */
 .srcarrow { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 30; overflow: visible; }

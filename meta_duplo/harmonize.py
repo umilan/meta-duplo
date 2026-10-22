@@ -138,14 +138,16 @@ def build_proposals(lib: Library, job=None) -> int:
             for field, rec in recs.items():
                 prev = old.get((cid, field))
                 status, value = "suggested", rec["value"]
+                source, extra = rec["source"], json.dumps(rec.get("extra") or {})
                 if prev and prev["status"] in ("accepted", "edited", "rejected"):
                     status = prev["status"]
-                    if status == "edited":
-                        value = prev["value"]
+                    if status == "edited":  # the user's value, and where it was copied from (a dropped cell)
+                        value, source = prev["value"], prev["source"] or source
+                        if field == "capture_time":
+                            extra = prev["extra"] or extra
                 if status == "suggested" and value == cur[field] and (rec["confidence"] >= 0.9 or not value):
                     status = "accepted"  # nothing to change, and nothing to doubt
-                rows.append((cid, field, cur[field], value, json.dumps(rec.get("extra") or {}), rec["source"],
-                             rec["confidence"], status, rec["explanation"]))
+                rows.append((cid, field, cur[field], value, extra, source, rec["confidence"], status, rec["explanation"]))
         with tx(con):
             con.execute("DELETE FROM proposals")
             con.executemany(
@@ -176,6 +178,34 @@ def set_status(lib: Library, capture_id: int, field: str, status: str, value: st
                         (status, value, capture_id, field))
         else:
             con.execute("UPDATE proposals SET status = ? WHERE capture_id = ? AND field = ?", (status, capture_id, field))
+
+
+PROPOSAL_STATE = ("status", "value", "source", "extra")  # what a decision changes (undo keeps these)
+
+
+def proposal_state(lib: Library, keys: list[tuple[int, str]]) -> list[dict]:
+    """The decision columns of these (capture_id, field) proposals, to restore them later."""
+    with lib.connect() as con:
+        out = []
+        for cid, field in keys:
+            r = con.execute("SELECT * FROM proposals WHERE capture_id = ? AND field = ?", (cid, field)).fetchone()
+            if r:
+                out.append({"capture_id": cid, "field": field, **{k: r[k] for k in PROPOSAL_STATE}})
+        return out
+
+
+def restore_proposals(lib: Library, states: list[dict]) -> None:
+    with lib.connect() as con, tx(con):
+        for s in states:
+            con.execute("UPDATE proposals SET status = ?, value = ?, source = ?, extra = ? WHERE capture_id = ? AND field = ?",
+                        (*(s[k] for k in PROPOSAL_STATE), s["capture_id"], s["field"]))
+
+
+def set_copied(lib: Library, capture_id: int, field: str, value: str, source: str, frm: dict) -> None:
+    """A decision copied from a cell (dropped on Recommended date): the value, and where it came from."""
+    with lib.connect() as con:
+        con.execute("UPDATE proposals SET status = 'edited', value = ?, source = ?, extra = ? WHERE capture_id = ? AND field = ?",
+                    (value, source, json.dumps({"from": frm}), capture_id, field))
 
 
 def accept_above(lib: Library, min_conf: float, field: str | None = None) -> int:

@@ -210,7 +210,8 @@ HISTORY_LABELS = {"sort": "sorting", "group": "grouping", "filter_add": "filter"
                   "col_move": "column order", "col_slim": "column width", "col_width": "column width",
                   "edit_set": "edit rule", "edit_clear": "edit rule", "edit_remove": "edit column",
                   "cell_set": "edited value", "cell_apply": "applied value", "cell_filter": "filter",
-                  "cell_ref": "reference row", "col_pin": "pinned column", "cells": "selected cells"}
+                  "cell_ref": "reference row", "col_pin": "pinned column", "cells": "selected cells",
+                  "rec_drop": "recommended date"}
 _RELOAD_KEYS = ("group", "q", "sources_off", "colors")  # rendered outside the table: the page reloads for these
 
 
@@ -221,8 +222,9 @@ def _stack(lib: Library, name: str) -> list:
         return []
 
 
-def history_push(lib: Library, previous: dict, act: str) -> bool:
-    undo = (_stack(lib, "undo") + [{"view": previous, "act": act}])[-HISTORY_MAX:]
+def history_push(lib: Library, previous: dict, act: str, props: list[dict] | None = None) -> bool:
+    """One undo step: the view before a change, and (props) the decisions it changed, as they were."""
+    undo = (_stack(lib, "undo") + [{"view": previous, "act": act, **({"props": props} if props else {})}])[-HISTORY_MAX:]
     lib.set_setting("workbench_undo", json.dumps(undo))
     lib.set_setting("workbench_redo", "[]")  # a new change ends the redo line
     return True
@@ -236,7 +238,11 @@ def history_step(lib: Library, direction: str) -> dict | None:
         return None
     entry, current = stack.pop(), load_view(lib)
     target = load_view_from(entry["view"])
-    other = (_stack(lib, dst) + [{"view": current, "act": entry["act"]}])[-HISTORY_MAX:]
+    back: dict = {"view": current, "act": entry["act"]}
+    if entry.get("props"):  # decisions (a date dropped on Recommended date): swap them the same way
+        back["props"] = harmonize.proposal_state(lib, [(p["capture_id"], p["field"]) for p in entry["props"]])
+        harmonize.restore_proposals(lib, entry["props"])
+    other = (_stack(lib, dst) + [back])[-HISTORY_MAX:]
     lib.set_setting(f"workbench_{src}", json.dumps(stack))
     lib.set_setting(f"workbench_{dst}", json.dumps(other))
     save_view(lib, target)
@@ -486,7 +492,8 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
             "writable": bool(f["writable"]) and f["source_role"] != "reference",
             "effective": effective.get(f["capture_id"], {}) if f["capture_id"] is not None else {},
             "v": v, "tags": tags, "pattern": pattern, "meta_counts": meta_counts(tags),
-            "rec_from": {k: (cp.get("capture_time") or {}).get(k) or "" for k in ("source", "status")},
+            "rec_from": {**{k: (cp.get("capture_time") or {}).get(k) or "" for k in ("source", "status")},
+                         "from": json.loads((cp.get("capture_time") or {}).get("extra") or "{}").get("from")},
         })
     _rec_date_sources(rows)
     return rows, sorted(exif_keys, key=_exif_rank)
@@ -510,8 +517,15 @@ def _rec_date_sources(rows: list[dict]) -> None:
         rec, frm = r["v"].get("rec_date"), r.get("rec_from") or {}
         if not rec or r["capture"] is None:
             continue
-        if frm.get("status") == "edited":
-            r["rec_title"] = f"{rec} · typed in step 3"
+        if frm.get("status") == "edited":  # a dropped cell names its source; a typed value has none
+            cell, by_id = frm.get("from") or {}, {m["id"]: m for m in by_capture[r["capture"]]}
+            src = by_id.get(int(cell.get("fid") or 0))
+            if src and field_for(cell.get("key", "")):
+                r["rec_src"] = {"rid": src["id"], "key": cell["key"]}
+                who = "this file" if src is r else f"{src['v']['filename']}, another copy (in {src['v']['path']})"
+                r["rec_title"] = f"{rec} · copied from {_label(cell['key'])} of {who}"
+            else:
+                r["rec_title"] = f"{rec} · typed in step 3"
             continue
         label = frm.get("source") or ""
         prefix, keys = next(((p, k) for p, k in _REC_SOURCE if label.startswith(p)), ("", ()))

@@ -319,3 +319,32 @@ def test_recommended_date_points_at_its_source_cell(lib):
     assert wa["rec_title"].endswith(f"from DateTimeOriginal (EXIF) of {orig['v']['filename']}, another copy (in {orig['v']['path']})")
     own = next(r for r in rows if r["v"]["filename"] == "IMG_4101.JPG")
     assert own["rec_src"]["rid"] == own["id"] and own["rec_title"].endswith("of this file")
+
+
+def test_dropped_cells_feed_their_own_row(lib):
+    """Dragged date cells: on a purple column each row takes its own cell's value; on Recommended date each photo's
+    date decision is that value (with its source cell), and undo puts the old decision back."""
+    import json
+    from fastapi.testclient import TestClient
+    from meta_duplo.web.app import create_app
+    client = TestClient(create_app(lib))
+    rows, _ = wb.build_rows(lib)
+    a = next(r for r in rows if r["v"]["file_date"] and r["capture"] is not None and r["v"]["file_date"] != r["v"]["rec_date"])
+    b = next(r for r in rows if r["v"]["file_date"] and r["id"] != a["id"])
+    client.post("/wb/view", data={"action": "cells", "op": "apply", "target": "date", "scope": "self",
+                                  "cells": json.dumps([[a["id"], "file_date"], [b["id"], "file_date"]])})
+    rule = wb.load_view(lib)["edits"]["date"]
+    assert rule["overrides"] == {str(a["id"]): a["v"]["file_date"], str(b["id"]): b["v"]["file_date"]}  # only these rows
+    assert rule["override_from"][str(a["id"])] == {"fid": a["id"], "key": "file_date"}
+    before = next(r for r in wb.build_rows(lib)[0] if r["id"] == a["id"])["v"]["rec_date"]
+    r = client.post("/wb/view", data={"action": "rec_drop", "cells": json.dumps([[a["id"], "file_date"], [a["id"], "place"]])})
+    assert r.headers.get("X-Wb-History") == "rec_drop"
+    now = next(r for r in wb.build_rows(lib)[0] if r["id"] == a["id"])
+    assert now["v"]["rec_date"] == a["v"]["file_date"] and now["rec_src"] == {"rid": a["id"], "key": "file_date"}
+    assert "copied from FileModifyDate of this file" in now["rec_title"]
+    harmonize.build_proposals(lib)  # a rebuild keeps the decision and where it came from
+    assert next(r for r in wb.build_rows(lib)[0] if r["id"] == a["id"])["rec_src"] == {"rid": a["id"], "key": "file_date"}
+    assert wb.history_step(lib, "undo")["label"] == "recommended date"
+    assert next(r for r in wb.build_rows(lib)[0] if r["id"] == a["id"])["v"]["rec_date"] == before
+    wb.history_step(lib, "redo")
+    assert next(r for r in wb.build_rows(lib)[0] if r["id"] == a["id"])["v"]["rec_date"] == a["v"]["file_date"]

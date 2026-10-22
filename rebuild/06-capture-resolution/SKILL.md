@@ -330,3 +330,12 @@ impact preview; calibration from accepted/rejected decisions.
   crop shows *Needs decision* (its value changes); the Prague capture (0.7, value = current) is `suggested` but shows
   no buttons. *Accept all ≥ 70 %* toasts "Accepted 2 recommendations" (the crop's date and the Prague date).
   Without the geo extra, places are empty with confidence 0.3 and the "not installed" explanation.
+
+## Copied decisions (update)
+
+A date cell dropped on Recommended date in the Workbench (`rec_drop`) sets the capture_time proposal to `edited`
+with that value, `source = "copied from <column> of <file>"` and `extra = {"from": {"fid", "key"}}`
+(`harmonize.set_copied`). `build_proposals` keeps an edited row's value and source, and for capture_time its
+`extra`, so the Workbench can still point at the source cell after a rebuild. `proposal_state` /
+`restore_proposals` read and write `status, value, source, extra` for undo.
+

@@ -6,6 +6,7 @@ import re
 import secrets
 import subprocess
 import sys
+from datetime import datetime
 from urllib.parse import urlencode
 from pathlib import Path
 
@@ -19,7 +20,7 @@ from .. import geo, harmonize, match, plans
 from . import rename_grid, results, workbench as wb
 from ..__main__ import add_source, remove_source
 from ..db import Library
-from ..metadata import device_name
+from ..metadata import TIME_FMT, device_name
 from ..scan import Runner, scan_all
 
 HERE = Path(__file__).parent
@@ -550,7 +551,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         act = f.get("action", "")
         cols = view["columns"]
         keys = [c[0] for c in cols]
-        reload = True
+        reload, props = True, None  # props: decisions this change replaces (for undo)
 
         def add_edit_column(t: str, after: str = "") -> None:
             """The purple column of an edit rule: right after the field it edits (DateTimeOriginal (EXIF) ✎ after
@@ -723,6 +724,8 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                             ids = next(([x["id"] for x in g.rows] for g in groups if any(x["id"] == fid for x in g.rows)), [fid])
                         elif scope == "selection":
                             ids = sorted(_ids(f.get("ids", "")) | {fid})
+                        elif scope == "self":  # dragged onto the edit column of its own row
+                            ids = [fid]
                         else:
                             ids = list(by_id)
                         val = wb.cell_value(by_id[fid], key)
@@ -730,6 +733,27 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
                             over[str(i)] = val
                             frm[str(i)] = {"fid": fid, "key": key}
                     add_edit_column(t, key)
+        elif act == "rec_drop":  # date cells dropped on Recommended date: each photo's date decision, from that cell
+            try:
+                cells = [(int(c[0]), str(c[1])) for c in json.loads(f.get("cells", "[]"))]
+            except (ValueError, TypeError, IndexError):
+                cells = []
+            rows, _ = wb.build_rows(lib)
+            wb.apply_edits(rows, view["edits"])
+            by_id, changes = {r["id"]: r for r in rows}, {}
+            for fid, key in cells:
+                r = by_id.get(fid)
+                if r is None or r["capture"] is None or key == "rec_date" or wb.edit_target(key) != "date":
+                    continue
+                val = wb.cell_value(r, key)
+                try:
+                    datetime.strptime(val, TIME_FMT)
+                except ValueError:
+                    continue  # not a whole date and time: nothing to decide
+                changes[r["capture"]] = (val, {"fid": fid, "key": key}, f"copied from {wb._label(key)} of {r['v']['filename']}")
+            props = harmonize.proposal_state(lib, [(c, "capture_time") for c in changes])
+            for c, (val, frm, label) in changes.items():
+                harmonize.set_copied(lib, c, "capture_time", val, label, frm)
         elif act == "edit_clear" and f.get("target") in wb.EDIT_LABELS:  # every row back to "= current value"
             view["edits"][f["target"]] = {"kind": "keep"} | ({"pattern": ""} if f["target"] == "filename" else {})
         elif act == "edit_remove" and f.get("target") in wb.EDIT_LABELS:
@@ -739,7 +763,7 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
             view = {**json.loads(json.dumps(wb.DEFAULT_VIEW)), "colors": view.get("colors", True)}  # colours: appearance
         wb.save_view(lib, view)
         headers = {"HX-Trigger": "wb-reload"} if reload else {}
-        if json.dumps(view) != before and wb.history_push(lib, json.loads(before), act):
+        if (json.dumps(view) != before or props) and wb.history_push(lib, json.loads(before), act, props):
             headers["X-Wb-History"] = act  # the page records one view step in its undo history
         return Response(status_code=204, headers=headers)
 
