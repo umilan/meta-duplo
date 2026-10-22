@@ -293,3 +293,8 @@ expect(sections.map(s => s.trim().toLowerCase())).toEqual(['filomena', 'appearan
 // const a = css.match(/:root:not\(\[data-theme="light"\]\) \{([^}]*)\}/)[1], b = css.match(/:root\[data-theme="dark"\] \{([^}]*)\}/)[1];
 // expect(a.replace(/\s+/g, ' ').trim()).toBe(b.replace(/\s+/g, ' ').trim());
 ```
+
+
+## Group dividers (update)
+
+`:root[data-borders] .wbt .wbg__head > td { border-top: 2px solid var(--line-strong); }` — the same divider as the column categories (`[data-catstart]` left border) separates groups horizontally, whether cell borders are on or off.

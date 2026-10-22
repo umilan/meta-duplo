@@ -325,7 +325,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Row colours:** ticked rows are light grey (a little darker than *Shade odd rows*); the row shown in the preview is a darker blue. Clicking a row or
   ticking its checkbox shows it in the preview panel (and opens the panel).
 - **Column groups:** a 2 px divider where a column-picker category begins (File, Duplicates, Dates, Location,
-  Device, Author, …), header included.
+  Device, Author, …), header included. The same 2 px line (`--line-strong`) runs above every group row, dividing
+  the groups horizontally (also with *Cell borders* off).
 - **Table height:** the table reaches down to the bottom edge of the window (no empty band below it).
 - **Large viewer:** clicking the preview image (hover: zoom-in cursor, slight dim, “⤢ Open large” badge) opens it full screen (16 px margin all round). The table
   behind keeps the keyboard: ↑ ↓ move the cursor and the viewer follows. A switch at the bottom centre chooses

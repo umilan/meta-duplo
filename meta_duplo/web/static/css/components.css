@@ -580,6 +580,7 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 
 /* column groups: a divider where a picker category (File, Duplicates, Dates, …) begins */
 :root[data-borders] .wbt :is(td, th)[data-catstart] { border-left: 2px solid var(--line-strong); }
+:root[data-borders] .wbt .wbg__head > td { border-top: 2px solid var(--line-strong); }  /* the same divider between groups, borders on or off */
 
 /* large viewer: almost the whole window; the table behind keeps the keyboard */
 /* preview image: opens the large viewer; the cursor, a dim and a badge show it on hover */
