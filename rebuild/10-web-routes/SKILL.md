@@ -249,8 +249,10 @@ headers. Unknown actions or failed guards save the view unchanged (still `wb-rel
 `cell_*` require `fid` digits; `cell_filter/set/apply` require `field_for(key)` and a row with that id;
 `cell_set`/`cell_apply` are ignored for non-editable keys and for filename.
 
-`add_edit_column(t, after="")`: no-op if `edit:t` is shown; insert after `after` if shown, else after
-`EDIT_BASE[t]` if shown, else at the end; width `304` for filename, `176` otherwise.
+`add_edit_column(t, after="")`: no-op if `edit:t` is shown; insert after `EDIT_BASE[t]` if shown (New date after
+Date taken, even when copied from another date column), else after `after` if shown, else at the end. `wb_ctx` also
+moves every shown edit column right after its base when rendering (unless either is pinned), so older views are
+corrected; width `304` for filename, `176` otherwise.
 
 Senders: `postView()` in `workbench.js` (sort, group, source_toggle, q, colors via `wb-colors` event,
 filter_remove, filter by value, cols_set, cols_order, col_add/col_remove from picker checkboxes, col_move on

@@ -411,6 +411,12 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         # pinned columns stay at the left (the thumbnail too while it is first); they are kept as one block
         pinned = set(view.get("pinned", [])) | ({"thumb"} if view["columns"] and view["columns"][0][0] == "thumb" else set())
         ordered = [c for c in view["columns"] if c[0] in pinned] + [c for c in view["columns"] if c[0] not in pinned]
+        for t, base in wb.EDIT_BASE.items():  # an edit column always sits right after the field it edits
+            ekey = f"edit:{t}"
+            keys_now = [c[0] for c in ordered]
+            if ekey in keys_now and base in keys_now and base not in pinned and ekey not in pinned:
+                col = ordered.pop(keys_now.index(ekey))
+                ordered.insert([c[0] for c in ordered].index(base) + 1, col)
         for key, width in ordered:
             f = wb.field_for(key)
             if f:
@@ -545,11 +551,12 @@ def create_app(lib: Library, token: str | None = None) -> FastAPI:
         reload = True
 
         def add_edit_column(t: str, after: str = "") -> None:
-            """The purple column of an edit rule: right after the column it came from (or its source field)."""
+            """The purple column of an edit rule: right after the field it edits (New date after Date taken), even
+            when its value was copied from another column; `after` is only the fallback when that field is hidden."""
             ekey, ks = f"edit:{t}", [c[0] for c in cols]
             if ekey in ks:
                 return
-            base = after if after in ks else wb.EDIT_BASE[t]
+            base = wb.EDIT_BASE[t] if wb.EDIT_BASE[t] in ks else after
             at = ks.index(base) + 1 if base in ks else len(cols)
             cols.insert(at, [ekey, 304 if t == "filename" else 176])
 

@@ -194,7 +194,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
 - **Filters** (bar above the table; click a chip to edit it in the filter dialog, × to remove): is / is not / contains / is empty / is not empty / ≥ / ≤ /
   differs in group / same in group. Grouped views keep a whole group when any row matches (a duplicate set needs
   its context); *No grouping* filters rows.
-- **Edit columns** (light purple, inserted right of the source column) exist **only on demand**: none by default,
+- **Edit columns** (light purple, always right after the field they edit: New date after Date taken, New place after Place, New device after Device, New filename after Filename, even when a value was copied from another column) exist **only on demand**: none by default,
   *Edit…* in a header's ⋯ sheet opens the rule dialog and adds one.
   - **Filename:** the **Naming pattern** dialog (also *Actions → File name pattern…* and a double-click on any
     file name). At the top, the preview: *New file name preview for '<file>'* above the new name it would get. The name is typed text with parameter chips (purple, underlined) in a resizable field. Under it a
@@ -341,8 +341,8 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   - *Change* — only date, place and device values can be changed, because plans write only those (other columns
     show these items disabled): *Edit this value…* (a dialog; the value applies to this file only; in Filename / New filename it reads *Rename with a pattern…* and opens the naming-pattern dialog),
     *Remove this value* (disabled: plans cannot clear a metadata value yet), *Apply this value to its group /
-    the selection (n) / all rows*. Each fills the purple edit column of that field, inserted right of the clicked
-    column, as a preview; nothing changes until *Save edits* and a plan. A value typed for one file wins over a
+    the selection (n) / all rows*. Each fills the purple edit column of that field (it sits after the field it edits,
+    e.g. New date after Date taken, not after the clicked column), as a preview; nothing changes until *Save edits* and a plan. A value typed for one file wins over a
     rule; a rule limited to a group or a selection leaves the other files at their current value.
   - *Compare*: *Use this row as the reference of its group* (★ in the expander column; red / green and the
     confidence notes compare against it) or *Stop using this row as the reference*.
