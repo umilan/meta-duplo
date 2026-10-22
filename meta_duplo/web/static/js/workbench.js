@@ -128,6 +128,31 @@
       document.getElementById("wb-cellbtn")?.remove();
     }
   });
+  // Column width from any cell: the 4 px at a cell's right edge resize its column, at its left edge the column before
+  // (the same drag as the header's handle; slim and fixed columns excepted).
+  const EDGE = 4;
+  let edgeCell = null, swallowClick = false;
+  const edgeHeader = (td, x) => {
+    const r = td.getBoundingClientRect(), cells = td.closest("table").tHead.rows[0].cells;
+    const th = x >= r.right - EDGE ? cells[td.cellIndex] : x <= r.left + EDGE && td.cellIndex > 0 ? cells[td.cellIndex - 1] : null;
+    return th && th.querySelector(".wbh__resize") && !th.classList.contains("is-slim") ? th : null;
+  };
+  document.addEventListener("mousemove", (e) => {
+    if (document.body.classList.contains("is-resizing")) return;
+    const td = e.target.closest && e.target.closest(".wbt tbody td");
+    if (edgeCell && edgeCell !== td) { edgeCell.classList.remove("is-edge"); edgeCell = null; }
+    if (td) { td.classList.toggle("is-edge", !!edgeHeader(td, e.clientX)); edgeCell = td; }
+  });
+  document.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+    const td = e.target.closest && e.target.closest(".wbt tbody td");
+    const th = td && edgeHeader(td, e.clientX);
+    if (!th) return;
+    e.preventDefault(); e.stopPropagation();
+    swallowClick = true;  // the click that ends the drag is not a row click
+    Alpine.$data(th).resize({ clientX: e.clientX, target: th });
+  }, true);
+  document.addEventListener("click", (e) => { if (swallowClick) { swallowClick = false; e.stopPropagation(); e.preventDefault(); } }, true);
   // right-click on a data cell opens the same cell menu as its ⋯
   document.addEventListener("contextmenu", (e) => {
     const td = e.target.closest && e.target.closest(".wbt tbody tr.wbr > td");

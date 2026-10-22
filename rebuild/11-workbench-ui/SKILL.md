@@ -493,3 +493,7 @@ Row and cell hover are classes, not CSS `:hover`: `highlight(td)` in `workbench.
 ## Group-row cells and undo placement (update)
 
 The group row folds only from `td.wbg__exp` (chevron) and `td.wbg__label` (name), both `@click="open = !open"`; without a tree column the whole row still folds. Any other group-row cell, clicked or reached by the keyboard cursor, runs `groupCells(td)`: it adds `.is-gsel` to that cell and to the same column's cells of every `tr.wbr` in the group's `tbody` (tint + 1 px accent outline); a click also shows the group's first file in the preview (`showPreview(first)` + `wb-preview`), and the keyboard cursor does when the panel or lightbox is open. Space on a group row clicks `.wbg__exp`. Undo / redo (`.histbtns`) sit in header row 1 right after the title; below an 880 px header width (`@container wbbar`) gaps shrink to 8 px and pickers to 96 px.
+
+## Cell-edge resizing and empty summaries (update)
+
+Any body cell resizes columns: a `mousemove` listener adds `td.is-edge` (cursor `col-resize`) within 4 px of a cell's right edge (its column) or left edge (the column before, `cellIndex > 0`), only for headers that have `.wbh__resize` and are not slim; a capturing `mousedown` there calls `Alpine.$data(th).resize({clientX, target: th})` (the header's own drag, 8 px snapping, `col_width` on release) and swallows the following click. Group-row summaries that the model calls `N/A` render as `–` (class `wbg__sum--na` kept, tooltip "No value in any file of the group").

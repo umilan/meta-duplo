@@ -439,7 +439,8 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .wbh__fold .chev { color: inherit; }
 .wbh__resize { position: absolute; right: 0; top: 0; bottom: 0; width: var(--space-100); cursor: col-resize; border-right: 1px solid var(--line); }
 .wbh__resize:hover, .is-resizing .wbh__resize { border-right: 2px solid var(--accent); }
-.is-resizing { cursor: col-resize; user-select: none; }
+.wbt tbody td.is-edge { cursor: col-resize; }  /* near a cell's left / right edge: drag to resize that column */
+.is-resizing, .is-resizing .wbt td, .is-resizing .wbt th { cursor: col-resize; user-select: none; }
 .wbh-cell--edit, .wbh-cell--edit .wbh { background: var(--edit-bg); }
 .wbh-cell--edit .wbh__label { color: var(--edit-text); }
 .wbh-cell--tree .wbh__label { cursor: default; }
