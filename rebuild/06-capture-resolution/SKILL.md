@@ -326,7 +326,7 @@ impact preview; calibration from accepted/rejected decisions.
   `2018-12-24 18-31-12`; the rename plan touches only that file.
 - `tests/test_workbench.py::test_cell_actions_scope_overrides_and_reference` and `test_selection_presets`: edit
   rules and presets over rows that carry `rec_*` and `effective`.
-- Demo by hand: `uv sync --extra geo`, `uv run meta-duplo demo`, `uv run meta-duplo serve`, open `/step/3`: the
-  crop and `prague castle.jpg`'s capture show *Needs decision* only for the crop (changed value); *Accept all ≥ 70 %*
-  accepts the crop's date (toast "Accepted 2 recommendations": the crop's date and the Prague capture's 0.7 date).
+- Demo by hand: `uv sync --extra geo`, `uv run meta-duplo demo`, `uv run meta-duplo serve`, open `/step/3`: only the
+  crop shows *Needs decision* (its value changes); the Prague capture (0.7, value = current) is `suggested` but shows
+  no buttons. *Accept all ≥ 70 %* toasts "Accepted 2 recommendations" (the crop's date and the Prague date).
   Without the geo extra, places are empty with confidence 0.3 and the "not installed" explanation.
