@@ -636,7 +636,8 @@
         else if (ev.key === "Backspace" || ev.key === "Delete") { ev.preventDefault(); this.removeTok(); }
         else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); this.leaveTok(i, 1); }
       },
-      match(text) { const q = this.q.trim().toLowerCase(); return !q || q.split(/\s+/).every((w) => text.includes(w)); },
+      match(text) { const q = this.q.trim().toLowerCase().replace(/\s+/g, " "); return !q || text.includes(q); },  // the phrase as typed
+      groupHas(g) { return [...this.$root.querySelectorAll(`.namer__opt[data-group="${CSS.escape(g)}"]`)].some((b) => this.match(b.dataset.q)); },
       anyMatch() { return [...this.$root.querySelectorAll(".namer__opt")].some((b) => this.match(b.dataset.q)); },
       pickFirst() { const b = [...this.$root.querySelectorAll(".namer__opt")].find((x) => this.match(x.dataset.q)); if (b) this.choose(b.dataset.tok); },
       choose(tok) {

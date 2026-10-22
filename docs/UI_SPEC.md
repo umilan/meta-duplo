@@ -203,7 +203,7 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
     columns), *Columns in this table*, then every field by category (EXIF / XMP / IPTC tags included,
     `{tag:KEY}`). Each tag shows, on the right, its value for the previewed (or first) file as it would read in
     the name (— when that file has none; the code is in the tooltip). Clicking a tag inserts it at the text cursor (the cursor moves after it, so clicks add tags in
-    order; Enter in the search takes the first match). Clicking a chip selects it (framed, it takes the focus, so
+    order; the search keeps only tags whose name, or a column tag's key, contains the typed phrase, and hides empty sections; Enter takes the first match). Clicking a chip selects it (framed, it takes the focus, so
     no text caret shows) and highlights its tag in the list, scrolled into view: the next tag replaces it (it stays
     selected), or *Remove it* / *Keep it*. **Keyboard:** ← → walk through the line, from the text over the chips
     (a chip is one step); ↑ ↓ on a selected chip swap it for the previous / next tag of the list (as filtered),

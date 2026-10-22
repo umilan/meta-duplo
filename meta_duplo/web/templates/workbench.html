@@ -333,8 +333,10 @@
         <div class="namer__list wbsheet">
           {% set ns = namespace(group=none) %}
           {% for g, label, tok in name_options %}
-          {% if g != ns.group %}{% set ns.group = g %}<div class="wbsheet__section namer__group">{{ g }}</div>{% endif %}
-          <button type="button" role="menuitem" class="namer__opt" data-tok="{{ tok }}" data-q="{{ (label ~ ' ' ~ tok)|lower }}"
+          {% if g != ns.group %}{% set ns.group = g %}<div class="wbsheet__section namer__group" data-group="{{ g }}" x-show="groupHas($el.dataset.group)">{{ g }}</div>{% endif %}
+          {# search: the tag's name, and a column tag's key (EXIF:DateTimeOriginal); not the format codes #}
+          <button type="button" role="menuitem" class="namer__opt" data-tok="{{ tok }}" data-group="{{ g }}"
+                  data-q="{{ (label ~ (' ' ~ tok[5:-1] if tok.startswith('{tag:') else ''))|lower }}"
                   :class="picking >= 0 && parts[picking] && parts[picking].v === $el.dataset.tok && 'is-current'"
                   x-show="match($el.dataset.q)" @mousedown.prevent @click="choose($el.dataset.tok)" title="{{ tok }}">&lt;{{ label }}&gt;<span class="pick__hint namer__val"
                   :class="!optVal($el.parentElement.dataset.tok) && 'is-empty'" x-text="optVal($el.parentElement.dataset.tok) || '—'"></span></button>
