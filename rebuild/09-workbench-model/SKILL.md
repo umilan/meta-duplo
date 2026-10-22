@@ -577,3 +577,8 @@ With grouping `none`, `table()` sets `r["rowcmp"] = row_date_states(r, _row_date
 ## Row date comparison: votes (revised)
 
 The `_SAME_TAG` de-duplication was dropped: every shown date cell votes once (it matches what the user sees). `rec_date` is in `_NO_VOTE`: compared but not counted, so it turns red when it equals a minority value and green when everything agrees. A tie still colours nothing.
+
+
+## Recommended date source (revised)
+
+Rows carry `rec_from` = the capture_time proposal's `source` and `status`. `_rec_date_sources` maps the source label (`metadata of …` → `date`, `file name …` → `name_date`, `file date of …` → `file_date`) to a cell: the row's own cell of that kind when it holds the value, else the named copy's; `rec_title` describes it ("from Date taken of this file" / "… of <name>, another copy (in <path>)" / "typed in step 3" for edited proposals) and becomes the cell's tooltip.

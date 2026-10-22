@@ -294,3 +294,6 @@ def test_recommended_date_points_at_its_source_cell(lib):
     assert src and src["rid"] != wa["id"] and src["key"] == "date"  # from the original's EXIF, in another row
     orig = next(r for r in rows if r["id"] == src["rid"])
     assert orig["v"]["date"] == wa["v"]["rec_date"]
+    assert wa["rec_title"].endswith(f"from Date taken of {orig['v']['filename']}, another copy (in {orig['v']['path']})")
+    own = next(r for r in rows if r["v"]["filename"] == "IMG_4101.JPG")
+    assert own["rec_src"]["rid"] == own["id"] and own["rec_title"].endswith("of this file")

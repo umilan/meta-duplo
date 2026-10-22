@@ -433,6 +433,7 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
             "writable": bool(f["writable"]) and f["source_role"] != "reference",
             "effective": effective.get(f["capture_id"], {}) if f["capture_id"] is not None else {},
             "v": v, "tags": tags, "pattern": pattern, "meta_counts": meta_counts(tags),
+            "rec_from": {k: (cp.get("capture_time") or {}).get(k) or "" for k in ("source", "status")},
         })
     _rec_date_sources(rows)
     return rows, sorted(exif_keys, key=_exif_rank)
@@ -441,20 +442,38 @@ def build_rows(lib: Library) -> tuple[list[dict], list[str]]:
 _REC_DATE_COLS = ("date", "name_date", "file_date")  # what the recommendation reads: camera / name / file date
 
 
+_REC_SOURCE = (("metadata of ", "date"), ("file name ", "name_date"), ("file date of ", "file_date"))
+
+
 def _rec_date_sources(rows: list[dict]) -> None:
-    """Where each recommended date came from: the first cell, in this file and then in the other copies of the same
-    photo, whose value equals it (r["rec_src"] = {"rid", "key"}); none when the date was typed or edited."""
+    """Where each recommended date came from, as the recommendation recorded it ("metadata of IMG_1.JPG", "file name
+    …", "file date of …"): the copy with that name (this file first) whose cell holds the value →
+    r["rec_src"] = {"rid", "key"}, and r["rec_title"] says it in words. A typed (edited) date has no source cell."""
     by_capture: dict = defaultdict(list)
     for r in rows:
         if r["capture"] is not None:
             by_capture[r["capture"]].append(r)
+    names = {"date": "Date taken", "name_date": "Date from file name", "file_date": "File date"}
     for r in rows:
-        rec = r["v"].get("rec_date")
+        rec, frm = r["v"].get("rec_date"), r.get("rec_from") or {}
         if not rec or r["capture"] is None:
             continue
+        if frm.get("status") == "edited":
+            r["rec_title"] = f"{rec} · typed in step 3"
+            continue
+        label = frm.get("source") or ""
+        prefix, key = next(((p, k) for p, k in _REC_SOURCE if label.startswith(p)), ("", ""))
+        name = label[len(prefix):].removesuffix(" (date only)") if key else ""
         mates = [r] + [m for m in by_capture[r["capture"]] if m is not r]
-        r["rec_src"] = next(({"rid": m["id"], "key": k} for k in _REC_DATE_COLS for m in mates
-                             if str(m["v"].get(k) or "")[:19] == rec[:19]), None)
+        same = (lambda m: str(m["v"].get(key) or "")[:19] == rec[:19]) if key else (lambda m: False)
+        # the file's own cell of that kind when it holds the value (copies tie on identical data), else the named copy
+        src = r if same(r) else next((m for m in mates if name in (m["v"]["filename"], m["original_name"]) and same(m)), None)
+        if src is None:
+            r["rec_title"] = f"{rec} · {label}" if label else rec
+            continue
+        r["rec_src"] = {"rid": src["id"], "key": key}
+        who = "this file" if src is r else f"{src['v']['filename']}, another copy (in {src['v']['path']})"
+        r["rec_title"] = f"{rec} · from {names[key]} of {who}"
 
 
 def _readable_date(raw) -> str:

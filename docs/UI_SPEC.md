@@ -308,7 +308,10 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
   carries a yellow magic-wand badge (a guess from the name, not metadata), in the table and in the column picker.
   Fourth comes *Recommended date*, with the same yellow badge (worked out from all dates of the file and its copies,
   not read from one tag). Hovering or selecting a Recommended date cell outlines, in blue, the cell its value came
-  from (Date taken, Date from file name or File date of this file or of another copy of the photo).
+  from, and its tooltip says it in words: “from Date taken of this file”, or “… of IMG_0002.JPG, another copy (in
+  disk/Camera/DCIM)”, or “typed in step 3”. The source is the one the recommendation recorded (camera metadata, the
+  file name or the file date of a named copy); when the file's own cell of that kind holds the same value, it is
+  preferred.
 - **All dates shown by default:** every column of the *Dates* category (the built-in dates and every date tag found
   in the files) is ticked the first time it is offered; one that no file has a value in shows slim. The view keeps
   `dates_seen`, so a date the user unticks stays hidden and only newly found date tags are added (once).
