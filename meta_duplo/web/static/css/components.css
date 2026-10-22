@@ -608,7 +608,7 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .wbt td.wbt__tree.is-userref { color: var(--accent); font-size: var(--text-md); }
 
 /* ───────── naming-pattern dialog (Filename → Edit) ───────── */
-.modal__box--wide.namer { width: min(880px, 94vw); }
+.modal__box--wide.namer { width: min(1040px, 96vw); }
 .namer__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-200); }
 .namer__edit { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-025) 0; min-height: var(--control-h);
   padding: var(--space-050) var(--space-100); border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
@@ -637,13 +637,6 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .wbsheet button.namer__opt { flex-direction: row; justify-content: space-between; align-items: center; gap: var(--space-200); padding-top: 0; padding-bottom: 0; color: var(--edit-text); }
 .wbsheet button.namer__opt .pick__hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; font-family: var(--font-mono); }
 .namer__none { margin: var(--space-100); }
-.wbsheet.namer__presets { width: 304px; }
-.wbsheet > .namer__preset { display: flex; align-items: center; gap: var(--space-100); }
-.wbsheet .namer__presetname { flex: 1; font-weight: 600; }
-.namer__preset .linkbtn { display: inline; min-height: 0; padding: 0; margin-right: var(--space-100); }
-.wbsheet .namer__preset .linkbtn:hover { background: none; }
-.wbsheet .namer__del { color: var(--conflict); }
-.wbsheet .namer__save { color: var(--accent); font-weight: 600; border-top: 1px solid var(--line); border-radius: 0; margin-top: var(--space-050); }
 
 /* source links in edit columns: [🔗A] = where the new value comes from (a rule, a column, a cell, typed);
    hover: instant tooltip + highlight of that column / row; click: edit. The header counts the distinct sources. */
@@ -670,3 +663,34 @@ body:has(#job > .job:not(.job--failed)) { --job-h: var(--space-500); padding-top
 .histbtns { display: inline-flex; gap: var(--space-050); margin-right: var(--space-100); }
 .histbtns svg { width: var(--icon); height: var(--icon); }
 .histbtns .btn[disabled] { opacity: .4; cursor: default; }
+
+/* naming dialog: presets in a left sidebar */
+.namer__body { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: var(--space-300); min-height: 0; }
+.namer__main { display: grid; gap: var(--space-200); align-content: start; min-width: 0; }
+.namer__side { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-100); min-height: 0;
+  padding-right: var(--space-200); border-right: 1px solid var(--line); }
+.namer__sidehead { font-size: var(--text-sm); line-height: var(--line-sm); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.namer__presets { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-025); align-content: start; overflow-y: auto; max-height: 480px; }
+.namer__preset { position: relative; display: flex; align-items: center; border-radius: var(--radius-sm); }
+.namer__preset:hover { background: var(--surface-2); }
+.namer__preset.is-active { background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); }
+.namer__presetname { flex: 1; min-width: 0; display: grid; gap: 0; padding: var(--space-050) var(--space-100); border: 0; background: none;
+  text-align: left; color: var(--text); font: inherit; cursor: pointer; }
+.namer__pname { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.namer__preset.is-active .namer__pname { color: var(--accent); }
+.namer__mod { color: var(--edit-text); }
+.namer__ppat { font-family: var(--font-mono); font-size: var(--text-sm); line-height: var(--line-sm); color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.namer__pacts { display: flex; gap: var(--space-025); padding-right: var(--space-050); visibility: hidden; }
+.namer__preset:hover .namer__pacts, .namer__preset:focus-within .namer__pacts { visibility: visible; }
+.namer__pact { display: inline-grid; place-items: center; width: var(--control-h-sm); height: var(--control-h-sm); padding: 0; border: 0;
+  border-radius: var(--radius-sm); background: none; color: var(--muted); cursor: pointer; font-size: var(--text-md); }
+.namer__pact:hover { background: var(--line); color: var(--text); }
+.namer__pact--del:hover { color: var(--conflict); }
+.namer__rename { flex: 1; min-width: 0; margin: var(--space-025); }
+.namer__sidefoot { display: grid; gap: var(--space-100); }
+.namer__sidefoot .btn { justify-content: center; }
+.namer__update { color: var(--accent); border-color: var(--accent); }
+.namer__err { margin: 0; color: var(--conflict); }
+@media (max-width: 760px) { .namer__body { grid-template-columns: 1fr; } .namer__side { border-right: 0; padding-right: 0; } }
+.namer__edit .namer__text:focus, .namer__edit .namer__text:focus-visible { outline: 0; border: 0; box-shadow: none; }  /* the field shows focus */

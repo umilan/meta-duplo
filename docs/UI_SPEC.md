@@ -207,8 +207,12 @@ Applied filters: [Type: JPG ×] [Dup. confidence: ≥ 100 ×] [+]          Selec
     e.g. `EXIF:DateTimeOriginal`) and the values of the previewed (or first) file; the full new name shows below.
     A red warning shows while the name does not end with `.<Extension>`. Empty parts are tidied like an empty
     place; `{tag:KEY|%Y-%m-%d}` formats a date tag. Rename plans use the same values the table shows.
-    **Presets** (picker in the header): load, *Save this pattern as a preset…*, Rename, Delete; stored in the
-    library setting `name_presets`, with a built-in *Default* that can't be changed. *Apply* sets the rule and adds
+    **Presets** (left sidebar of the dialog, 240 px; stacked under 760 px): each shows its name and the pattern as
+    its chips read; a click loads it; the active one is marked (accent), with a purple • once the name was changed
+    since. Hover shows ✎ (rename inline; also double-click; Enter saves, Esc cancels) and × (delete, after a
+    confirm). At the bottom: *Update “name”* (only while the active saved preset is modified) and *+ Save as new
+    preset* (inline name field; names must be unique). Reopening the dialog marks the preset the current pattern
+    comes from. Stored in the library setting `name_presets`; the built-in *Default* can't be changed. *Apply* sets the rule and adds
     the New filename column.
   - **Date:** recommended value; copy from another column (taken, digitized, modified, file date, GPS date,
     date in filename, recommended); **shift** a date by ± h:m:s (wrong camera clock, time zone); fixed value.

@@ -528,7 +528,7 @@
     // "Add new parameter" inserts at the text cursor; Tech names / Preview; presets kept in the library.
     Alpine.data("namer", (labels = {}) => ({
       parts: [], mode: "tech", picking: -1, q: "", at: { i: 0, pos: 0 }, vals: {}, name: "", file: "",  // picking: the selected parameter (-1: none)
-      presets: [], preset: "",
+      presets: [], preset: "", loaded: "", renaming: null, renameTo: "", adding: false, newName: "", err: "",
       init() {
         window.addEventListener("wb-naming", () => this.start());
         this.$watch("parts", () => { clearTimeout(this.t); this.t = setTimeout(() => this.refresh(), 250); }, { deep: true });
@@ -542,9 +542,15 @@
       },
       start() {
         const current = document.querySelector("#wb-table")?.dataset.pattern || "";
-        this.parts = this.parse(current); this.preset = ""; this.mode = "tech"; this.picking = -1; this.q = ""; this.refresh();
+        this.parts = this.parse(current); this.mode = "tech"; this.picking = -1; this.q = ""; this.err = ""; this.adding = false;
+        this.loadPresets().then(() => {  // mark the preset this pattern comes from, if any
+          const p = this.presets.find((x) => x.pattern === current); this.preset = p ? p.name : ""; this.loaded = p ? p.pattern : "";
+        });
+        this.refresh();
       },
-      load(p) { this.parts = this.parse(p.pattern); this.preset = p.name; },
+      load(p) { this.parts = this.parse(p.pattern); this.preset = p.name; this.loaded = p.pattern; this.err = ""; },
+      activePreset() { return this.presets.find((p) => p.name === this.preset) || null; },
+      modified() { return !!this.preset && this.pattern() !== this.loaded; },
       // Tech names: a column tag by its key (EXIF:DateTimeOriginal, file_date…), a recommended value by its name
       techName(tok) {
         const tag = /^\{tag:(?:exif:)?([^|}]+)/.exec(tok);
@@ -552,6 +558,7 @@
         return labels[tok] ? `<${labels[tok]}>` : tok.slice(1, -1);  // unknown tokens as typed
       },
       label(tok) { return labels[tok] || tok; },
+      pretty(pattern) { return pattern.replace(/\{[^}]+\}/g, (t) => this.techName(t)); },  // a pattern as its chips read
       caret(i, ev) { this.at = { i, pos: ev.target.selectionStart ?? ev.target.value.length }; },
       focusEnd() { const ins = this.$el.querySelectorAll(".namer__text"); ins[ins.length - 1]?.focus(); },
       match(text) { const q = this.q.trim().toLowerCase(); return !q || q.split(/\s+/).every((w) => text.includes(w)); },
@@ -565,12 +572,12 @@
           this.parts.splice(idx, 1, { t: "text", v: p.v.slice(0, cut) }, { t: "tok", v: tok }, { t: "text", v: p.v.slice(cut) });
           this.at = { i: idx + 2, pos: 0 };  // the cursor moves after the new tag, so clicks add tags in order
         }
-        this.picking = -1; this.preset = "";
+        this.picking = -1;
       },
       removeTok() {
         const i = this.picking;
         const merged = { t: "text", v: (this.parts[i - 1]?.v || "") + (this.parts[i + 1]?.v || "") };
-        this.parts.splice(i - 1, 3, merged); this.picking = -1; this.preset = "";
+        this.parts.splice(i - 1, 3, merged); this.picking = -1;
       },
       refresh() {
         const body = new URLSearchParams({ pattern: this.pattern(), fid: String(Alpine.store("wb").active || "") });
@@ -582,20 +589,41 @@
         if (t) t.dataset.pattern = this.pattern();  // the table reloads inside this element, which stays
         postView({ action: "edit_set", target: "filename", pattern: this.pattern() }); this.close();
       },
+      // presets (left sidebar): stored in the library (setting name_presets); "Default" is built in
       presetCall(data) {
         return fetch("/wb/presets", { method: "POST", headers: { "X-Meta-Duplo-Token": token() }, body: new URLSearchParams(data) })
           .then((r) => r.json()).then((d) => { this.presets = d.presets; });
       },
-      loadPresets() { fetch("/wb/presets").then((r) => r.json()).then((d) => { this.presets = d.presets; }); },
-      savePreset() {
-        const name = window.prompt("Name of the preset:", this.preset || "");
-        if (name) this.presetCall({ action: "save", name, pattern: this.pattern() }).then(() => { this.preset = name.trim(); });
+      loadPresets() { return fetch("/wb/presets").then((r) => r.json()).then((d) => { this.presets = d.presets; }); },
+      nameError(name, except = "") {
+        if (!name) return "Give the preset a name.";
+        if (name !== except && this.presets.some((p) => p.name === name)) return `“${name}” exists already.`;
+        return "";
       },
-      renamePreset(p) {
-        const nn = window.prompt("New name:", p.name);
-        if (nn) this.presetCall({ action: "rename", name: p.name, new: nn });
+      startNew() { this.adding = true; this.newName = ""; this.err = ""; this.$nextTick(() => this.$refs.newname.focus()); },
+      saveNew() {
+        const name = this.newName.trim(); this.err = this.nameError(name);
+        if (this.err) return;
+        const pattern = this.pattern();
+        this.presetCall({ action: "save", name, pattern }).then(() => { this.preset = name; this.loaded = pattern; this.adding = false; });
       },
-      deletePreset(p) { if (window.confirm(`Delete the preset “${p.name}”?`)) this.presetCall({ action: "delete", name: p.name }); },
+      updatePreset() {
+        const pattern = this.pattern();
+        this.presetCall({ action: "save", name: this.preset, pattern }).then(() => { this.loaded = pattern; });
+      },
+      startRename(p) { this.renaming = p.name; this.renameTo = p.name; this.err = ""; },
+      finishRename(p) {
+        if (this.renaming !== p.name) return;  // Enter, then blur: only once
+        const nn = this.renameTo.trim(); this.renaming = null;
+        if (nn === p.name) return;
+        this.err = this.nameError(nn, p.name);
+        if (this.err) return;
+        this.presetCall({ action: "rename", name: p.name, new: nn }).then(() => { if (this.preset === p.name) this.preset = nn; });
+      },
+      deletePreset(p) {
+        if (!window.confirm(`Delete the preset “${p.name}”?`)) return;
+        this.presetCall({ action: "delete", name: p.name }).then(() => { if (this.preset === p.name) { this.preset = ""; this.loaded = ""; } });
+      },
     }));
 
     // Large viewer: the active file alone, or every copy of its duplicate set side by side.

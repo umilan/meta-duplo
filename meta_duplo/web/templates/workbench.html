@@ -240,24 +240,45 @@
          x-data='namer({{ name_labels|tojson }})'>
       <div class="colpick-head"><h3>Naming pattern</h3>
         <span class="colpick-head__tools">
-          <div class="pick pick--right" x-data="{ open: false }" @click.outside="open = false">
-            <button type="button" class="selectbtn" @click="open = !open; if (open) loadPresets()" x-text="preset ? 'Preset: ' + preset : 'Presets'">Presets</button>
-            <div class="wbsheet pick__sheet namer__presets" x-show="open" x-cloak>
-              <template x-for="p in presets" :key="p.name">
-                <div class="namer__preset">
-                  <button type="button" class="namer__presetname" @click="load(p); open = false" :title="p.pattern"
-                          x-text="p.name"></button>
-                  <template x-if="!p.builtin"><span>
-                    <button type="button" class="linkbtn" @click="renamePreset(p)">Rename</button>
-                    <button type="button" class="linkbtn namer__del" @click="deletePreset(p)">Delete</button></span></template>
-                </div>
-              </template>
-              <button type="button" class="namer__save" @click="savePreset(); open = false">+ Save this pattern as a preset…</button>
-            </div>
-          </div>
           <button type="button" class="btn btn--icon btn--small modal__close" @click="close()" aria-label="Close">×</button>
         </span>
       </div>
+      <div class="namer__body">
+      {# presets: saved naming rules; click loads, the active one is marked (• when the name was changed since) #}
+      <aside class="namer__side" aria-label="Presets">
+        <div class="namer__sidehead">Presets</div>
+        <ul class="namer__presets" role="list">
+          <template x-for="p in presets" :key="p.name">
+            <li class="namer__preset" :class="p.name === preset && 'is-active'">
+              <template x-if="renaming !== p.name">
+                <button type="button" class="namer__presetname" @click="load(p)" @dblclick="!p.builtin && startRename(p)" :title="p.pattern">
+                  <span class="namer__pname"><span x-text="p.name"></span><span class="namer__mod" x-show="p.name === preset && modified()" title="Changed since loaded"> •</span></span>
+                  <span class="namer__ppat" x-text="pretty(p.pattern)"></span>
+                </button>
+              </template>
+              <template x-if="renaming === p.name">
+                <input type="text" class="namer__rename" x-model="renameTo" x-init="$nextTick(() => $el.select())"
+                       @keydown.enter.prevent="finishRename(p)" @keydown.escape.stop="renaming = null" @blur="finishRename(p)" aria-label="Preset name">
+              </template>
+              <span class="namer__pacts" x-show="!p.builtin && renaming !== p.name">
+                <button type="button" class="namer__pact" @click="startRename(p)" title="Rename" aria-label="Rename">✎</button>
+                <button type="button" class="namer__pact namer__pact--del" @click="deletePreset(p)" title="Delete" aria-label="Delete">×</button>
+              </span>
+            </li>
+          </template>
+          <li class="namer__preset" x-show="adding">
+            <input type="text" class="namer__rename" x-model="newName" x-ref="newname" placeholder="Preset name"
+                   @keydown.enter.prevent="saveNew()" @keydown.escape.stop="adding = false" aria-label="New preset name">
+          </li>
+        </ul>
+        <div class="namer__sidefoot">
+          <button type="button" class="btn btn--small namer__update" x-show="activePreset() && !activePreset().builtin && modified()"
+                  @click="updatePreset()" x-text="'Update “' + preset + '”'"></button>
+          <button type="button" class="btn btn--small" @click="adding ? saveNew() : startNew()">+ Save as new preset</button>
+          <p class="small muted namer__err" x-show="err" x-text="err"></p>
+        </div>
+      </aside>
+      <div class="namer__main">
       <div class="namer__bar">
         <div class="themeswitch" role="radiogroup" aria-label="Show">
           <button type="button" role="radio" :aria-checked="(mode === 'tech').toString()" @click="mode = 'tech'">Tech names</button>
@@ -307,6 +328,8 @@
         </div>
       </div>
       <p class="small"><span class="muted" x-text="'Preview for ' + (file || 'the first file') + ':'"></span> <strong class="mono" x-text="name"></strong></p>
+      </div>
+      </div>
       <div class="modal__actions"><button type="button" class="btn" @click="close()">Cancel</button>
         <button type="button" class="btn btn--primary" @click="apply()">Apply</button></div>
     </div>
